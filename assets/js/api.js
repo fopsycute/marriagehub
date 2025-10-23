@@ -298,6 +298,73 @@ $(document).ready(function () {
 });
 
 
+// update booking
+
+
+$(document).ready(function () {
+    $('#editBookingForm').off('submit').on('submit', function (e) {
+        e.preventDefault();
+
+        const form = this;
+        const formData = new FormData(form);
+        const siteUrl = $('#siteurl').val();
+        const ajaxUrl = siteUrl + "script/admin.php";
+
+        $('#submitBtn').prop('disabled', true).text('Submitting...');
+        $('#messages').removeClass('alert alert-success alert-danger').hide();
+
+        $.ajax({
+            type: 'POST',
+            url: ajaxUrl,
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log("Response:", response);
+                if (response.status === 'success') {
+                    $('#messages')
+                        .addClass('alert alert-success')
+                        .html(response.messages)
+                        .fadeIn();
+
+                    form.reset();
+
+                    setTimeout(() => {
+                        alert(response.messages || "Forum post updated successfully!");
+                        location.reload();
+                    }, 1000);
+                } else {
+                    $('#messages')
+                        .addClass('alert alert-danger')
+                        .html(response.messages)
+                        .fadeIn();
+
+                    $('html, body').animate({
+                        scrollTop: $('#messages').offset().top - 100
+                    }, 600);
+                }
+            },
+            error: function (xhr) {
+                console.log("Raw Response:", xhr.responseText);
+                $('#messages')
+                    .addClass('alert alert-danger')
+                    .text('An error occurred while submitting. Please try again.')
+                    .fadeIn();
+
+                $('html, body').animate({
+                    scrollTop: $('#messages').offset().top - 100
+                }, 600);
+            },
+            complete: function () {
+                $('#submitBtn').prop('disabled', false).text('Submit Blog');
+            }
+        });
+    });
+});
+
+
+
 //edit group
 $(document).ready(function () {
     $('#admineditGroupForm').off('submit').on('submit', function (e) {

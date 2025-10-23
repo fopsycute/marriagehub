@@ -53,18 +53,19 @@ $paymentStatus = strtolower(trim($bookingdetail->payment_status ?? 'unknown'));
 }
 
 ?>
- <form method="POST" action="process_booking_update.php" id="editBookingForm">
+ <form method="POST" id="editBookingForm">
+      <div class="col-lg-12 text-center mt-1" id="messages"></div> 
     <!-- Client Info -->
     <div class="mb-3">
         <label class="form-label">Client Name</label>
         <input type="text" name="client_name" class="form-control"
                value="<?php echo  $client_name; ?>" readonly>
     </div>
-
+<input type="hidden" name="action" value="updatebooking">
     <div class="mb-3">
         <label class="form-label">Client Email</label>
         <input type="email" name="client_email" class="form-control"
-               value="<?php echo $client_email; ?>" required>
+               value="<?php echo $client_email; ?>" required  readonly>
     </div>
 
     <div class="mb-3">
@@ -130,7 +131,7 @@ $paymentStatus = strtolower(trim($bookingdetail->payment_status ?? 'unknown'));
     <input type="hidden" name="booking_id" value="<?php echo $bookingId; ?>">
 
     <div class="text-center">
-        <button type="submit" class="btn btn-primary px-5 py-2">Update Booking</button>
+        <button type="submit" class="btn btn-primary px-5 py-2"  id="submitBtn">Update Booking</button>
     </div>
 </form>
           </div>

@@ -1388,6 +1388,37 @@ function getallquestionbyslug($con, $slug)
     }
 }
 
+
+function updateBookingEndpoint($postData, $fileData)
+{
+    global $con, $siteprefix;
+
+    $bookingId      = intval($postData['booking_id'] ?? 0);
+    $booking_status = mysqli_real_escape_string($con, trim($postData['booking_status'] ?? ''));
+
+    // 🧠 Validate Booking ID
+    if ($bookingId <= 0) {
+        return ['status' => 'error', 'messages' => 'Invalid booking ID'];
+    }
+
+    // 🧠 Validate Status
+    if (empty($booking_status)) {
+        return ['status' => 'error', 'messages' => 'Booking status is required'];
+    }
+
+    // ✅ Update booking status only
+    $query = "
+        UPDATE {$siteprefix}bookings 
+        SET booking_status = '$booking_status'
+        WHERE id = '$bookingId'
+    ";
+
+    if (mysqli_query($con, $query)) {
+        return ['status' => 'success', 'messages' => 'Booking status updated successfully!'];
+    } else {
+        return ['status' => 'error', 'messages' => 'Database error: ' . mysqli_error($con)];
+    }
+}
 //update blog
 function updateBlogEndpoint($postData, $fileData)
 {
@@ -2219,6 +2250,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     
         if ($_POST['action'] == 'updateblog') {
        $response =  updateBlogEndpoint($_POST, $_FILES);
+        }
+
+ if ($_POST['action'] == 'updatebooking') {
+       $response =  updateBookingEndpoint($_POST, $_FILES);
         }
 
     if ($_POST['action'] == 'create_admingroup') {
