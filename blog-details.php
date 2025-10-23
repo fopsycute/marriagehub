@@ -386,7 +386,7 @@ if ($data !== false) {
               <div class="post-item">
                 <img src="<?php echo $blogimage; ?>" alt="" class="flex-shrink-0">
                 <div>
-                  <h4><a href="blog-details.html"><?php echo $title; ?></a></h4>
+                  <h4><a href="<?php echo  $siteurl . "blog-details.php?slug=" . $slug; ?>"><?php echo $title; ?></a></h4>
                   <time datetime="2020-01-01"><?php echo $date; ?> </time>
                 </div>
               </div><!-- End recent post item-->
