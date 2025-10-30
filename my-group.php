@@ -49,7 +49,7 @@ if ($data !== false) {
                 $role      = "Creator";
                 $status     = $group['status'];
                 $created   = htmlspecialchars($group['created_at']);
-                $viewLink  = $siteurl . "group.php?slug=" . $group['group_slug'];
+                $viewLink  = $siteurl . "group.php/" . $group['group_slug'];
 ?>
                 <tr>
                     <td><?php echo $sn++; ?></td>
@@ -84,7 +84,7 @@ if ($data !== false) {
                 $groupName = htmlspecialchars($group['group_name']);
                 $role      = $group['role'];
                 $joined    = htmlspecialchars($group['joined_at']);
-                $viewLink  = $siteurl . "group.php?slug=" . $group['group_slug'];
+                $viewLink  = $siteurl . "group.php/" . $group['group_slug'];
 ?>
                 <tr>
                     <td><?php echo $sn++; ?></td>
