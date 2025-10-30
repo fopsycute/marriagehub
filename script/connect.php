@@ -44,12 +44,10 @@ $sitecurrency="₦";
 $sitecurrencyCode="&#8358;";
 $documentPath='documents/';
 // $affiliateurl='https://learnora.affiliate.projectreporthub.ng/';
-$adminurl='https://admin.marriagehub.ng/';
+$adminurl='https://admin.marriagehub.ng/'; 
 /*
-$affiliateurl='https://affiliate.learnora.ng/';
-
 */
-
+ 
 $sql = "SELECT * from ".$siteprefix."site_settings";
 $sql2 = mysqli_query($con,$sql);
 while($row = mysqli_fetch_array($sql2))
