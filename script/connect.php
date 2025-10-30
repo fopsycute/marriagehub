@@ -37,14 +37,14 @@ $currentdate=date("Y-m-d");
 $currentdatetime=date("Y-m-d H:i:s");
 $imagePath='uploads/';
 $adminlink='admin/';
-$adminName='Learnora';
+$adminName='Marriagehub';
 $adminimagePath='../../uploads/';
 $admindocumentPath='../../documents/';
 $sitecurrency="₦";
 $sitecurrencyCode="&#8358;";
 $documentPath='documents/';
-$affiliateurl='https://learnora.affiliate.projectreporthub.ng/';
-$adminurl='https://learnora.admin.projectreporthub.ng/';
+// $affiliateurl='https://learnora.affiliate.projectreporthub.ng/';
+$adminurl='https://admin.marriagehub.ng/';
 /*
 $affiliateurl='https://affiliate.learnora.ng/';
 

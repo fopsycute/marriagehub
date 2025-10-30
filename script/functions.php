@@ -323,8 +323,8 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
                 $emailMessage
             </p>
             <p>Best regards,<br>
-            Learnora Team<br>
-            $siteMail | <a href='$siteurl' style='font-size:14px; font-weight:600; color:#F57C00;'>🌐 www.learnora.ng</a></p>
+            Marriage Hub Team<br>
+            $siteMail | <a href='$siteurl' style='font-size:14px; font-weight:600; color:#F57C00;'>🌐 www.marriagehub.ng</a></p>
         </div>
     ";
 
