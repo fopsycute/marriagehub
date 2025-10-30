@@ -302,20 +302,20 @@ if (!$canAccess) {
 
       <div>
         <?php if ($accessRole === 'memeber') {  ?>
-           <a href="<?php echo $siteurl; ?>add-group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+           <a href="<?php echo $siteurl; ?>add-group-blog.php/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog
-          </a>   <a href="<?php echo $siteurl; ?>group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+          </a>   <a href="<?php echo $siteurl; ?>group-blog.php/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> my Blog
           </a>
             <?php } ?>
         <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'subadmin') { ?>
-          <a href="<?php echo $siteurl; ?>create-group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+          <a href="<?php echo $siteurl; ?>create-group-blog.php/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog
-          </a>   <a href="<?php echo $siteurl; ?>all-group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+          </a>   <a href="<?php echo $siteurl; ?>all-group-blog.php/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> All Blog
           </a>
         <?php } ?>
-        <a href="<?php echo $siteurl; ?>group-blogs.php?slug=<?php echo $slug; ?>" class="btn btn-outline-primary btn-sm">
+        <a href="<?php echo $siteurl; ?>group-blogs.php/<?php echo $slug; ?>" class="btn btn-outline-primary btn-sm">
           <i class="bi bi-grid"></i> View All
         </a>
       </div>
@@ -358,7 +358,7 @@ if (!$canAccess) {
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                      $blogUrl = $siteurl . "single-blog.php?slug=" . $slug . "&group_id=" . $group_id;
+                      $blogUrl = $siteurl . "single-blog.php/" . $slug . "&group_id=" . $group_id;
                       ?>
                       <div class="col-lg-4 col-md-6">
                         <article class="position-relative h-100 shadow-sm rounded-4 overflow-hidden">
@@ -419,11 +419,11 @@ if (!$canAccess) {
 
       <div>
         <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'subadmin') { ?>
-          <a href="<?php echo $siteurl; ?>create-group-question.php?slug=<?php echo $group_slug; ?>" class="btn btn-primary btn-sm me-2">
+          <a href="<?php echo $siteurl; ?>create-group-question.php/<?php echo $group_slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Q & A
           </a>
         <?php } ?>
-        <a href="<?php echo $siteurl; ?>group-questions.php?slug=<?php echo $group_slug; ?>" class="btn btn-outline-primary btn-sm">
+        <a href="<?php echo $siteurl; ?>group-questions.php/<?php echo $group_slug; ?>" class="btn btn-outline-primary btn-sm">
           <i class="bi bi-grid"></i> View All
         </a>
       </div>
@@ -506,7 +506,7 @@ if (!$canAccess) {
               <span class="small text-secondary">
                 <i class="bi bi-person me-1"></i> <?php echo $q['author']; ?>
               </span>
-              <a href="group-single-questions.php?slug=<?php echo $q['slug']; ?>&group_id=<?php echo $group_id; ?>" class="text-primary fw-semibold small">
+              <a href="group-single-questions.php/<?php echo $q['slug']; ?>&group_id=<?php echo $group_id; ?>" class="text-primary fw-semibold small">
                 Read More <i class="bi bi-arrow-right"></i>
               </a>
             </div>
