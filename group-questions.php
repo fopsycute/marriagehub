@@ -107,7 +107,7 @@ if (isset($_GET['slug'])) {
                         cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '{$siteurl}group?slug={$groupSlug}';
+                            window.location.href = '{$siteurl}group/{$groupSlug}';
                         } else {
                             window.location.href = '{$siteurl}';
                         }
@@ -358,7 +358,7 @@ if (isset($_GET['slug'])) {
                               Asked by <?php echo $authorDisplay; ?> on <?php echo $date; ?>
                             </div>
 
-                            <a href="single-questions?slug=<?php echo $question->slug; ?>" class="btn-course mt-2">
+                            <a href="single-questions/<?php echo $question->slug; ?>" class="btn-course mt-2">
                               View Question
                             </a>
                           </div>

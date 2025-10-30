@@ -493,7 +493,7 @@ if (!$canAccess) {
             </div>
 
             <h5 class="fw-semibold mb-2">
-              <a href="single-questions?slug=<?php echo $q['slug']; ?>" class="text-dark text-decoration-none">
+              <a href="single-questions/<?php echo $q['slug']; ?>" class="text-dark text-decoration-none">
                 <?php echo $q['title']; ?>
               </a>
             </h5>

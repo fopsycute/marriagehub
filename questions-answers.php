@@ -238,7 +238,7 @@
                               Asked by <?php echo $authorDisplay; ?> on <?php echo $date; ?>
                             </div>
 
-                            <a href="single-questions?slug=<?php echo $question->slug; ?>" class="btn-course mt-2">
+                            <a href="single-questions/<?php echo $question->slug; ?>" class="btn-course mt-2">
                               View Question
                             </a>
                           </div>

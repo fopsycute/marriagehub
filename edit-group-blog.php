@@ -141,7 +141,7 @@ if (isset($_GET['blog_id'])) {
                         cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '{$siteurl}group?slug={$groupSlug}';
+                            window.location.href = '{$siteurl}group/{$groupSlug}';
                         } else {
                             window.location.href = '{$siteurl}';
                         }

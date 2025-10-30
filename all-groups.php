@@ -190,7 +190,7 @@ include "header.php";
                       <span class="level"><?php echo $category; ?></span>
                       <span class="duration"><?php echo $subcategory; ?></span>
                     </div>
-                    <h3><a href="group?slug=<?php echo $slug; ?>"><?php echo $title; ?></a></h3>
+                    <h3><a href="group/<?php echo $slug; ?>"><?php echo $title; ?></a></h3>
                     <p><?php echo $content; ?>...</p>
                     <div class="instructor">
                       <img src="<?php echo $photo; ?>" alt="Instructor" class="instructor-img">
@@ -198,7 +198,7 @@ include "header.php";
                         <h6><?php echo $author; ?></h6>
                       </div>
                     </div>
-                    <a href="group?slug=<?php echo $slug; ?>" class="btn-course">Join Group</a>
+                    <a href="group/<?php echo $slug; ?>" class="btn-course">Join Group</a>
                   </div>
                 </div>
               </div>

@@ -244,7 +244,7 @@
                 <span class="level"><?php echo $category; ?></span>
                 <span class="duration"><?php echo $subcategory; ?></span>
               </div>
-              <h3><a href="group?slug=<?php echo $slug; ?>"><?php echo $title; ?></a></h3>
+              <h3><a href="group/<?php echo $slug; ?>"><?php echo $title; ?></a></h3>
               <p><?php echo $content; ?>...</p>
               <div class="instructor">
                 <img src="<?php echo $photo; ?>" alt="Instructor" class="instructor-img">
@@ -253,7 +253,7 @@
                   <span>Admin</span>
                 </div>
               </div>
-              <a href="<?php echo $siteurl; ?>group?slug=<?php echo $slug; ?>" class="btn-course">Join Group</a>
+              <a href="<?php echo $siteurl; ?>group/<?php echo $slug; ?>" class="btn-course">Join Group</a>
             </div>
           </div>
         </div>
@@ -375,11 +375,11 @@
         </div>
 
         <h2 class="mb-2 fs-5 d-flex align-items-center justify-content-between">
-          <a href="<?php echo $siteurl; ?>single-questions?slug=<?php echo $q['slug']; ?>" 
+          <a href="<?php echo $siteurl; ?>single-questions/<?php echo $q['slug']; ?>" 
              class="text-dark text-decoration-none hover:text-primary flex-grow-1">
             <?php echo $q['title']; ?>
           </a>
-          <a href="<?php echo $siteurl; ?>single-questions?slug=<?php echo $q['slug']; ?>" 
+          <a href="<?php echo $siteurl; ?>single-questions/<?php echo $q['slug']; ?>" 
              class="text-primary ms-2">
             <i class="bi bi-arrow-right fs-5"></i>
           </a>
@@ -450,7 +450,7 @@ if (!empty($allUsers)):
         $professional_field = !empty($user->professional_field_names) ? trim(explode(',', $user->professional_field_names)[0]) : 'Uncategorized';
         $professional_title = !empty($user->professional_title_names) ? trim(explode(',', $user->professional_title_names)[0]) : 'General';
         $rate = !empty($user->rate) ? $user->rate : 0;
-        $link= $siteurl . "therapist.php?slug=" . $slug;
+        $link= $siteurl . "therapist.php/" . $slug;
 
         $photo = !empty($user->photo)
             ? $siteurl . $imagePath . $user->photo
