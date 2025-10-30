@@ -24,8 +24,8 @@ $db_name = "learnora_learnorastore";
 conne
 */
 
-
-$db_username = "marriage_marriage"; 
+   
+$db_username = "marriage_project"; 
 $db_pass = ")s2bF7dP]VB1w3"; 
 $db_name = "marriage_hub";
 
