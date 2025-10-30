@@ -125,4 +125,6 @@ if (isset($_GET['group_id'])) {
   </div>
 </div>
 
+
+
 <?php include "footer.php"; ?>

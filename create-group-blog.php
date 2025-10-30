@@ -1,5 +1,5 @@
 <?php 
-$requireLogin = true;
+
 include "header.php"; 
 
 if (isset($_GET['slug'])) {
@@ -51,14 +51,15 @@ if (isset($_GET['slug'])) {
             // ✅ Check login cookies
             $adminAuth  = $_COOKIE['admin_auth']  ?? '';
             $vendorAuth = $_COOKIE['vendor_auth'] ?? '';
+            $therapistAuth = $_COOKIE['therapist_auth'] ?? '';
             $userAuth   = $_COOKIE['user_auth']   ?? '';
 
             $canAccess = false;
 
             // ✅ If current user is group creator → allow access
-                if (
+                  if (
             ($adminAuth) || 
-            ($vendorAuth == $groupCreatorId) || 
+            ($vendorAuth == $groupCreatorId) || ($therapistAuth == $groupCreatorId) ||
             ($userAuth == $groupCreatorId)
             ) {
                 // ✅ CASE 1: Admin — always has access
@@ -73,12 +74,16 @@ if (isset($_GET['slug'])) {
                 elseif ($userAuth == $groupCreatorId) {
                     $buyerId = $userAuth;
                 }
+                
+                elseif ($therapistAuth == $groupCreatorId) {
+                    $buyerId = $therapistAuth;
+                }
 
                 $activeLog = 1;
                 $canAccess = true;
             } else {
                 // ✅ Otherwise, check if user is a group member
-                $activeUserId = $adminAuth ?: ($vendorAuth ?: $userAuth);
+               $activeUserId = $adminAuth ?: ($vendorAuth ?: ($userAuth ?: $therapistAuth));
                 if (!empty($activeUserId) && !empty($group_id)) {
                     $checkMemberUrl = $sitelink . "admin.php?action=checkuserMember&group_id={$group_id}&user_id={$activeUserId}";
                     $memberData = curl_get_contents($checkMemberUrl);
@@ -196,6 +201,19 @@ if (isset($_GET['slug'])) {
               <label for="blogTags">Tags</label>
               <input type="text"name="tags" id="tags" class="form-control" placeholder="Add tags (comma separated)">
             </div>
+
+
+         
+            <div class="form-group mb-2">
+              <label for="status">Status</label>
+             <select name="status" class="form-control" required>
+              <option> Select Status</option>
+              <option value="active"> Published</option>
+               <option value="pending"> pending</option>
+            </select>
+            </div>
+
+      
             <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
               <input type="hidden" name="user" value="<?php echo $buyerId; ?>">
               <div class="form-group">

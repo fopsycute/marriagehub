@@ -4,11 +4,14 @@ session_start(); ob_start();
 
 error_reporting(E_ALL); ini_set('display_errors', 1); ini_set('log_errors', 1);
 
-
+   
 $db_host = "localhost"; 
 
 /*
-
+   
+$db_username = "root"; 
+$db_pass = ""; 
+$db_name = "marriage_hub_ng";
 $db_username = "root"; 
 $db_pass = ""; 
 $db_name = "learnora";
@@ -18,14 +21,13 @@ $db_name = "projectr_learn";
 $db_username = "learnora_learn"; 
 $db_pass = "7Ums6HDNrg)03*"; 
 $db_name = "learnora_learnorastore";
-
+conne
 */
 
 
-$db_username = "root"; 
-$db_pass = ""; 
-$db_name = "marriage_hub_ng";
-
+$db_username = "marriage_marriage"; 
+$db_pass = ")s2bF7dP]VB1w3"; 
+$db_name = "marriage_hub";
 
 $con = mysqli_connect ("$db_host","$db_username","$db_pass","$db_name");
 mysqli_query($con, "SET time_zone = '+01:00'"); // Africa/Lagos

@@ -166,6 +166,34 @@ function registerVendorEndpoint($postData, $filesData) {
     $password = $_POST['password'];
     $retypePassword = $_POST['retypePassword'];
     $passwordhash=hashPassword($password);
+
+        // Combine first and last name
+$fullName = trim($firstName . ' ' . $lastName);
+
+// Replace spaces with hyphens and convert to lowercase
+$baseSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $fullName), '-'));
+
+// Start with the cleaned slug
+$alt_title = $baseSlug;
+$counter = 1;
+
+// Ensure the alt_title is unique
+while (true) {
+    $query = "SELECT COUNT(*) AS count FROM " . $siteprefix . "forums WHERE slug = ?";
+    $stmt = $con->prepare($query);
+    $stmt->bind_param("s", $alt_title);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if ($row['count'] == 0) {
+        break; // alt_title is unique
+    }
+
+    // Append counter to baseSlug if not unique
+    $alt_title = $baseSlug . '-' . $counter;
+    $counter++;
+}
 // Handle multiple categories
     $categoryId = '';
     if (isset($postData['category']) && is_array($postData['category'])) {
@@ -255,14 +283,14 @@ if (strlen($password) < 8 ||
              phone, website, email, state_residence, address,
              facebook, twitter, instagram, linkedin,
              category_id, subcategory_id, services, experience_years,
-             coverage, onsite, availability, consent, status, user_type, subscription_status,password)
+             coverage, onsite, availability, consent, status, user_type, subscription_status,password,slug)
             VALUES
             ('$title', '$firstName', '$middleName', '$lastName', '$photoFile', '$dob', '$gender', '$nationality', '$languages',
              '$businessName', '$registeredBusiness', '$ownerName', '$logoFile', '$portfolioCSV',
              '$phone', '$website', '$email', '$stateResidence', '$address',
              '$facebook', '$twitter', '$instagram', '$linkedin',
              '$categoryId', '$subcategoryId', '$services', '$experience',
-             '$coverage', '$onsite', '$availability', '$consent', 'pending','$user_type', 'inactive','$passwordhash')";
+             '$coverage', '$onsite', '$availability', '$consent', 'pending','$user_type', 'inactive','$passwordhash','$alt_title')";
 
    if (mysqli_query($con, $sql)) {
     // Get the last inserted user ID
@@ -608,25 +636,68 @@ function verified($con, $userId, $token) {
     $response = ['status' => 'error', 'messages' => ''];
 
     if ($userId && $token) {
-        // Escape inputs to avoid SQL injection
+        // Escape inputs
         $userId = mysqli_real_escape_string($con, $userId);
         $token  = mysqli_real_escape_string($con, $token);
 
-        $sql = "SELECT * FROM {$siteprefix}email_verifications WHERE user_id = '$userId' AND token = '$token' AND verified = 0 LIMIT 1";
+        // Find pending verification
+        $sql = "SELECT * FROM {$siteprefix}email_verifications 
+                WHERE user_id = '$userId' AND token = '$token' AND verified = 0 
+                LIMIT 1";
         $result = mysqli_query($con, $sql);
 
         if ($row = mysqli_fetch_assoc($result)) {
             if (strtotime($row['expires_at']) >= time()) {
-                // Mark verification as used
-                mysqli_query($con, "UPDATE {$siteprefix}email_verifications SET verified = 1 WHERE id = '{$row['id']}'");
 
-                // Update user status
-                mysqli_query($con, "UPDATE {$siteprefix}users SET is_verified = 1, is_active = 1, status='active', verification_token = NULL WHERE id = '$userId'");
+                // ✅ Mark verification as used
+                mysqli_query($con, "UPDATE {$siteprefix}email_verifications 
+                                    SET verified = 1 
+                                    WHERE id = '{$row['id']}'");
 
-                $response = [
-                    'status' => 'success',
-                    'messages' => 'Email verified successfully! You can now log in.'
-                ];
+                // ✅ Fetch user type and slug
+                $userQuery = mysqli_query($con, "SELECT user_type, slug FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
+                $user = mysqli_fetch_assoc($userQuery);
+                $userType = strtolower(trim($user['user_type'] ?? ''));
+                $userSlug = trim($user['slug'] ?? '');
+
+                if ($userType === 'vendor') {
+                    // ✅ Vendor-specific actions
+                    mysqli_query($con, "
+                        UPDATE {$siteprefix}users 
+                        SET 
+                            is_verified = 1,
+                            is_active = 1,
+                            status = 'free',
+                            verification_token = '',
+                            subscription_plan_id = 1,
+                            subscription_status = 'active'
+                        WHERE id = '$userId'
+                    ");
+
+                    $response = [
+                        'status' => 'success',
+                        'messages' => 'Email verified successfully! You have been placed on the Free plan.',
+                        'redirect' => 'vendor-pricing?slug=' . $userSlug
+                    ];
+                } else {
+                    // ✅ Non-vendor users
+                    mysqli_query($con, "
+                        UPDATE {$siteprefix}users 
+                        SET 
+                            is_verified = 1,
+                            is_active = 1,
+                            status = 'active',
+                            verification_token = NULL
+                        WHERE id = '$userId'
+                    ");
+
+                    $response = [
+                        'status' => 'success',
+                        'messages' => 'Email verified successfully! You can now log in.',
+                        'redirect' => 'login.php'
+                    ];
+                }
+
             } else {
                 $response['messages'] = 'Verification link has expired.';
             }
@@ -639,6 +710,7 @@ function verified($con, $userId, $token) {
 
     return $response;
 }
+
 
 function ResetLink($postData, $siteName, $siteMail){   
     global $con, $siteprefix, $siteurl;

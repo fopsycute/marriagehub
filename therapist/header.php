@@ -7,7 +7,7 @@ $activeLog = 0; // 0 = guest, 1 = logged-in buyer
 $userType = "therapist"; // specify this header is for buyer
 
 // Check if buyer is logged in via cookie
-$authentication = $_COOKIE['vendor_auth'] ?? '';
+$authentication = $_COOKIE['therapist_auth'] ?? '';
 
 if ($authentication) {
     // Fetch buyer data from API or DB

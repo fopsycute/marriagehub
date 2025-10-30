@@ -116,6 +116,7 @@ function groupforumEndpoint($postData, $fileData)
     $title         = mysqli_real_escape_string($con, trim($postData['title'] ?? ''));
     $article       = mysqli_real_escape_string($con, trim($postData['article'] ?? ''));
     $tags          = mysqli_real_escape_string($con, trim($postData['tags'] ?? ''));
+    $status         = mysqli_real_escape_string($con, trim($postData['status'] ?? ''));
     $user          = intval($postData['user'] ?? 0);
     $group_id      = $postData['group_id'];
     $categories    = isset($postData['category']) && is_array($postData['category']) ? implode(',', $postData['category']) : '';
@@ -189,7 +190,7 @@ while (true) {
     // Insert into DB
     $query = "
         INSERT INTO {$siteprefix}forums 
-        (user_id, title, article, featured_image, tags, categories, subcategories, group_id, created_at,slug)
+        (user_id, title, article, featured_image, tags, categories, subcategories, group_id, created_at,slug,status)
         VALUES (
             '$user',
             '$title',
@@ -199,7 +200,7 @@ while (true) {
             '$categories',
             '$subcategories',
             '$group_id',
-            NOW(),'$alt_title'
+            NOW(),'$alt_title','$status'
         )
     ";
 
@@ -224,7 +225,9 @@ function usereventsEndpoint($postData, $fileData)
     $delivery_format = mysqli_real_escape_string($con, trim($postData['delivery_format'] ?? ''));
     $pricing_type    = mysqli_real_escape_string($con, trim($postData['pricing_type'] ?? ''));
     $status          = mysqli_real_escape_string($con, trim($postData['status'] ?? 'active'));
+    $event_id         = mysqli_real_escape_string($con, trim($postData['event_id']));
     $user_id         = intval($postData['user'] ?? 0);
+    
 
     $target_audience = isset($postData['target_audience']) && is_array($postData['target_audience'])
         ? implode(',', $postData['target_audience'])
@@ -254,7 +257,7 @@ function usereventsEndpoint($postData, $fileData)
     $dupCheck = mysqli_query($con, "
         SELECT id FROM {$siteprefix}events 
         WHERE user_id = '$user_id' 
-        AND title = '$title' 
+        AND event_id = '$event_id' 
         AND created_at >= (NOW() - INTERVAL 10 SECOND)
         LIMIT 1
     ");
@@ -306,9 +309,12 @@ if (!empty($imageList)) {
         }
     }
 
-        // -------------------------------------------------------
-    // 🎥 Delivery Format: Video/Text
-    // -------------------------------------------------------
+    //delivery format handling
+$physical_address = $physical_state = $physical_lga = $physical_country = '';
+$foreign_address = '';
+$web_address = '';
+$hybrid_physical_address = $hybrid_web_address = $hybrid_state = $hybrid_lga = $hybrid_country = $hybrid_foreign_address = '';
+$is_foreign = 0;
      
 //delivery format handling
     if ($delivery_format === 'physical') {
@@ -317,8 +323,10 @@ if (!empty($imageList)) {
         $physical_state = mysqli_real_escape_string($con, $_POST['state']);
         $physical_lga = mysqli_real_escape_string($con, $_POST['lga']);
         $physical_country = 'Nigeria';
+          $is_foreign = 0;
     } elseif ($_POST['physicalLocationType'] === 'foreign') {
         $foreign_address = mysqli_real_escape_string($con, $_POST['foreign_address']);
+        $is_foreign = 1;
     }
 
     } elseif ($delivery_format === 'online') {
@@ -405,21 +413,74 @@ if (!empty($imageList)) {
             $stmt->close();
         }
     }
-    // ✅ Insert Event First
-    $stmt = $con->prepare("
-        INSERT INTO {$siteprefix}events
-        (user_id, title, description, event_type, target_audience, delivery_format, pricing_type, slug, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-    $stmt->bind_param("issssssss", $user_id, $title, $description, $event_type, $target_audience, $delivery_format, $pricing_type, $slug, $status);
-    $stmt->execute();
-    $event_id = $stmt->insert_id;
-    $stmt->close();
+// ✅ Insert Event First
+$stmt = $con->prepare("
+    INSERT INTO {$siteprefix}events
+    (
+        event_id,
+        user_id,
+        title,
+        description,
+        categories,
+        subcategories,
+        event_type,
+        target_audience,
+        delivery_format,
+        pricing_type,
+        address,
+        state,
+        is_foreign,
+        lga,
+        country,
+        online_link,
+        hybrid_physical_address,
+        hybrid_web_address,
+        hybrid_state,
+        hybrid_lga,
+        hybrid_country,
+        hybrid_foreign_address,
+        slug,
+        status,
+        created_at
+    ) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?, ?, ?, ?, ?, ?, ?, ?, NOW())
+");
 
+$stmt->bind_param(
+    "ssssssssssssssssssssss", // ✅ 22 's' characters
+    $event_id,
+    $user_id,
+    $title,
+    $description,
+    $category,
+    $subcategory,
+    $event_type,
+    $target_audience,
+    $delivery_format,
+    $pricing_type,
+    $physical_address,
+    $physical_state,
+    $is_foreign,
+    $physical_lga,
+    $physical_country,
+    $web_address,
+    $hybrid_physical_address,
+    $hybrid_web_address,
+    $hybrid_state,
+    $hybrid_lga,
+    $hybrid_country,
+    $hybrid_foreign_address,
+    $slug,
+    $status
+);
 
-   
+$stmt->execute();
+$stmt->close();
 
-    return ['status' => 'success', 'messages' => "Event created successfully!"];
+return [
+    'status' => 'success',
+    'messages' => 'Event created successfully!'
+];
 }
 
 function getalluser($con)
@@ -2103,6 +2164,24 @@ foreach ($videoList as $fileName) {
     }
 }
 
+function getallsubscriptions($con)
+{
+    global $siteprefix;
+
+    $query = "SELECT * FROM {$siteprefix}subscriptions ORDER BY price ASC";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $subscriptions = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subscriptions[] = $row;
+        }
+        return $subscriptions;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
 
 function addViews($con, $slug) {  
     global $siteprefix;
@@ -2157,6 +2236,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'groupuserstatus') {
 if ($_GET['action'] == 'questionlists') {
               $response = getallquestions($con);} 
 
+    if ($_GET['action'] == 'subscriptionlists') {
+    $response = getallsubscriptions($con);
+}
       if ($_GET['action'] == 'bloglists') {
               $response = getallblog($con);}
               

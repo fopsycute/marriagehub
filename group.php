@@ -6,6 +6,7 @@
 
 $adminAuth  = $_COOKIE['admin_auth']  ?? '';
 $vendorAuth = $_COOKIE['vendor_auth'] ?? '';
+$therapistAuth = $_COOKIE['therapist_auth'] ?? '';
 $userAuth   = $_COOKIE['user_auth']   ?? '';
 
 $canAccess  = false;
@@ -76,7 +77,7 @@ if ($status !== 'active') {
 // ✅ CASE 1: Group creator (any role type)
 if (
     ($adminAuth) ||
-    ($vendorAuth == $groupCreatorId) ||
+    ($vendorAuth == $groupCreatorId) ||  ($therapistAuth == $groupCreatorId) ||
     ($userAuth   == $groupCreatorId)
 ) {
     $canAccess = true;
@@ -300,6 +301,13 @@ if (!$canAccess) {
       <h4 class="mb-0">Group Blog</h4>
 
       <div>
+        <?php if ($accessRole === 'memeber') {  ?>
+           <a href="<?php echo $siteurl; ?>add-group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+            <i class="bi bi-pencil-square"></i> Create Blog
+          </a>   <a href="<?php echo $siteurl; ?>group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+            <i class="bi bi-pencil-square"></i> my Blog
+          </a>
+            <?php } ?>
         <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'subadmin') { ?>
           <a href="<?php echo $siteurl; ?>create-group-blog.php?slug=<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog

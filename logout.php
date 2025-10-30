@@ -13,7 +13,7 @@ if ($responseData !== false) {
     $data = json_decode($responseData, true);
 
     // --- Clear authentication cookies ---
-    $cookies = ['admin_auth', 'vendor_auth', 'user_auth', 'authentication'];
+    $cookies = ['admin_auth', 'vendor_auth','therapist_auth', 'user_auth', 'authentication'];
     foreach ($cookies as $cookie) {
         setcookie($cookie, '', time() - 3600, '/');
         unset($_COOKIE[$cookie]);

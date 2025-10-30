@@ -48,6 +48,7 @@ if (isset($_GET['slug'])) {
             // ✅ Check login cookies
             $adminAuth  = $_COOKIE['admin_auth']  ?? '';
             $vendorAuth = $_COOKIE['vendor_auth'] ?? '';
+            $therapistAuth = $_COOKIE['therapist_auth'] ?? '';
             $userAuth   = $_COOKIE['user_auth']   ?? '';
 
             $canAccess = false;
@@ -55,7 +56,7 @@ if (isset($_GET['slug'])) {
             // ✅ If current user is group creator → allow access
                 if (
             ($adminAuth) || 
-            ($vendorAuth == $groupCreatorId) || 
+            ($vendorAuth == $groupCreatorId) || ($therapistAuth == $groupCreatorId) || 
             ($userAuth == $groupCreatorId)
             ) {
                 // ✅ CASE 1: Admin — always has access
@@ -71,11 +72,15 @@ if (isset($_GET['slug'])) {
                     $buyerId = $userAuth;
                 }
 
+                  elseif ($therapistAuth == $groupCreatorId) {
+                    $buyerId = $therapistAuth;
+                }
+
                 $activeLog = 1;
                 $canAccess = true;
             } else {
                 // ✅ Otherwise, check if user is a group member
-                $activeUserId = $adminAuth ?: ($vendorAuth ?: $userAuth);
+               $activeUserId = $adminAuth ?: ($vendorAuth ?: ($userAuth ?: $therapistAuth));
                 if (!empty($activeUserId) && !empty($group_id)) {
                     $checkMemberUrl = $sitelink . "admin.php?action=checkuserMember&group_id={$group_id}&user_id={$activeUserId}";
                     $memberData = curl_get_contents($checkMemberUrl);

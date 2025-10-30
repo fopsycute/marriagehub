@@ -2450,6 +2450,251 @@ section,
 
 
 /*--------------------------------------------------------------
+# Pricing Section
+--------------------------------------------------------------*/
+.pricing .pricing-toggle {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.pricing .pricing-toggle span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--default-color), transparent 30%);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.pricing .pricing-toggle span.active {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.pricing .pricing-toggle span .badge {
+  background-color: color-mix(in srgb, #4CAF50, transparent 70%);
+  color: #4CAF50;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  margin-left: 0.5rem;
+}
+
+.pricing .pricing-toggle .form-check-input {
+  width: 3rem;
+  height: 1.5rem;
+  background-color: color-mix(in srgb, var(--accent-color), transparent 70%);
+  border: none;
+  cursor: pointer;
+}
+
+.pricing .pricing-toggle .form-check-input:checked {
+  background-color: var(--accent-color);
+}
+
+.pricing .pricing-toggle .form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--accent-color), transparent 70%);
+  border-color: transparent;
+}
+
+.pricing .pricing-item {
+  background-color: var(--surface-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  height: 100%;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+}
+
+.pricing .pricing-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.pricing .pricing-item.popular {
+  border-color: var(--accent-color);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--accent-color), transparent 85%);
+}
+
+.pricing .pricing-item.popular .popular-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: color-mix(in srgb, #9C27B0, transparent 80%);
+  color: #9C27B0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+}
+
+.pricing .pricing-item .pricing-header {
+  margin-bottom: 1.5rem;
+}
+
+.pricing .pricing-item .pricing-header .pricing-category {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color);
+}
+
+.pricing .pricing-item .pricing-header .price-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.pricing .pricing-item .pricing-header .price-wrap .price {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  margin-bottom: 0;
+}
+
+.pricing .pricing-item .pricing-header .price-wrap .price sup {
+  font-size: 1.25rem;
+  position: relative;
+  top: -0.75rem;
+}
+
+.pricing .pricing-item .pricing-header .price-wrap .price span {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--default-color), transparent 40%);
+}
+
+.pricing .pricing-item .pricing-header .price-wrap .yearly {
+  display: none;
+}
+
+.pricing .pricing-item .pricing-header .pricing-description {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--default-color), transparent 30%);
+  margin-bottom: 0;
+}
+
+.pricing .pricing-item.yearly-active .pricing-header .price-wrap .monthly {
+  display: none;
+}
+
+.pricing .pricing-item.yearly-active .pricing-header .price-wrap .yearly {
+  display: block;
+}
+
+.pricing .pricing-cta {
+  margin-bottom: 1.5rem;
+}
+
+.pricing .pricing-cta .btn-primary {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--contrast-color);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.pricing .pricing-cta .btn-primary:hover {
+  background-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+  border-color: color-mix(in srgb, var(--accent-color), transparent 15%);
+}
+
+.pricing .pricing-features {
+  flex-grow: 1;
+}
+
+.pricing .pricing-features h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--heading-color);
+}
+
+.pricing .pricing-features .feature-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.pricing .pricing-features .feature-list li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--default-color);
+}
+
+.pricing .pricing-features .feature-list li i {
+  color: var(--accent-color);
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.pricing .pricing-features .feature-list li .feature-highlight {
+  color: #9C27B0;
+  font-weight: 600;
+}
+
+.pricing.yearly-active .pricing-toggle .monthly {
+  color: color-mix(in srgb, var(--default-color), transparent 30%);
+  font-weight: 500;
+}
+
+.pricing.yearly-active .pricing-toggle .yearly {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.pricing.yearly-active .pricing-item .price-wrap .monthly {
+  display: none;
+}
+
+.pricing.yearly-active .pricing-item .price-wrap .yearly {
+  display: block;
+}
+
+@media (max-width: 992px) {
+  .pricing .pricing-item {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing .row.gy-4>[class*=col-] {
+    margin-bottom: 2rem;
+  }
+
+  .pricing .pricing-item {
+    padding: 1.5rem;
+  }
+
+  .pricing .pricing-header .price-wrap .price {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .pricing .pricing-toggle {
+    flex-direction: column;
+  }
+
+  .pricing .pricing-toggle .form-check {
+    margin: 1rem 0;
+  }
+
+  .pricing .pricing-toggle span .badge {
+    display: block;
+    margin: 0.5rem auto 0;
+    width: fit-content;
+  }
+}
+
+
+/*--------------------------------------------------------------
 # Terms Of Service Section
 --------------------------------------------------------------*/
 .terms-of-service .tos-header {

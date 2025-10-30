@@ -14,9 +14,13 @@ $authentication = $_COOKIE['user_auth'] ?? '';
 
 if (!empty($_COOKIE['admin_auth'])) {
   $dashboardUrl = $siteurl . 'admin/index.php';
-} elseif (!empty($_COOKIE['vendor_auth'])) {
+} elseif (!empty($_COOKIE['therapist_auth'])) {
   $dashboardUrl = $siteurl . 'therapist/index.php';
-} elseif (!empty($_COOKIE['user_auth'])) {
+} 
+elseif (!empty($_COOKIE['vendor_auth'])) {
+  $dashboardUrl = $siteurl . 'vendor/index.php';
+}
+elseif (!empty($_COOKIE['user_auth'])) {
   $dashboardUrl = $siteurl . 'dashboard.php';
 } else {
   $dashboardUrl = $siteurl . 'login';

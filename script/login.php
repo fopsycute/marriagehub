@@ -47,13 +47,15 @@ function loginEndpoint($postData) {
     $userId = $row['id'];
     $cookieName = match ($userType) {
         'admin' => 'admin_auth',
-        'therapist' => 'vendor_auth',
+        'vendor' => 'vendor_auth',
+        'therapist' => 'therapist_auth',
         default => 'user_auth',
     };
 
     // Clear other cookies (avoid conflicts)
     setcookie('admin_auth', '', time() - 3600, '/');
     setcookie('vendor_auth', '', time() - 3600, '/');
+    setcookie('therapist_auth', '', time() - 3600, '/');
     setcookie('user_auth', '', time() - 3600, '/');
 
     setcookie($cookieName, $userId, time() + (86400 * 360), "/");
@@ -61,6 +63,7 @@ function loginEndpoint($postData) {
     // Redirect map
     $redirectMap = [
         'admin' => "admin/",
+        'vendor' => "vendor/",
         'therapist' => "therapist/",
         'buyer' => "dashboard.php"
     ];
@@ -81,7 +84,7 @@ function loginEndpoint($postData) {
 
 function logoutEndpoint() {
     // Clear authentication cookies
-    $cookies = ['admin_auth', 'vendor_auth', 'user_auth', 'authentication'];
+    $cookies = ['admin_auth', 'vendor_auth', 'therapist_auth','user_auth', 'authentication'];
     foreach ($cookies as $cookie) {
         setcookie($cookie, '', time() - 3600, '/');
         unset($_COOKIE[$cookie]);

@@ -250,13 +250,18 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-document.querySelector('input[name="preferred_time"]').addEventListener('change', function() {
-  const min = this.min;
-  const max = this.max;
-  const val = this.value;
-  if (val < min || val > max) {
-    alert(`Please select a time between ${min} and ${max}`);
-    this.value = '';
+document.addEventListener('DOMContentLoaded', function() {
+  const preferredTime = document.querySelector('input[name="preferred_time"]');
+  if (preferredTime) {
+    preferredTime.addEventListener('change', function() {
+      const min = this.min;
+      const max = this.max;
+      const val = this.value;
+      if (val < min || val > max) {
+        alert(`Please select a time between ${min} and ${max}`);
+        this.value = '';
+      }
+    });
   }
 });
 
@@ -299,75 +304,34 @@ document.addEventListener('DOMContentLoaded', function() {
   const qualificationSelect = document.getElementById('highest_qualification');
   const otherField = document.getElementById('otherQualificationField');
 
+  if (!qualificationSelect || !otherField) return; // stop if missing
+
   qualificationSelect.addEventListener('change', function() {
+    const input = otherField.querySelector('input');
     if (this.value === 'Other') {
       otherField.style.display = 'block';
-      otherField.querySelector('input').required = true;
+      input.required = true;
     } else {
       otherField.style.display = 'none';
-      otherField.querySelector('input').required = false;
-      otherField.querySelector('input').value = '';
+      input.required = false;
+      input.value = '';
     }
   });
 });
 
 
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.payButton').forEach(button => {
-        button.addEventListener('click', function () {
-            const groupId = this.getAttribute('data-group-id');
-            const amount = this.getAttribute('data-amount');
-            const groupName = this.getAttribute('data-group-name');
-            const userId = this.getAttribute('data-user-id');
-            const email = this.getAttribute('data-email');
-            const duration = this.getAttribute('data-duration');
-            const key = document.getElementById('paystack-key').value;
-            const siteUrl = document.getElementById('siteurl').value;
-
-            let handler = PaystackPop.setup({
-                key: key,
-                email: email,
-                amount: amount * 100, // convert to kobo
-                currency: "NGN",
-                ref: 'GROUP' + Math.floor(Math.random() * 1000000000 + 1),
-                metadata: {
-                    custom_fields: [
-                        { display_name: "Group Name", variable_name: "group_name", value: groupName },
-                        { display_name: "Duration", variable_name: "duration", value: duration },
-                        { display_name: "User ID", variable_name: "user_id", value: userId },
-                        { display_name: "Group ID", variable_name: "group_id", value: groupId }
-                    ]
-                },
-                onClose: function() {
-                    alert('Payment window closed.');
-                },
-                callback: function(response) {
-                    // ✅ Redirect to verification page with ALL data
-                    const queryString = new URLSearchParams({
-                        action: 'verify-group-payment',
-                        reference: response.reference,
-                        group_id: groupId,
-                        group_name: groupName,
-                        duration: duration,
-                        user_id: userId,
-                        amount: amount
-                    }).toString();
-
-                    window.location.href = `${siteUrl}verify-payment.php?${queryString}`;
-                }
-            });
-            handler.openIframe();
-        });
-    });
-});
 
 
 document.addEventListener("DOMContentLoaded", function() {
   const select = document.getElementById("workWith");
   const otherInput = document.getElementById("otherWorkInput");
 
+  // Stop here if elements are missing
+  if (!select || !otherInput) return;
+
   select.addEventListener("change", function() {
     const values = Array.from(select.selectedOptions).map(opt => opt.value);
+
     if (values.includes("Other")) {
       otherInput.style.display = "block";
       otherInput.required = true;
@@ -378,6 +342,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1256,4 +1221,51 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
- 
+ document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.payButton').forEach(button => {
+        button.addEventListener('click', function () {
+            const groupId = this.getAttribute('data-group-id');
+            const amount = this.getAttribute('data-amount');
+            const groupName = this.getAttribute('data-group-name');
+            const userId = this.getAttribute('data-user-id');
+            const email = this.getAttribute('data-email');
+            const duration = this.getAttribute('data-duration');
+            const key = document.getElementById('paystack-key').value;
+            const siteUrl = document.getElementById('siteurl').value;
+
+            let handler = PaystackPop.setup({
+                key: key,
+                email: email,
+                amount: amount * 100, // convert to kobo
+                currency: "NGN",
+                ref: 'GROUP' + Math.floor(Math.random() * 1000000000 + 1),
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Group Name", variable_name: "group_name", value: groupName },
+                        { display_name: "Duration", variable_name: "duration", value: duration },
+                        { display_name: "User ID", variable_name: "user_id", value: userId },
+                        { display_name: "Group ID", variable_name: "group_id", value: groupId }
+                    ]
+                },
+                onClose: function() {
+                    alert('Payment window closed.');
+                },
+                callback: function(response) {
+                    // ✅ Redirect to verification page with ALL data
+                    const queryString = new URLSearchParams({
+                        action: 'verify-group-payment',
+                        reference: response.reference,
+                        group_id: groupId,
+                        group_name: groupName,
+                        duration: duration,
+                        user_id: userId,
+                        amount: amount
+                    }).toString();
+
+                    window.location.href = `${siteUrl}verify-payment.php?${queryString}`;
+                }
+            });
+            handler.openIframe();
+        });
+    });
+});
