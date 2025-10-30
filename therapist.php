@@ -280,7 +280,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                       $blogUrl = $siteurl . "blog-details.php?slug=" . $slug;
+                       $blogUrl = $siteurl . "blog-details.php/" . $slug;
                       ?>
                       <div class="col-lg-4 col-md-6">
                         <article class="position-relative h-100 shadow-sm rounded-4 overflow-hidden">

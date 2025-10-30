@@ -116,7 +116,7 @@
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                      $blogUrl = $siteurl . "blog-details.php?slug=" . $slug;
+                      $blogUrl = $siteurl . "blog-details.php/" . $slug;
                      $categoryNames = !empty($blog->category_names) ? explode(',', $blog->category_names) : ['General'];
                     $category = htmlspecialchars(trim($categoryNames[0]));
 

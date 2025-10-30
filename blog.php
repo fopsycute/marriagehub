@@ -160,7 +160,7 @@ if (!empty($blogs)) {
             $category = htmlspecialchars(trim($categoryNames[0]));
 
             $blogimage = !empty($blog->featured_image) ? $siteurl . $imagePath . $blog->featured_image : $siteurl . "assets/img/default-blog.jpg";
-            $blogUrl = $siteurl . "blog-details.php?slug=" . $slug;
+            $blogUrl = $siteurl . "blog-details.php/" . $slug;
             ?>
 
             <div class="col-lg-4 col-md-6">
