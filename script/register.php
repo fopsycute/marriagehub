@@ -667,10 +667,10 @@ function verified($con, $userId, $token) {
                         SET 
                             is_verified = 1,
                             is_active = 1,
-                            status = 'free',
+                            status = 'active',
                             verification_token = '',
                             subscription_plan_id = 1,
-                            subscription_status = 'active'
+                            subscription_status = 'Free'
                         WHERE id = '$userId'
                     ");
 
