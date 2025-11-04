@@ -210,27 +210,31 @@
               $subcategory = !empty($group->subcategory_names) ? trim(explode(',', $group->subcategory_names)[0]) : 'General';
 
               // Price logic
-              if (strtolower($group_access) === 'free') {
-                  $price = 'Free';
-              } else {
-                  $fees = [
-                      floatval($group->fee_1m ?? 0),
-                      floatval($group->fee_3m ?? 0),
-                      floatval($group->fee_6m ?? 0),
-                      floatval($group->fee_12m ?? 0)
-                  ];
-                  $fees = array_filter($fees, fn($f) => $f > 0);
+        if (strtolower($group_access) === 'free') {
+          $price = 'Free';
+      } else {
+          $fees = [
+              floatval($group->fee_1m ?? 0),
+              floatval($group->fee_3m ?? 0),
+              floatval($group->fee_6m ?? 0),
+              floatval($group->fee_12m ?? 0)
+          ];
 
-                  if (!empty($fees)) {
-                      $minFee = min($fees);
-                      $maxFee = max($fees);
-                      $price = $minFee === $maxFee
-                          ? '₦' . number_format($minFee)
-                          : '₦' . number_format($minFee) . ' - ₦' . number_format($maxFee);
-                  } else {
-                      $price = 'Paid';
-                  }
-              }
+          // ✅ Use regular anonymous function for broader compatibility
+          $fees = array_filter($fees, function ($f) {
+              return $f > 0;
+          });
+
+          if (!empty($fees)) {
+              $minFee = min($fees);
+              $maxFee = max($fees);
+              $price = ($minFee === $maxFee)
+                  ? '₦' . number_format($minFee)
+                  : '₦' . number_format($minFee) . ' - ₦' . number_format($maxFee);
+          } else {
+              $price = 'Paid';
+          }
+      }
       ?>
         <div class="col-lg-4 col-md-6 col-12 mb-4">
           <div class="course-card">
