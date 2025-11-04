@@ -18,6 +18,7 @@ if ($authentication) {
         $buyerData = json_decode($data);
         if ($buyerData && empty($buyerData->error)) {
             $buyerId = $buyerData->id ?? '';
+            $vendorId = $buyerData->id ?? '';
             $buyerfirstName = $buyerData->first_name;
             $email = $buyerData->email;
             $logo = $buyerData->photo;

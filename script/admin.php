@@ -995,6 +995,91 @@ function joingroupEndpoint($postData) {
     }
 }
 
+function getAllListingBySlug($con, $slug)
+{
+    global $siteprefix;
+
+    
+    $slug = mysqli_real_escape_string($con, $slug);
+
+   
+    $query = "
+        SELECT 
+            l.*, 
+            u.first_name, 
+            u.last_name, 
+            u.photo,
+
+            (
+                SELECT GROUP_CONCAT(file_name SEPARATOR ',')
+                FROM {$siteprefix}listing_images AS li
+                WHERE li.listing_id = l.listing_id
+            ) AS all_images,
+
+            (
+                SELECT GROUP_CONCAT(file_name SEPARATOR ',')
+                FROM {$siteprefix}listing_videos AS lv
+                WHERE lv.listing_id = l.listing_id
+            ) AS all_videos,
+
+            (
+                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+                FROM {$siteprefix}categories AS c
+                WHERE FIND_IN_SET(c.id, l.categories)
+            ) AS category_names,
+
+            (
+                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+                FROM {$siteprefix}categories AS sc
+                WHERE FIND_IN_SET(sc.id, l.subcategories)
+            ) AS subcategory_names
+
+        FROM {$siteprefix}listings AS l
+        LEFT JOIN {$siteprefix}users AS u ON l.user_id = u.id
+        WHERE l.slug = '$slug'
+        LIMIT 1
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if (!$result) {
+        return ['error' => mysqli_error($con)];
+    }
+
+    $listingData = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $listing_id = $row['listing_id'];
+
+        // ✅ Fetch variations
+        $variationQuery = "
+            SELECT 
+                id, 
+                listing_id, 
+                variation_name, 
+                variation_price, 
+                created_at
+            FROM {$siteprefix}listing_variations
+            WHERE listing_id = '$listing_id'
+            ORDER BY id ASC
+        ";
+
+        $variationResult = mysqli_query($con, $variationQuery);
+
+        $variations = [];
+        if ($variationResult) {
+            while ($v = mysqli_fetch_assoc($variationResult)) {
+                $variations[] = $v;
+            }
+        }
+
+        $row['variations'] = $variations;
+        $listingData[] = $row;
+    }
+
+    return $listingData;
+}
+
+
 //exit group
 function exitGroupEndpoint($postData) {
     global $con, $siteprefix;
@@ -1334,6 +1419,62 @@ function getgroupBygroupid($con, $group_id) {
             $groupData[] = $row;
         }
         return $groupData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
+
+function getAllListings($con)
+{
+    global $siteprefix;
+
+    // ✅ Fetch listings joined with user & subscription
+    // Only include vendors whose plan allows homepage visibility
+       $query = "
+        SELECT 
+            l.*, 
+            u.first_name, 
+            u.last_name, 
+            u.photo,
+            s.homepage_visibility,
+            s.price AS subscription_price,
+            (
+                SELECT file_name
+                FROM {$siteprefix}listing_images AS li 
+                WHERE li.listing_id = l.listing_id 
+                ORDER BY li.id ASC 
+                LIMIT 1
+            ) AS featured_image,
+            (
+                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+                FROM {$siteprefix}categories AS c
+                WHERE FIND_IN_SET(c.id, l.categories)
+            ) AS category_names,
+            (
+                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+                FROM {$siteprefix}categories AS sc
+                WHERE FIND_IN_SET(sc.id, l.subcategories)
+            ) AS subcategory_names
+        FROM {$siteprefix}listings AS l
+        LEFT JOIN {$siteprefix}users AS u 
+            ON l.user_id = u.id
+        LEFT JOIN {$siteprefix}subscriptions AS s 
+            ON u.subscription_plan_id = s.id
+        WHERE s.homepage_visibility = 1
+        ORDER BY 
+            s.price DESC,     
+            l.created_at DESC 
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $listingData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $listingData[] = $row;
+        }
+        return $listingData;
     } else {
         return ['error' => mysqli_error($con)];
     }
@@ -1704,6 +1845,26 @@ function checkGroupMember($con, $group_id, $user_id) {
     }
 }
 
+function checkuservendor($con, $slug) {
+    global $siteprefix;
+
+    $slug = mysqli_real_escape_string($con, $slug);
+    $query = "SELECT * FROM {$siteprefix}users WHERE slug = '$slug' LIMIT 1";
+    $result = mysqli_query($con, $query);
+
+    if (!$result) {
+        return ['error' => mysqli_error($con)];
+    }
+
+    $vendorData = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $vendorData[] = $row;
+    }
+
+    return $vendorData;
+}
+
+
 
 function createadminGroupEndpoint($postData, $fileData) {
     global $con, $siteprefix, $siteurl, $siteName, $siteMail;
@@ -2056,17 +2217,48 @@ function addListingEndpoint($postData, $fileData) {
     // 🧩 Sanitize inputs
     $listingTitle  = mysqli_real_escape_string($con, trim($postData['listingTitle'] ?? ''));
     $description   = mysqli_real_escape_string($con, trim($postData['description'] ?? ''));
-    $type          = mysqli_real_escape_string($con, trim($postData['type'] ?? ''));
+    $type          = mysqli_real_escape_string($con, trim($postData['itemType'] ?? '')); // updated to match your form
     $pricingType   = mysqli_real_escape_string($con, trim($postData['pricingType'] ?? ''));
     $price         = mysqli_real_escape_string($con, trim($postData['price'] ?? ''));
-    $priceMin      = mysqli_real_escape_string($con, trim($postData['priceMin'] ?? ''));
-    $priceMax      = mysqli_real_escape_string($con, trim($postData['priceMax'] ?? ''));
     $pricingNotes  = mysqli_real_escape_string($con, trim($postData['pricingNotes'] ?? ''));
     $availability  = mysqli_real_escape_string($con, trim($postData['availability'] ?? ''));
     $capacity      = mysqli_real_escape_string($con, trim($postData['capacity'] ?? ''));
     $delivery      = mysqli_real_escape_string($con, trim($postData['delivery'] ?? ''));
     $user          = intval($postData['user'] ?? 0);
     $listingId     = mysqli_real_escape_string($con, trim($postData['listing_id'] ?? ''));
+
+    $limited_slot = '';
+
+if ($availability == 'Limited Slot') {
+    $limited_slot = isset($_POST['available_slots']) ? $_POST['available_slots'] : '';
+} else {
+    $limited_slot = ''; // other availability types don't need slot value
+}
+// Replace spaces with hyphens and convert to lowercase
+$baseSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $listingTitle), '-'));
+
+
+// Start with the cleaned slug
+$alt_title = $baseSlug;
+$counter = 1;
+
+// Ensure the alt_title is unique
+while (true) {
+    $query = "SELECT COUNT(*) AS count FROM " . $siteprefix . "listings WHERE slug = ?";
+    $stmt = $con->prepare($query);
+    $stmt->bind_param("s", $alt_title);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if ($row['count'] == 0) {
+        break; // alt_title is unique
+    }
+
+    // Append counter to baseSlug if not unique
+    $alt_title = $baseSlug . '-' . $counter;
+    $counter++;
+}
 
     // 🧩 Handle arrays (categories, subcategories, coverage)
     $categories    = isset($postData['category']) && is_array($postData['category'])
@@ -2076,13 +2268,48 @@ function addListingEndpoint($postData, $fileData) {
     $coverage      = isset($postData['coverage']) && is_array($postData['coverage'])
                      ? implode(',', $postData['coverage']) : '';
 
-    // 🧠 Compute display price
+                     // ✅ Step 1: Get product listing limit for this user
+$productLimit = htmlspecialchars(getFeatureLimit($con, $user, 'product_limit', $siteprefix));
+
+// ✅ Step 2: Get listing status from request (default = 'inactive' or 'draft')
+$status = mysqli_real_escape_string($con, trim($postData['status'] ?? 'inactive'));
+
+// ✅ Step 3: If the listing is being activated, check user’s limit
+if ($status === 'active') {
+    // Count user’s current ACTIVE listings
+    $countQuery = mysqli_query($con, "
+        SELECT COUNT(*) AS total_active
+        FROM {$siteprefix}listings
+        WHERE user_id = '$user' AND status = 'active'
+    ");
+    $countData = mysqli_fetch_assoc($countQuery);
+    $currentActiveListings = intval($countData['total_active']);
+
+    // Compare count with limit
+    if ($productLimit !== 'unlimited' && $currentActiveListings >= intval($productLimit)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage(
+                "You have reached your active product listing limit ({$productLimit}). Please upgrade your plan to activate more listings.",
+                "red"
+            )
+        ];
+    }
+}
+
+    // 🧩 Compute Display Price
+    $displayPrice = 'Custom Quote';
+    $priceMin = $priceMax = '';
+
     if ($pricingType === 'Starting Price' && !empty($price)) {
         $displayPrice = $price;
-    } elseif ($pricingType === 'Price Range' && !empty($priceMin) && !empty($priceMax)) {
-        $displayPrice = $priceMin . ' - ' . $priceMax;
-    } else {
-        $displayPrice = 'Custom Quote';
+    } elseif ($pricingType === 'Price Range' && !empty($postData['variation_price'])) {
+        $prices = array_filter($postData['variation_price'], fn($v) => is_numeric($v) && $v > 0);
+        if (!empty($prices)) {
+            $priceMin = min($prices);
+            $priceMax = max($prices);
+            $displayPrice = $priceMin . ' - ' . $priceMax;
+        }
     }
 
     // ✅ Validation
@@ -2093,75 +2320,122 @@ function addListingEndpoint($postData, $fileData) {
         ];
     }
 
+// 🔒 Get vendor upload limits
+$imageLimit = getFeatureLimit($con, $user, 'images', $siteprefix);
+$videoLimit = getFeatureLimit($con, $user, 'videos', $siteprefix);
 
-    /*⏱ Prevent duplicate within 10 seconds
-    $duplicateCheck = mysqli_query($con, "
-        SELECT id FROM {$siteprefix}listings 
-        WHERE user_id = '$user' 
-        AND title = '$listingTitle' AND listing_id ='$listing_id'
-        AND created_at >= (NOW() - INTERVAL 10 SECOND)
-        LIMIT 1
-    ");
-    if (mysqli_num_rows($duplicateCheck) > 0) {
+// 🖼 Handle Images (respecting plan limits)
+$uploadDir = '../uploads/';
+$imageFiles = $_FILES['productImages'] ?? null;
+
+if ($imageFiles && $imageFiles['name'][0] != '') {
+    $maxImages = ($imageLimit === 'unlimited') ? count($imageFiles['name']) : min(count($imageFiles['name']), $imageLimit);
+
+    if ($imageLimit !== 'unlimited' && count($imageFiles['name']) > $imageLimit) {
         return [
             'status' => 'error',
-            'messages' => generateMessage("Duplicate submission detected. Please wait a few seconds before trying again.", "red")
+            'messages' => generateMessage("You can only upload up to {$imageLimit} images with your plan.", "red")
         ];
     }
 
-    */
+    // Limit uploads
+    $limitedFiles = [
+        'name' => array_slice($imageFiles['name'], 0, $maxImages),
+        'type' => array_slice($imageFiles['type'], 0, $maxImages),
+        'tmp_name' => array_slice($imageFiles['tmp_name'], 0, $maxImages),
+        'error' => array_slice($imageFiles['error'], 0, $maxImages),
+        'size' => array_slice($imageFiles['size'], 0, $maxImages)
+    ];
 
-$uploadDir = '../secure/';
+    $imageList = uploadImages($limitedFiles, $uploadDir);
 
-$imageList = uploadImages($_FILES['productImages'], $uploadDir);
-
-if (!empty($imageList)) {
-    foreach ($imageList as $fileName) {
-        $stmt = $con->prepare("
-            INSERT INTO {$siteprefix}listing_images (listing_id, file_name)
-            VALUES (?, ?)
-        ");
-        $stmt->bind_param("ss", $listingId, $fileName);
-        $stmt->execute();
-        $stmt->close();
+    if (!empty($imageList)) {
+        foreach ($imageList as $fileName) {
+            $stmt = $con->prepare("INSERT INTO {$siteprefix}listing_images (listing_id, file_name) VALUES (?, ?)");
+            $stmt->bind_param("ss", $listingId, $fileName);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 }
 
-    // ✅ Handle Videos
-$videoList = uploadVideos($_FILES['videos'], $uploadDir);
+// 🎥 Handle Videos (respecting plan limits)
+$videoFiles = $_FILES['videos'] ?? null;
+if ($videoFiles && $videoFiles['name'][0] != '') {
+    $maxVideos = ($videoLimit === 'unlimited') ? count($videoFiles['name']) : min(count($videoFiles['name']), $videoLimit);
 
-// ✅ Insert video records into database
-foreach ($videoList as $fileName) {
-    mysqli_query($con, "
-        INSERT INTO {$siteprefix}listing_videos (listing_id, file_name, uploaded_at)
-        VALUES ('$listingId', '$fileName', NOW())
-    ");
+    if ($videoLimit !== 'unlimited' && count($videoFiles['name']) > $videoLimit) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("You can only upload up to {$videoLimit} videos with your plan.", "red")
+        ];
+    }
+
+    // Limit uploads
+    $limitedVideos = [
+        'name' => array_slice($videoFiles['name'], 0, $maxVideos),
+        'type' => array_slice($videoFiles['type'], 0, $maxVideos),
+        'tmp_name' => array_slice($videoFiles['tmp_name'], 0, $maxVideos),
+        'error' => array_slice($videoFiles['error'], 0, $maxVideos),
+        'size' => array_slice($videoFiles['size'], 0, $maxVideos)
+    ];
+
+    $videoList = uploadVideos($limitedVideos, $uploadDir);
+    if (!empty($videoList)) {
+        foreach ($videoList as $fileName) {
+            mysqli_query($con, "
+                INSERT INTO {$siteprefix}listing_videos (listing_id, file_name, uploaded_at)
+                VALUES ('$listingId', '$fileName', NOW())
+            ");
+        }
+    }
 }
 
-    // 💾 Insert into listings table
+    // 💾 Insert main listing record
     $query = "
         INSERT INTO {$siteprefix}listings (
             listing_id, user_id, title, categories, subcategories, description,
             type, pricing_type, price, price_min, price_max, pricing_notes,
-            display_price, availability, capacity, delivery, coverage, created_at
+            display_price, availability, limited_slot, capacity, delivery, coverage, created_at,status,slug
         ) VALUES (
             '$listingId', '$user', '$listingTitle', '$categories', '$subcategories', '$description',
             '$type', '$pricingType', '$price', '$priceMin', '$priceMax', '$pricingNotes',
-            '$displayPrice', '$availability', '$capacity', '$delivery', '$coverage', NOW()
+            '$displayPrice', '$availability','$limited_slot', '$capacity', '$delivery', '$coverage', NOW(),'$status','$alt_title'
         )
     ";
 
-    if (mysqli_query($con, $query)) {
-        return [
-            'status' => 'success',
-            'messages' => "Listing submitted successfully!"
-        ];
-    } else {
+    if (!mysqli_query($con, $query)) {
         return [
             'status' => 'error',
             'messages' => generateMessage("Database error: " . mysqli_error($con), "red")
         ];
     }
+
+    // 🧩 If pricing type = "Price Range", insert variations
+    if ($pricingType === 'Price Range' && !empty($postData['variation_name']) && !empty($postData['variation_price'])) {
+        $names = $postData['variation_name'];
+        $prices = $postData['variation_price'];
+
+        for ($i = 0; $i < count($names); $i++) {
+            $varName = mysqli_real_escape_string($con, trim($names[$i]));
+            $varPrice = floatval($prices[$i]);
+
+            if (!empty($varName) && $varPrice > 0) {
+                $stmt = $con->prepare("
+                    INSERT INTO {$siteprefix}listing_variations (listing_id, variation_name, variation_price)
+                    VALUES (?, ?, ?)
+                ");
+                $stmt->bind_param("ssd", $listingId, $varName, $varPrice);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+
+    return [
+        'status' => 'success',
+        'messages' => 'Listing submitted successfully!'
+    ];
 }
 
 function getallsubscriptions($con)
@@ -2239,6 +2513,20 @@ if ($_GET['action'] == 'questionlists') {
     if ($_GET['action'] == 'subscriptionlists') {
     $response = getallsubscriptions($con);
 }
+
+
+if ($_GET['action'] == 'fetchlistingslug') {
+    $response = isset($_GET['slug']) 
+        ? getAllListingBySlug($con, $_GET['slug']) 
+        : ['error' => 'Slug is required'];
+}
+
+
+if ($_GET['action'] == 'listinglists') {
+    $response = getAllListings($con);
+}
+
+
       if ($_GET['action'] == 'bloglists') {
               $response = getallblog($con);}
               
@@ -2287,6 +2575,9 @@ if ($_GET['action'] == 'memberid') {
 }
         if ($_GET['action'] == 'fetchblogslug') {  
         $response = isset($_GET['slug']) ? getallblogbyslug($con, $_GET['slug']) : ['error' => 'slug ID is required'];}
+
+        if ($_GET['action'] == 'vendorslug') {  
+        $response = isset($_GET['slug']) ? checkuservendor($con, $_GET['slug']) : ['error' => 'slug ID is required'];}
 
        if ($_GET['action'] == 'fetchgroupslug') {  
         $response = isset($_GET['slug']) ? getgroupByslug($con, $_GET['slug']) : ['error' => 'slug ID is required'];} 

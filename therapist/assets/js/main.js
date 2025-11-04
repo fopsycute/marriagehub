@@ -1,5 +1,6 @@
   
-  document.addEventListener("DOMContentLoaded", function() {
+ /*
+ document.addEventListener("DOMContentLoaded", function() {
   const pricingType = document.getElementById("pricingType");
   const singlePrice = document.getElementById("singlePriceGroup");
   const priceRange = document.getElementById("priceRangeGroup");
@@ -32,6 +33,8 @@
     }
   });
 });
+*/
+
 
 // Show/hide suspend reason field
   document.addEventListener('DOMContentLoaded', function() {

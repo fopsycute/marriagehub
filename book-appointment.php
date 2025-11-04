@@ -92,7 +92,7 @@ if (strpos($consultation_info, '|') !== false) {
 
             <form id="book-appointment-form" method="POST">
                 <div id="messages" style="display:none;"></div>
-                  <input type="hidden" name="user_id" value="<?php echo $buyerId; ?>">
+              <input type="hidden" name="user_id" value="<?php echo $buyerId; ?>">
               <input type="hidden" name="therapist_id" value="<?php echo $therapist_id; ?>">
 
                 <!-- Client Name -->

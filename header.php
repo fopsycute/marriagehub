@@ -1,4 +1,4 @@
-<?php include "script/connect.php"; ?>
+<?php require_once __DIR__ . '/script/connect.php'; ?>
 
 <?php
 
@@ -98,7 +98,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 // Now you can use $activeLog to show/hide sections inside your page HTML
 ?>
 
-
+<?php include "order-handler.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -126,7 +126,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <link href="<?php echo $siteurl; ?>assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/aos/aos.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-  
+    <link href="<?php echo $siteurl;?>assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <?php include "script/tinymce.php"; ?>
@@ -242,8 +242,9 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 
     </div>
   </header>
-<!-- Hidden Paystack public key -->
+<!-- Hidden key -->
 <input type="hidden" id="paystack-key" value="<?php echo $apikey; ?>">
+<input type="hidden" id="order_id" value="<?php echo $order_id; ?>">
 <input type="hidden" value="<?php echo $siteurl; ?>" id="siteurl">
 
 

@@ -244,6 +244,261 @@ function getAllanswerrepliesData($con, $comment_id)
 }
 
 
+function addToCartEndpoint($postData)
+{
+    global $con, $siteprefix;
+
+    // 🧾 Get POST data safely
+    $listing_id = mysqli_real_escape_string($con, trim($postData['listing_id'] ?? ''));
+    $user_id    = mysqli_real_escape_string($con, trim($postData['user_id'] ?? ''));
+    $order_id   = mysqli_real_escape_string($con, trim($postData['order_id'] ?? ''));
+    $quantity   = intval($postData['quantity'] ?? 1);
+    $variation  = mysqli_real_escape_string($con, trim($postData['variation'] ?? ''));
+    $price      = floatval($postData['price'] ?? 0);
+
+    // ✅ Validate inputs
+    if (empty($listing_id) || empty($user_id) || empty($order_id)) {
+        return ['status' => 'error', 'message' => 'Missing required parameters'];
+    }
+
+    // ✅ Fetch product details
+    $stmt = $con->prepare("SELECT title, limited_slot FROM {$siteprefix}listings WHERE listing_id = ?");
+    $stmt->bind_param("s", $listing_id);
+    $stmt->execute();
+    $product = $stmt->get_result()->fetch_assoc();
+
+    if (!$product) {
+        return ['status' => 'error', 'message' => 'Product not found'];
+    }
+
+    $title = $product['title'];
+    $limited_slot = (int)$product['limited_slot'];
+
+    // ✅ Check if the same product + variation already exists in cart
+    $stmt = $con->prepare("SELECT * FROM {$siteprefix}order_items WHERE order_id = ? AND listing_id = ? AND variation = ?");
+    $stmt->bind_param("sss", $order_id, $listing_id, $variation);
+    $stmt->execute();
+    $existing = $stmt->get_result()->fetch_assoc();
+
+    if ($existing) {
+        $newQuantity = $existing['quantity'] + $quantity;
+
+        // Check limited slot
+        if ($limited_slot > 0 && $newQuantity > $limited_slot) {
+            return ['status' => 'error', 'message' => 'Quantity exceeds available stock'];
+        }
+
+        // ✅ Update existing item
+        $newTotal = $newQuantity * $price;
+        $stmt = $con->prepare("UPDATE {$siteprefix}order_items 
+                               SET quantity = ?, total_price = ? 
+                               WHERE id = ?");
+        $stmt->bind_param("dsi", $newQuantity, $newTotal, $existing['id']);
+        $stmt->execute();
+    } else {
+        // Check limited slot
+        if ($limited_slot > 0 && $quantity > $limited_slot) {
+            return ['status' => 'error', 'message' => 'Quantity exceeds available stock'];
+        }
+
+        // ✅ Insert new item
+        $total_price = $price * $quantity;
+        $type = 'product';
+
+        $stmt = $con->prepare("INSERT INTO {$siteprefix}order_items 
+            (order_id, listing_id, user, variation, price, quantity, total_price, type, date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt->bind_param("ssssddss", $order_id, $listing_id, $user_id, $variation, $price, $quantity, $total_price, $type);
+        $stmt->execute();
+    }
+
+    // ✅ Update total amount in orders
+    $con->query("
+        UPDATE {$siteprefix}orders 
+        SET total_amount = (
+            SELECT IFNULL(SUM(total_price), 0) 
+            FROM {$siteprefix}order_items 
+            WHERE order_id = '$order_id'
+        )
+        WHERE order_id = '$order_id'
+    ");
+
+    // ✅ Get updated cart count
+    $stmt = $con->prepare("SELECT COUNT(*) as count FROM {$siteprefix}order_items WHERE order_id = ?");
+    $stmt->bind_param("s", $order_id);
+    $stmt->execute();
+    $countResult = $stmt->get_result()->fetch_assoc();
+    $cartCount = $countResult['count'] ?? 0;
+
+    // ✅ Return response
+    return [
+        'status' => 'success',
+        'message' => 'Item added to cart successfully',
+        'cartCount' => $cartCount
+    ];
+}
+
+function bookServiceEndpoint($postData)
+{
+    global $con, $siteprefix;
+
+    // 🔒 Sanitize inputs
+    $listing_id = mysqli_real_escape_string($con, trim($postData['listing_id'] ?? ''));
+    $user_id    = mysqli_real_escape_string($con, trim($postData['user_id'] ?? ''));
+    $order_id   = mysqli_real_escape_string($con, trim($postData['order_id'] ?? ''));
+    $price      = floatval($postData['price'] ?? 0);
+    $full_name  = mysqli_real_escape_string($con, trim($postData['full_name'] ?? ''));
+    $contact    = mysqli_real_escape_string($con, trim($postData['contact'] ?? ''));
+    $email      = mysqli_real_escape_string($con, trim($postData['email'] ?? ''));
+    $datetime   = mysqli_real_escape_string($con, trim($postData['datetime'] ?? ''));
+    $location   = mysqli_real_escape_string($con, trim($postData['location'] ?? ''));
+    $notes      = mysqli_real_escape_string($con, trim($postData['notes'] ?? ''));
+    $variation  = mysqli_real_escape_string($con, trim($postData['variation'] ?? ''));
+    $status = 'pending';
+    $payment_status = 'unpaid';
+
+    // ✅ Validate input
+    if (empty($listing_id) || empty($user_id) || empty($order_id) || empty($datetime)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Missing required booking details.", "red")
+        ];
+    }
+
+    // ✅ Fetch service details
+    $stmt = $con->prepare("SELECT title, limited_slot FROM {$siteprefix}listings WHERE listing_id = ?");
+    $stmt->bind_param("s", $listing_id);
+    $stmt->execute();
+    $service = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$service) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Service not found.", "red")
+        ];
+    }
+
+    $limited_slot = (int)$service['limited_slot'];
+
+    // ✅ Check limited slot availability
+    if ($limited_slot > 0) {
+        $stmt = $con->prepare("SELECT COUNT(*) AS booked FROM {$siteprefix}service_bookings WHERE listing_id = ?");
+        $stmt->bind_param("s", $listing_id);
+        $stmt->execute();
+        $bookedData = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        $bookedCount = (int)($bookedData['booked'] ?? 0);
+        if ($bookedCount >= $limited_slot) {
+            return [
+                'status' => 'error',
+                'messages' => generateMessage("No available slot for this service.", "red")
+            ];
+        }
+    }
+
+    // ✅ Prevent duplicate active bookings (per variation)
+    if (!empty($variation)) {
+        $stmt = $con->prepare("
+            SELECT id FROM {$siteprefix}service_bookings
+            WHERE user_id = ? 
+              AND listing_id = ? 
+              AND variation = ?
+              AND status IN ('pending', 'approved')
+        ");
+        $stmt->bind_param("sss", $user_id, $listing_id, $variation);
+    } else {
+        $stmt = $con->prepare("
+            SELECT id FROM {$siteprefix}service_bookings
+            WHERE user_id = ? 
+              AND listing_id = ? 
+              AND status IN ('pending', 'approved')
+        ");
+        $stmt->bind_param("ss", $user_id, $listing_id);
+    }
+    $stmt->execute();
+    $existing = $stmt->get_result()->num_rows;
+    $stmt->close();
+
+    if ($existing > 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("You already have an active booking for this service variation.", "red")
+        ];
+    }
+
+    // ✅ Insert into service_bookings
+    $stmt = $con->prepare("INSERT INTO {$siteprefix}service_bookings 
+        (order_id, listing_id, variation, user_id, full_name, contact, email, preferred_datetime, location, notes, price, date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param(
+        "ssssssssssd",
+        $order_id,
+        $listing_id,
+        $variation,
+        $user_id,
+        $full_name,
+        $contact,
+        $email,
+        $datetime,
+        $location,
+        $notes,
+        $price
+    );
+    $stmt->execute();
+
+    if ($stmt->affected_rows <= 0) {
+        $stmt->close();
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Failed to save booking. Please try again.", "red")
+        ];
+    }
+    $stmt->close();
+
+    // ✅ Insert into order_items (type = 'service')
+    $quantity = 1;
+    $total_price = $price * $quantity;
+    $type = 'service';
+
+    $stmt = $con->prepare("INSERT INTO {$siteprefix}order_items 
+        (order_id, listing_id, user, variation, price, quantity, total_price, type, date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param(
+        "ssssddss",
+        $order_id,
+        $listing_id,
+        $user_id,
+        $variation,
+        $price,
+        $quantity,
+        $total_price,
+        $type
+    );
+    $stmt->execute();
+    $stmt->close();
+
+    // ✅ Update total in orders table
+    $con->query("
+        UPDATE {$siteprefix}orders 
+        SET total_amount = (
+            SELECT IFNULL(SUM(total_price), 0) 
+            FROM {$siteprefix}order_items 
+            WHERE order_id = '$order_id'
+        )
+        WHERE order_id = '$order_id'
+    ");
+
+    return [
+        'status' => 'success',
+        'messages' => generateMessage(
+            "Service booked successfully! Once approved, you will receive a payment link via email shortly.",
+            "green"
+        )
+    ];
+}
+
 
 function getAllCategories($con, $siteprefix)
 {
@@ -465,6 +720,54 @@ function updateQuestionEndpoint($postData)
     }
 }
 
+
+function addToWishlistEndpoint($postData)
+{
+    global $con, $siteprefix;
+
+    $listing_id = mysqli_real_escape_string($con, trim($postData['listing_id'] ?? ''));
+    $user_id    = mysqli_real_escape_string($con, trim($postData['user_id'] ?? ''));
+
+    if (empty($listing_id) || empty($user_id)) {
+        return ['status' => 'error', 'message' => 'Missing required parameters'];
+    }
+
+    $stmt = $con->prepare("SELECT id FROM {$siteprefix}wishlist WHERE user_id = ? AND listing_id = ?");
+    $stmt->bind_param("ss", $user_id, $listing_id);
+    $stmt->execute();
+    $exists = $stmt->get_result()->fetch_assoc();
+
+    if ($exists) {
+        $stmt = $con->prepare("DELETE FROM {$siteprefix}wishlist WHERE user_id = ? AND listing_id = ?");
+        $stmt->bind_param("ss", $user_id, $listing_id);
+        $stmt->execute();
+        return ['status' => 'removed', 'message' => 'Item removed from wishlist'];
+    } else {
+        $stmt = $con->prepare("INSERT INTO {$siteprefix}wishlist (user_id, listing_id, date_added) VALUES (?, ?, NOW())");
+        $stmt->bind_param("ss", $user_id, $listing_id);
+        $stmt->execute();
+        return ['status' => 'success', 'message' => 'Item added to wishlist'];
+    }
+}
+
+function checkWishlistStatus($user_id, $listing_id)
+{
+    global $con, $siteprefix;
+
+    if (empty($user_id) || empty($listing_id)) {
+        return ['status' => 'error', 'message' => 'Missing parameters'];
+    }
+
+    $stmt = $con->prepare("SELECT id FROM {$siteprefix}wishlist WHERE user_id = ? AND listing_id = ?");
+    $stmt->bind_param("ss", $user_id, $listing_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    return [
+        'status' => 'success',
+        'isWishlisted' => $result->num_rows > 0
+    ];
+}
 
 
 function addForumEndpoint($postData, $fileData)
@@ -811,6 +1114,12 @@ if ($_GET['action'] == 'buyerdata') {
         $response = getAllCategories($con, $siteprefix);
     }
 
+    if ($_GET['action'] === 'checkWishlist') {
+    $user_id = $_GET['user_id'] ?? '';
+    $listing_id = $_GET['listing_id'] ?? '';
+    $response = checkWishlistStatus($user_id, $listing_id);
+    }
+
     
     if ($_GET['action'] == 'categorieslistbygroup') {
     $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
@@ -866,6 +1175,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     if ($_POST['action'] == 'create_group') {
         $response = createGroupEndpoint($_POST, $_FILES);
     }
+
+
+      if ($_POST['action'] == 'book-service') {
+        $response = bookServiceEndpoint($_POST);
+    }
+
+    
+
+    if (isset($_POST['action']) && $_POST['action'] == 'addtocart') {
+    $response = addToCartEndpoint($_POST);
+    }
+
+   if (isset($_POST['action']) && $_POST['action'] === 'addtowishlist') {
+    $response = addToWishlistEndpoint($_POST);
+   }
 
       // ✅ NEW: Like Blog Endpoint
     if ($_POST['action'] == 'like_blog') {

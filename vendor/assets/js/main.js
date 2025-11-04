@@ -1,4 +1,4 @@
-  
+/*  
   document.addEventListener("DOMContentLoaded", function() {
   const pricingType = document.getElementById("pricingType");
   const singlePrice = document.getElementById("singlePriceGroup");
@@ -30,6 +30,158 @@
     } else if (value === "Custom Quote") {
       customQuote.classList.remove("d-none");
     }
+  });
+});
+
+*/
+
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("Pricing form JS loaded");
+
+  // Elements
+  const pricingType = document.getElementById("pricingType");
+  const singlePriceGroup = document.getElementById("singlePriceGroup");
+  const variationSection = document.getElementById("variationSection");
+  const customQuoteNote = document.getElementById("customQuoteNote");
+  const addVariationBtn = document.getElementById("addVariationBtn");
+  const variationContainer = document.getElementById("variationContainer");
+
+  // Product / Service radio elements
+  const itemTypeRadios = document.querySelectorAll('input[name="itemType"]');
+  const bookingNotice = document.getElementById("bookingNotice");
+
+  // Prevent duplicate initialization
+  if (!pricingType || variationContainer.dataset.initialized) return;
+  variationContainer.dataset.initialized = "true";
+
+  // --- Handle Pricing Type Change ---
+  function handlePricingTypeChange() {
+    const type = pricingType.value;
+
+    // Hide all pricing sections
+    singlePriceGroup.classList.add("d-none");
+    variationSection.classList.add("d-none");
+    customQuoteNote.classList.add("d-none");
+
+    // Reset irrelevant inputs
+    document.getElementById("price").value = "";
+
+    // Keep only the first variation row (avoid duplicates)
+    const allItems = variationContainer.querySelectorAll(".variation-item");
+    allItems.forEach((el, index) => {
+      if (index > 0) el.remove();
+    });
+
+    // Show relevant section
+    if (type === "Starting Price") {
+      singlePriceGroup.classList.remove("d-none");
+    } else if (type === "Price Range") {
+      variationSection.classList.remove("d-none");
+    } else if (type === "Custom Quote") {
+      customQuoteNote.classList.remove("d-none");
+    }
+  }
+
+  // --- Handle Product/Service Type Change ---
+  function handleItemTypeChange() {
+    const selected = document.querySelector('input[name="itemType"]:checked').value;
+
+    if (selected === "Service") {
+      bookingNotice.classList.remove("d-none");
+
+      // Optional: default to custom quote for services
+      pricingType.value = "Custom Quote";
+      handlePricingTypeChange();
+    } else {
+      bookingNotice.classList.add("d-none");
+    }
+  }
+
+  // --- Event Listeners ---
+  pricingType.addEventListener("change", handlePricingTypeChange);
+  itemTypeRadios.forEach((radio) => {
+    radio.addEventListener("change", handleItemTypeChange);
+  });
+
+  // Add new variation row
+  addVariationBtn.addEventListener("click", function () {
+    const firstItem = variationContainer.querySelector(".variation-item");
+    if (!firstItem) return;
+
+    const newVariation = firstItem.cloneNode(true);
+    newVariation.querySelectorAll("input").forEach((input) => (input.value = ""));
+    variationContainer.appendChild(newVariation);
+  });
+
+  // Remove variation row
+  variationContainer.addEventListener("click", function (e) {
+    if (e.target.classList.contains("removeVariation")) {
+      const allItems = variationContainer.querySelectorAll(".variation-item");
+      if (allItems.length > 1) {
+        e.target.closest(".variation-item").remove();
+      } else {
+        alert("At least one variation is required.");
+      }
+    }
+  });
+
+  // --- Initialize on load ---
+  handleItemTypeChange();
+  handlePricingTypeChange();
+});
+
+// Show or hide the slot input dynamically
+document.getElementById('availability').addEventListener('change', function() {
+  const slotField = document.getElementById('slotField');
+  if (this.value === 'Limited Slot') {
+    slotField.style.display = 'block';
+  } else {
+    slotField.style.display = 'none';
+    document.getElementById('available_slots').value = ''; // clear input when hidden
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const imageInput = document.getElementById("productImages");
+  const videoInput = document.getElementById("videos");
+  const imageLimit = document.getElementById("imageLimit").value;
+  const videoLimit = document.getElementById("videoLimit").value;
+  const imageCountText = document.getElementById("imageCountText");
+  const videoCountText = document.getElementById("videoCountText");
+
+  // ✅ Handle image selection
+  imageInput.addEventListener("change", function () {
+    const count = this.files.length;
+    if (imageLimit !== "unlimited" && count > parseInt(imageLimit)) {
+      alert(`You can only upload up to ${imageLimit} images with your plan.`);
+      this.value = ""; // reset field
+      imageCountText.textContent = "";
+      return;
+    }
+    imageCountText.textContent = `${count} image(s) selected`;
+  });
+
+  // ✅ Handle video selection
+  videoInput.addEventListener("change", function () {
+    const count = this.files.length;
+    if (videoLimit !== "unlimited" && count > parseInt(videoLimit)) {
+      alert(`You can only upload up to ${videoLimit} videos with your plan.`);
+      this.value = "";
+      videoCountText.textContent = "";
+      return;
+    }
+
+    // Optional: 50MB limit per file
+    for (let file of this.files) {
+      if (file.size > 50 * 1024 * 1024) {
+        alert(`${file.name} exceeds 50MB limit.`);
+        this.value = "";
+        videoCountText.textContent = "";
+        return;
+      }
+    }
+
+    videoCountText.textContent = `${count} video(s) selected`;
   });
 });
 

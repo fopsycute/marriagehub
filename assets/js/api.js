@@ -2179,6 +2179,68 @@ $(document).off('submit', '#addQuestions').on('submit', '#addQuestions', functio
 
 
 
+//booking form
+$(document).off('submit', '#serviceBookingForm').on('submit', '#serviceBookingForm', function(e) {
+  e.preventDefault();
+
+  // Prevent multiple simultaneous submissions
+  if ($(this).data('submitted') === true) {
+    return false;
+  }
+  $(this).data('submitted', true);
+
+  var formData = new FormData(this);
+  var siteUrl = $('#siteurl').val(); // hidden input for base URL
+  formData.append('action', 'book-service');
+
+  var $submitBtn = $(this).find('button[type="submit"]');
+  $submitBtn.prop('disabled', true).text('Submitting...');
+
+  $.ajax({
+    url: siteUrl + 'script/user.php',
+    method: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    beforeSend: function() {
+      $('html, body').animate({ scrollTop: 0 }, 'slow');
+      $('#messages').html('<div class="alert alert-info">Submitting your booking...</div>');
+    },
+    success: function(response) {
+      try {
+        response = typeof response === 'string' ? JSON.parse(response) : response;
+      } catch (e) {
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
+        $('#messages').html('<div class="alert alert-danger">Invalid server response.</div>');
+        return;
+      }
+
+      $('html, body').animate({ scrollTop: 0 }, 'slow');
+
+      if (response.status === 'success') {
+        $('#messages').html('<div class="alert alert-success">' + response.messages + '</div>');
+        $('#serviceBookingForm')[0].reset();
+
+        // ✅ Reload after 2 seconds
+        setTimeout(function() {
+          location.reload();
+        }, 2000);
+      } else {
+        $('#messages').html('<div class="alert alert-danger">' + response.messages + '</div>');
+      }
+    },
+    error: function() {
+      $('html, body').animate({ scrollTop: 0 }, 'slow');
+      $('#messages').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+    },
+    complete: function() {
+      $submitBtn.prop('disabled', false).text('Submit Question');
+      $('#serviceBookingForm').data('submitted', false);
+    }
+  });
+});
+
+
 //update questions
 $(document).off('submit', '#editQuestions').on('submit', '#editQuestions', function(e) {
   e.preventDefault();
@@ -2376,3 +2438,181 @@ $(document).ready(function() {
     highlight(parseInt($ratingInput.val(), 10) || 0);
   });
 })(jQuery);
+
+
+$(document).ready(function () {
+  $('#bookService').click(function () {
+    var siteurl = $('#siteurl').val();
+    var listing_id = $('#listing_id').val();
+    var user_id = $('#user_id').val();
+    var order_id = $('#order_id').val();
+    var selectedVariation = $('#variationSelect').val();
+    var price = parseFloat($('#variationSelect option:selected').data('price')) || parseFloat($('#single-price').val()) || 0;
+    var quantity = parseInt($('#quantity').val()) || 1;
+
+    // 🔒 Require login
+    if (!user_id) {
+      window.location.href = siteurl + 'login';
+      return;
+    }
+
+    // 🔹 Ensure variation (if applicable)
+    if ($('#variationSelect').length && !selectedVariation) {
+      showToast('Please select a variation.');
+      return;
+    }
+
+    // 🧭 Redirect with parameters
+    const params = new URLSearchParams({
+      listing_id: listing_id,
+      user_id: user_id,
+      variation: selectedVariation,
+      order_id: order_id,
+      price: price
+    }).toString();
+
+    window.location.href = siteurl + 'book-service.php?' + params;
+  });
+});
+
+
+
+
+$(document).ready(function () {
+
+  // ✅ Quantity buttons
+  $('.increase').click(function () {
+    let q = parseInt($('#quantity').val()) || 1;
+    let limitedSlot = parseInt($('#limited-slot').val()) || 0;
+
+    // Prevent exceeding available quantity
+    if (limitedSlot > 0 && q >= limitedSlot) {
+      showToast(`Only ${limitedSlot} item${limitedSlot > 1 ? 's' : ''} available.`);
+      return;
+    }
+
+    $('#quantity').val(q + 1);
+  });
+
+  $('.decrease').click(function () {
+    let q = parseInt($('#quantity').val()) || 1;
+    if (q > 1) $('#quantity').val(q - 1);
+  });
+
+  // ✅ Add to Cart
+  $('#addCart').click(function () {
+    var listing_id = $('#listing_id').val();
+    var user_id = $('#user_id').val();
+    var order_id = $('#order_id').val();
+    var siteurl = $('#siteurl').val();
+    var quantity = parseInt($('#quantity').val()) || 1;
+    var selectedVariation = $('#variationSelect').val();
+    var limitedSlot = parseInt($('#limited-slot').val()) || 0;
+
+    // ✅ Get price (variation first, then base)
+    var price = parseFloat($('#variationSelect option:selected').data('price')) || 0;
+    if (!price || isNaN(price)) {
+      price = parseFloat($('#single-price').val()) || 0;
+    }
+
+    // 🔒 Redirect if user not logged in
+    if (!user_id) {
+      window.location.href = siteurl + 'login';
+      return;
+    }
+
+    // 🔹 Ensure variation is selected (if exists)
+    if ($('#variationSelect').length && !selectedVariation) {
+      showToast('Please select a variation.');
+      return;
+    }
+
+    // 🧩 Check limited slot availability
+    if (limitedSlot > 0 && quantity > limitedSlot) {
+      showToast(`Only ${limitedSlot} item${limitedSlot > 1 ? 's' : ''} available.`);
+      return;
+    }
+
+    // 🧾 Send data to server
+    $.ajax({
+      url: siteurl + 'script/user.php',
+      type: 'POST',
+      data: {
+        action: 'addtocart',
+        listing_id: listing_id,
+        user_id: user_id,
+        order_id: order_id,
+        quantity: quantity,
+        variation: selectedVariation,
+        price: price
+      },
+      success: function (response) {
+        let data;
+        try {
+          data = typeof response === 'string' ? JSON.parse(response) : response;
+        } catch (e) {
+          showToast('Unexpected server response.');
+          return;
+        }
+
+        // 🧩 Handle response
+        if (data.status === 'error') {
+          showToast(data.message || 'Error adding to cart');
+        } else {
+          showToast(data.message || 'Item added to cart successfully');
+        }
+
+        // 🛒 Update cart counter dynamically
+        if (data.cartCount) {
+          updateCartCount(data.cartCount);
+        }
+      },
+      error: function () {
+        showToast('Network error. Please try again.');
+      }
+    });
+  });
+
+});
+
+$(document).on('click', '.wishlist-btn', function (e) {
+    e.preventDefault();
+
+    var button = $(this);
+    var icon = button.find('i');
+    var listing_id = button.data('product-id');
+    var user_id = $('#user_id').val();
+    var siteurl = $('#siteurl').val();
+
+    if (!user_id) {
+        window.location.href = siteurl + 'login';
+        return;
+    }
+
+    $.ajax({
+        url: siteurl + 'script/user.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            action: 'addtowishlist',
+            listing_id: listing_id,
+            user_id: user_id
+        },
+        success: function (data) {
+            if (data.status === 'success') {
+                icon.removeClass('bi-heart').addClass('bi-heart-fill text-red-500');
+                button.addClass('added').attr('title', 'Remove from Wishlist');
+                showToast(data.message);
+            } else if (data.status === 'removed') {
+                icon.removeClass('bi-heart-fill text-red-500').addClass('bi-heart');
+                button.removeClass('added').attr('title', 'Add to Wishlist');
+                showToast(data.message);
+            } else {
+                showToast('Error updating wishlist');
+            }
+        },
+        error: function () {
+            showToast('Network error. Please try again.');
+        }
+    });
+});

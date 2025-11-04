@@ -176,6 +176,51 @@ function togglePasswordVisibility(fieldId) {
   }
 }
 
+function updateCartCount(count) {
+  const cartCountElement = document.querySelector('.cart-count');
+  if (cartCountElement) {
+    cartCountElement.textContent = count;
+  }
+}
+
+
+function showToast(message) {
+  const toastContainer = document.createElement('div');
+  toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+  toastContainer.style.zIndex = 11;
+
+  const toast = document.createElement('div');
+  toast.id = 'liveToast';
+  toast.className = 'toast align-items-center text-white bg-primary border-0';
+  toast.role = 'alert';
+  toast.ariaLive = 'assertive';
+  toast.ariaAtomic = 'true';
+
+  const toastBody = document.createElement('div');
+  toastBody.className = 'toast-body';
+  toastBody.textContent = message;
+
+  const toastButton = document.createElement('button');
+  toastButton.type = 'button';
+  toastButton.className = 'btn-close btn-close-white me-2 m-auto';
+  toastButton.setAttribute('data-bs-dismiss', 'toast');
+  toastButton.ariaLabel = 'Close';
+
+  const toastFlex = document.createElement('div');
+  toastFlex.className = 'd-flex';
+  toastFlex.appendChild(toastBody);
+  toastFlex.appendChild(toastButton);
+
+  toast.appendChild(toastFlex);
+  toastContainer.appendChild(toast);
+  document.body.appendChild(toastContainer);
+
+  const bootstrapToast = new bootstrap.Toast(toast, { delay: 5000 });
+  bootstrapToast.show();
+}
+
+
+
 function handleGroupAccessToggle() {
   const paidFields = $('#paid-subscription-fields');
   const feeInputs = paidFields.find('input[type="number"]');
@@ -1268,4 +1313,229 @@ document.addEventListener('DOMContentLoaded', function () {
             handler.openIframe();
         });
     });
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const payButtons = document.querySelectorAll(".subscribeButton");
+
+    payButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const planId = button.dataset.planId;
+            const amount = parseFloat(button.dataset.amount) * 100; // Convert to kobo
+            const planName = button.dataset.planName;
+            const userId = button.dataset.userId;
+            const email = button.dataset.email;
+            const key = document.getElementById("paystack-key").value;
+            const siteurl = document.getElementById("siteurl").value;
+
+            // ✅ Basic validation
+            if (!planId || !userId || !email || isNaN(amount)) {
+                alert("Invalid payment details. Please refresh and try again.");
+                return;
+            }
+
+            const handler = PaystackPop.setup({
+                key: key,
+                email: email,
+                amount: amount,
+                currency: "NGN",
+                ref: "VS-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Plan Name",
+                            variable_name: "plan_name",
+                            value: planName
+                        }
+                    ]
+                },
+                callback: function (response) {
+                    // ✅ Redirect with proper encoding
+                    const redirectUrl =
+                        `${siteurl}verify-payment.php?action=verify_payment` +
+                        `&reference=${encodeURIComponent(response.reference)}` +
+                        `&plan_id=${encodeURIComponent(planId)}` +
+                        `&user_id=${encodeURIComponent(userId)}` +
+                        `&plan_name=${encodeURIComponent(planName)}` +
+                        `&amount=${amount / 100}`;
+
+                    window.location.href = redirectUrl;
+                },
+                onClose: function () {
+                    alert("Payment was canceled.");
+                }
+            });
+
+            handler.openIframe();
+        });
+    });
+});
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  // ✅ Selectors
+  const thumbnails = document.querySelectorAll('.thumbnail-item');
+  const mainImage = document.getElementById('main-product-image');
+  const prevBtn = document.querySelector('.prev-image');
+  const nextBtn = document.querySelector('.next-image');
+
+  if (!thumbnails.length || !mainImage) return;
+
+  let currentIndex = 0; // Track active image index
+
+  // ✅ Function: Update Main Image + Active Thumbnail
+  function updateMainImage(index) {
+    const selected = thumbnails[index];
+    if (!selected) return;
+
+    const newImage = selected.getAttribute('data-image');
+    mainImage.src = newImage;
+    mainImage.setAttribute('data-zoom', newImage);
+
+    thumbnails.forEach(t => t.classList.remove('active'));
+    selected.classList.add('active');
+
+    currentIndex = index;
+  }
+
+  // ✅ Thumbnail Click Event
+  thumbnails.forEach((thumbnail, index) => {
+    thumbnail.addEventListener('click', function(e) {
+      e.preventDefault();
+      updateMainImage(index);
+    });
+  });
+
+  // ✅ Prev Button
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      let newIndex = currentIndex - 1;
+      if (newIndex < 0) newIndex = thumbnails.length - 1; // Loop back to last
+      updateMainImage(newIndex);
+    });
+  }
+
+  // ✅ Next Button
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      let newIndex = (currentIndex + 1) % thumbnails.length; // Loop forward
+      updateMainImage(newIndex);
+    });
+  }
+
+  // ✅ Initialize First Image
+  updateMainImage(0);
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const variationSelect = document.getElementById("variationSelect");
+    const priceDisplay = document.querySelector(".price-display .sale-price");
+    const siteCurrency = document.getElementById("siteCurrency")?.value || "";
+    const defaultPrice = priceDisplay ? priceDisplay.textContent : "";
+
+    if (variationSelect && priceDisplay) {
+        variationSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const newPrice = selectedOption.getAttribute("data-price");
+
+            if (newPrice && !isNaN(newPrice)) {
+                // ✅ Format with commas and currency from hidden input
+                const formatted = parseFloat(newPrice)
+                    .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                priceDisplay.textContent = siteCurrency + formatted;
+            } else {
+                priceDisplay.textContent = defaultPrice;
+            }
+        });
+    }
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const quantityInput = document.querySelector(".quantity-input");
+    const decreaseBtn = document.querySelector(".quantity-btn.decrease");
+    const increaseBtn = document.querySelector(".quantity-btn.increase");
+    const priceDisplay = document.querySelector(".sale-price");
+    const variationSelect = document.querySelector("#variationSelect");
+    const limitedSlot = parseInt(document.querySelector("#limited-slot")?.value || "999");
+    const basePrice = parseFloat(document.querySelector("#base-price")?.value.replace(/[^\d.]/g, "")) || 0;
+    const siteCurrency = document.querySelector("#siteCurrency")?.value || "$";
+
+    let currentPrice = basePrice;
+
+    // 🧩 Function to update price display
+    function updatePrice() {
+        const quantity = parseInt(quantityInput.value) || 1;
+        const total = currentPrice * quantity;
+        priceDisplay.textContent = siteCurrency + total.toFixed(2);
+    }
+
+    // 🧩 Listen for variation change
+    if (variationSelect) {
+        variationSelect.addEventListener("change", function () {
+            const selected = variationSelect.options[variationSelect.selectedIndex];
+            const selectedPrice = parseFloat(selected.getAttribute("data-price")) || 0;
+            currentPrice = selectedPrice;
+            updatePrice();
+        });
+    }
+
+    // 🧩 Increase button
+    if (increaseBtn) {
+        increaseBtn.addEventListener("click", function () {
+            let current = parseInt(quantityInput.value) || 1;
+
+            // ✅ Require variation first (if exists)
+            if (variationSelect && !variationSelect.value) {
+                alert("Please select a variation first.");
+                return;
+            }
+
+            if (current >= limitedSlot) {
+                alert("Only " + limitedSlot + " slots left!");
+                return;
+            }
+
+            quantityInput.value = current + 1;
+            updatePrice();
+        });
+    }
+
+    // 🧩 Decrease button
+    if (decreaseBtn) {
+        decreaseBtn.addEventListener("click", function () {
+            let current = parseInt(quantityInput.value) || 1;
+
+            // ✅ Require variation first (if exists)
+            if (variationSelect && !variationSelect.value) {
+                alert("Please select a variation first.");
+                return;
+            }
+
+            if (current > 1) {
+                quantityInput.value = current - 1;
+                updatePrice();
+            }
+        });
+    }
+
+    // 🧩 Input change manually
+    if (quantityInput) {
+        quantityInput.addEventListener("input", function () {
+            let current = parseInt(quantityInput.value) || 1;
+            if (current > limitedSlot) {
+                alert("Only " + limitedSlot + " slots left!");
+                quantityInput.value = limitedSlot;
+            }
+            updatePrice();
+        });
+    }
+
+    // ✅ Initialize price display
+    updatePrice();
 });

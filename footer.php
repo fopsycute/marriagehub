@@ -94,7 +94,7 @@
   <script src="<?php echo $siteurl; ?>assets/vendor/php-email-form/validate.js"></script>
   <script src="<?php echo $siteurl; ?>assets/vendor/aos/aos.js"></script>
   <script src="<?php echo $siteurl; ?>assets/vendor/swiper/swiper-bundle.min.js"></script>
-
+  <script src="<?php echo $siteurl;?>assets/vendor/glightbox/js/glightbox.min.js"></script>
 
   <!-- Main JS File -->
     <script src="https://js.paystack.co/v1/inline.js"></script> 

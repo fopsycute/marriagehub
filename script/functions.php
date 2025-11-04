@@ -375,4 +375,48 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
         return false;
     }
 }
+
+
+// ✅ Check vendor plan validity and feature
+function canAccess($con, $vendorId, $feature, $siteprefix) {
+    $query = $con->prepare("
+        SELECT s.*, u.subscription_end 
+        FROM {$siteprefix}users u
+        JOIN {$siteprefix}subscriptions s ON u.subscription_plan_id = s.id
+        WHERE u.id = ?
+    ");
+    $query->bind_param("i", $vendorId);
+    $query->execute();
+    $result = $query->get_result();
+    $plan = $result->fetch_assoc();
+    $query->close();
+
+    if (!$plan) return false;
+
+    // Expired plan check
+    $endDate = $plan['subscription_end'] ?? null;
+    if ($endDate && strtotime($endDate) < time()) {
+        return false;
+    }
+
+    // Feature available
+    return !empty($plan[$feature]);
+}
+
+// ✅ Get feature numeric limit
+function getFeatureLimit($con, $vendorId, $feature, $siteprefix) {
+    $query = $con->prepare("
+        SELECT s.$feature 
+        FROM {$siteprefix}users u
+        JOIN {$siteprefix}subscriptions s ON u.subscription_plan_id = s.id
+        WHERE u.id = ?
+    ");
+    $query->bind_param("i", $vendorId);
+    $query->execute();
+    $result = $query->get_result();
+    $limit = $result->fetch_column();
+    $query->close();
+
+    return strtolower($limit) === 'unlimited' ? 'unlimited' : (int)$limit;
+}
 ?>
