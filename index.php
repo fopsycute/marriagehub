@@ -116,7 +116,7 @@
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                      $blogUrl = $siteurl . "blog-details.php/" . $slug;
+                      $blogUrl = $siteurl . "blog-details/" . $slug;
                      $categoryNames = !empty($blog->category_names) ? explode(',', $blog->category_names) : ['General'];
                     $category = htmlspecialchars(trim($categoryNames[0]));
 
@@ -454,7 +454,7 @@ if (!empty($allUsers)):
         $professional_field = !empty($user->professional_field_names) ? trim(explode(',', $user->professional_field_names)[0]) : 'Uncategorized';
         $professional_title = !empty($user->professional_title_names) ? trim(explode(',', $user->professional_title_names)[0]) : 'General';
         $rate = !empty($user->rate) ? $user->rate : 0;
-        $link= $siteurl . "therapist.php/" . $slug;
+        $link= $siteurl . "therapist/" . $slug;
 
         $photo = !empty($user->photo)
             ? $siteurl . $imagePath . $user->photo

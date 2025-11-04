@@ -127,7 +127,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
             </div>
                   <div class="contact-actions">
 
-                   <a href="book-appointment.php/<?php echo $slug; ?>" class="btn-contact">
+                   <a href="book-appointment/<?php echo $slug; ?>" class="btn-contact">
                                 <i class="bi bi-hand-index"></i> Book Me
                             </a>
                      <a href="mailto:<?php echo $email; ?>" class="btn-contact">
@@ -237,7 +237,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
       <h4 class="mb-0">My Blog</h4>
 
       <div>
-        <a href="<?php echo $siteurl; ?>article.php/<?php echo $slug; ?>" class="btn btn-outline-primary btn-sm">
+        <a href="<?php echo $siteurl; ?>article/<?php echo $slug; ?>" class="btn btn-outline-primary btn-sm">
           <i class="bi bi-grid"></i> View All
         </a>
       </div>
@@ -280,7 +280,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                       $blogUrl = $siteurl . "blog-details.php/" . $slug;
+                       $blogUrl = $siteurl . "blog-details/" . $slug;
                       ?>
                       <div class="col-lg-4 col-md-6">
                         <article class="position-relative h-100 shadow-sm rounded-4 overflow-hidden">

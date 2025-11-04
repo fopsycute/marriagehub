@@ -6,7 +6,7 @@ if (isset($_GET['slug'])) {
     $slug = $_GET['slug'];
 
     // Build API URL
-     $shareUrl = $siteurl . 'blog-details/' . urlencode($slug); // Clean URL
+     $shareUrl = $siteurl . 'blog-details/' . $slug; // Clean URL
     $sitelink = $siteurl . "script/";
     $apiUrl = $sitelink . "admin.php?action=addviews&slug=" . $slug;
     $response = curl_get_contents($apiUrl);
@@ -385,7 +385,7 @@ if ($data !== false) {
               <div class="post-item">
                 <img src="<?php echo $blogimage; ?>" alt="" class="flex-shrink-0">
                 <div>
-                  <h4><a href="<?php echo  $siteurl . "blog-details.php/" . $slug; ?>"><?php echo $title; ?></a></h4>
+                  <h4><a href="<?php echo  $siteurl . "blog-details/" . $slug; ?>"><?php echo $title; ?></a></h4>
                   <time datetime="2020-01-01"><?php echo $date; ?> </time>
                 </div>
               </div><!-- End recent post item-->
