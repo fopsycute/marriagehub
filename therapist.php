@@ -127,7 +127,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
             </div>
                   <div class="contact-actions">
 
-                   <a href="book-appointment/<?php echo $slug; ?>" class="btn-contact">
+                   <a href="<?php echo $siteurl; ?>book-appointment/<?php echo $slug; ?>" class="btn-contact">
                                 <i class="bi bi-hand-index"></i> Book Me
                             </a>
                      <a href="mailto:<?php echo $email; ?>" class="btn-contact">

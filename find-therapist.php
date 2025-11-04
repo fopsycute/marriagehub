@@ -122,7 +122,7 @@ include "header.php";
             $photo = !empty($t->photo) ? htmlspecialchars($siteurl . $imagePath . $t->photo) : htmlspecialchars($siteurl . "assets/img/user.jpg");
             $field = htmlspecialchars(!empty($t->professional_field_names) ? explode(',', $t->professional_field_names)[0] : 'Uncategorized');
             $rate = is_numeric($t->rate ?? null) ? number_format(floatval($t->rate), 2) : '0.00';
-            $profileLink = htmlspecialchars($siteurl . "therapist/" . $slug);
+            $profileLink =$siteurl . "therapist/" . $slug;
           ?>
             <div class="col-lg-4 col-md-6">
               <div class="card h-100 shadow-sm">
