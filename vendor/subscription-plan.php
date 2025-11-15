@@ -54,7 +54,7 @@
             </div>
 
             <div class="d-grid">
-              <a href="<?= htmlspecialchars($siteurl . "vendor-pricing?slug=" . $myslug); ?>" class="btn btn-primary btn-lg rounded-pill">
+              <a href="<?= htmlspecialchars($siteurl . "vendor-pricing/" . $myslug); ?>" class="btn btn-primary btn-lg rounded-pill">
                 <i class="fas fa-arrow-up me-2"></i> Manage Plan
               </a>
             </div>
