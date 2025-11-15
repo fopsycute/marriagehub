@@ -179,6 +179,8 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <li><a href="<?php echo $siteurl; ?>about.php">About</a></li>
           <li><a href="<?php echo $siteurl; ?>blog.php">Blogs</a></li>
           <li><a href="<?php echo $siteurl; ?>questions-answers.php">Q & A</a></li>
+          <li><a href="<?php echo $siteurl; ?>marketplace.php">Marketplace</a></li>
+          <li><a href="<?php echo $siteurl; ?>vendors.php">Vendors Directory</a></li>
           <a href="<?php echo $siteurl; ?>find-therapist" class="btn btn-primary text-white p-2" >Find a Therapists</a>
           <!---
           <li class="dropdown"><a href="#"><span>Categories</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
