@@ -12,7 +12,7 @@ include "header.php";
       <div class="login-box w-100 py-4">
         <?php if (isset($_GET['success'])): ?>
           <div class="alert alert-success" id="messages">
-            <?= htmlspecialchars($_GET['success']); ?>
+            <?= $_GET['success']; ?>
           </div>
         <?php endif; ?>
 

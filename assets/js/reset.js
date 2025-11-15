@@ -4,10 +4,9 @@ $(document).ready(function() {
     const token = urlParams.get('token');
     const action = urlParams.get('action');
 
-    const siteUrl = $('#siteurl').val(); // hidden input holding your base URL
-    const ajaxUrl = siteUrl + "script/register.php"; // backend handler path
+    const siteUrl = $('#siteurl').val(); 
+    const ajaxUrl = siteUrl + "script/register.php"; 
 
-    // Only trigger verification if all parameters exist
     if (id && token && action === 'verifyemail') {
         $.ajax({
             url: ajaxUrl,
@@ -15,14 +14,16 @@ $(document).ready(function() {
             data: { id: id, token: token, action: action },
             dataType: "json",
             beforeSend: function() {
-                // Optional loader
                 console.log("Verifying your email...");
             },
             success: function(res) {
                 alert(res.messages);
+
                 if (res.status === 'success') {
-                    // Redirect after success
-                    window.location.href = siteUrl + "login.php";
+                    // Use the redirect returned from PHP
+                    if (res.redirect) {
+                        window.location.href = siteUrl + res.redirect;
+                    }
                 }
             },
             error: function(xhr, status, error) {

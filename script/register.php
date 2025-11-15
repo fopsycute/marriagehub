@@ -320,7 +320,7 @@ if (strlen($password) < 8 ||
     sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject);
 
     $messages .= generateMessage("Vendor registered successfully! Please check your email to verify.", "green");
-    return array('status' => 'success', 'messages' => $messages);
+    return array('status' => 'success', 'messages' => "Vendor registered successfully! Please check your email to verify.");
 } else {
     $messages .= generateMessage("Database Error: " . mysqli_error($con), "red");
     return array('status' => 'error', 'messages' => $messages);
@@ -676,7 +676,7 @@ function verified($con, $userId, $token) {
                     $response = [
                         'status' => 'success',
                         'messages' => 'Email verified successfully! You have been placed on the Free plan.',
-                        'redirect' => 'vendor-pricing?slug=' . $userSlug
+                        'redirect' => 'vendor-pricing/' . $userSlug
                     ];
                 } else {
                     // ✅ Non-vendor users
