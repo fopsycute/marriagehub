@@ -80,7 +80,7 @@ if ($data !== false) {
                     $statuslog = 'danger';
                 }
 
-                 if ($status === "notactive") {
+                 if ($status === "suspended") {
                     $statuslog = 'danger';
                 } else if ($status === "pending") {
                     $statuslog = 'warning';

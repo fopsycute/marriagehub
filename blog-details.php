@@ -159,7 +159,7 @@ if (isset($_GET['slug'])) {
             foreach ($comments as $comment) {
                 $username = trim(($comment->first_name ?? '') . ' ' . ($comment->last_name ?? ''));
                 $avatar = $siteurl . $imagePath . ($comment->photo ?? 'default.png');
-                $commentText = htmlspecialchars($comment->comment);
+                $commentText = $comment->comment;
                 $commentID = $comment->id;
                 $user_id = $comment->user_id;
                 $created_date = date('F d, Y \a\t h:i A', strtotime($comment->created_at));

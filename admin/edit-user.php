@@ -164,7 +164,7 @@ if (isset($_GET['user_id'])) {
 
 <div class="mb-3" id="suspendReasonBox" style="display: none;">
   <label class="form-label">Reason for Suspension</label>
-  <textarea name="suspend_reason" class="form-control" rows="3"><?= htmlspecialchars($suspend_reason ?? '') ?></textarea>
+  <textarea name="suspend_reason" class="editor" rows="3"><?= $suspend_reason ?? '' ?></textarea>
 </div>
   <button type="submit" class="btn btn-primary">Update</button>
 </form>

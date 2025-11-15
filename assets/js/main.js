@@ -1,3 +1,89 @@
+document.addEventListener("DOMContentLoaded", function () {
+
+    const siteurl = document.getElementById("siteurl").value;
+    const orderSelect = document.getElementById("order_ids");
+    const recipientSelect = document.getElementById("recipient");
+
+    orderSelect.addEventListener("change", function () {
+
+        const orderId = this.value;
+        recipientSelect.innerHTML = "<option>Loading...</option>";
+
+        if (!orderId) {
+            recipientSelect.innerHTML = "<option value=''>Select recipient</option>";
+            return;
+        }
+
+        fetch(siteurl + "script/admin.php?action=getorderitems&order_id=" + orderId)
+            .then(res => res.json())
+            .then(items => {
+
+                recipientSelect.innerHTML = "<option value=''>Select recipient</option>";
+
+                if (!Array.isArray(items) || items.length === 0) {
+                    recipientSelect.innerHTML = "<option>No recipients found</option>";
+                    return;
+                }
+
+                items.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.seller_id;
+                    opt.textContent =
+                        `${item.listing_title} (${item.seller_name}) - ${item.variation || item.type}`;
+                    recipientSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                recipientSelect.innerHTML = "<option>Error loading recipients</option>";
+            });
+    });
+});
+
+// Vendor directory behaviors: loads subcategories, wires filters (moved from inline vendor.php)
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+  // Read server-provided values from hidden inputs
+  const siteurlEl = document.getElementById('siteurl');
+  const initialCatEl = document.getElementById('initialCategory');
+  const initialSubEl = document.getElementById('initialSubcategory');
+  const siteurl = siteurlEl ? siteurlEl.value : '';
+
+  // Auto-submit when state changes
+  const stateEl = $id('state');
+  if (stateEl) stateEl.addEventListener('change', function(){ $id('vendorFilterForm').submit(); });
+    // Populate subcategories for a category slug
+    async function loadSubcategories(catSlug, preselect){
+      const subEl = $id('subcategory');
+  if (!subEl) return;
+  subEl.innerHTML = '<option value="">All subcategories</option>';
+  if (!catSlug) return;
+      try {
+        const url = siteurl + 'script/admin.php?action=subcategory_list&category_slug=' + encodeURIComponent(catSlug);
+        const res = await fetch(url);
+  if (!res.ok) return;
+  const data = await res.json();
+  if (Array.isArray(data)){
+          data.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.slug || s.id || '';
+            if (preselect && (opt.value === preselect)) opt.selected = true;
+            subEl.appendChild(opt);
+          });
+        }
+      } catch (e) { console.error('loadSubcategories error', e); }
+    }
+  // Wire category change to refresh subcategories
+  const catEl = $id('category');
+  if (catEl) catEl.addEventListener('change', function(){ loadSubcategories(this.value); });
+  // initial load
+  const initialCat = initialCatEl ? initialCatEl.value : '';
+  const initialSub = initialSubEl ? initialSubEl.value : '';
+    if (initialCat) loadSubcategories(initialCat, initialSub);
+  } catch (err) {
+    console.error('Vendor directory init error', err);
+  }
+});
+
 /**
 * Template Name: ZenBlog
 * Template URL: https://bootstrapmade.com/zenblog-bootstrap-blog-template/
@@ -161,6 +247,7 @@
 });
 
 
+
 function togglePasswordVisibility(fieldId) {
   const passwordField = document.getElementById(fieldId);
   const parent = passwordField.parentElement; // input-group
@@ -217,6 +304,35 @@ function showToast(message) {
 
   const bootstrapToast = new bootstrap.Toast(toast, { delay: 5000 });
   bootstrapToast.show();
+}
+
+function payWithPaystack() {
+  const key = document.getElementById('paystack-key').value;
+  const email = document.getElementById('email')?.value || 'user@example.com';
+  const amount = parseFloat(document.getElementById('amount').value) * 100;
+  const ref = document.getElementById('ref').value + '_' + Date.now();
+  const callbackUrl = document.getElementById('refer').value;
+
+  if (!key || !email || !amount) {
+    alert('Missing payment details. Please refresh the page.');
+    return;
+  }
+
+  const handler = PaystackPop.setup({
+    key: key,
+    email: email,
+    amount: amount,
+    currency: 'NGN', // ✅ Hardcoded to NGN directly here
+    ref: ref,
+    callback: function(response) {
+      window.location.href = callbackUrl + "&transaction=" + response.reference;
+    },
+    onClose: function() {
+      alert('Payment window closed.');
+    }
+  });
+
+  handler.openIframe();
 }
 
 
@@ -387,6 +503,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
+
+
+
 
 
 
@@ -1264,6 +1383,28 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
+document.getElementById("paystackBtn").addEventListener("click", function () {
+    const paystackKey = document.getElementById("paystack-key").value;
+    const siteurl = document.getElementById("siteurl").value;
+    const email = document.getElementById("client_email").value;
+    const amount = document.getElementById("booking_amount").value * 100; // convert to kobo
+    const reference = document.getElementById("reference").value;
+
+    const handler = PaystackPop.setup({
+        key: paystackKey,
+        email: email,
+        amount: amount,
+        currency: "NGN",
+        ref: reference,
+        callback: function (response) {
+            window.location.href = `${siteurl}verify-payment.php?action=verify-therapist-payment&reference=${response.reference}&booking_id=${reference}`;
+        },
+        onClose: function () {
+            alert("Payment cancelled.");
+        }
+    });
+    handler.openIframe();
+});
 
 
  document.addEventListener('DOMContentLoaded', function () {
@@ -1314,6 +1455,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1373,6 +1516,37 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+
+document.addEventListener("DOMContentLoaded", function () {
+    const shareButton = document.getElementById("shareProfileBtn");
+    const vendorName = document.getElementById("vendorName").value;
+    const shareUrl = document.getElementById("shareUrl").value;
+
+    shareButton.addEventListener("click", async function () {
+        const shareData = {
+            title: vendorName + " - Vendor Profile",
+            text: "Check out this vendor profile on HustleTunes!",
+            url: shareUrl
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.log("Share cancelled or failed", err);
+            }
+        } else {
+            // Fallback: copy link to clipboard
+            navigator.clipboard.writeText(shareData.url)
+                .then(() => {
+                    alert("Profile link copied to clipboard: " + shareData.url);
+                })
+                .catch(err => {
+                    console.error("Failed to copy link:", err);
+                });
+        }
+    });
+});
 
 
 
@@ -1454,6 +1628,40 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const cartItems = document.querySelector('.cart-items');
+  if (!cartItems) return; // prevent error if .cart-items doesn't exist
+
+  cartItems.addEventListener('click', function(e) {
+    const btn = e.target.closest('.quantity-btn');
+    if (!btn) return;
+
+    const container = btn.closest('.quantity-selector');
+    const input = container.querySelector('.quantity-input');
+    const itemId = input.dataset.itemId;
+
+    let value = parseInt(input.value) || 1;
+    const min = parseInt(input.min) || 1;
+    const max = parseInt(input.max) || 100;
+
+    if (btn.classList.contains('increase')) {
+      if (value < max) value++;
+    } else if (btn.classList.contains('decrease')) {
+      if (value > min) value--;
+    }
+
+    input.value = value;
+
+    const updateBtn = document.querySelector('.btn-update');
+    if (updateBtn) updateBtn.disabled = false;
+
+    console.log(`Item ${itemId} quantity changed to ${value}`);
+  });
+});
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -1538,4 +1746,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ✅ Initialize price display
     updatePrice();
+});
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const paystackRadio = document.getElementById('paystack');
+  const manualRadio = document.getElementById('manual');
+  const paymentButton = document.getElementById('paymentButton');
+  const orderTotalEl = document.getElementById('order_total');
+  const siteCurrencyEl = document.getElementById('site_currency');
+  const btnPriceText = document.getElementById('btn-price-text');
+
+  // ✅ Ensure required elements exist
+  if (!paymentButton || !orderTotalEl || !siteCurrencyEl) {
+    console.warn('⚠️ Missing required payment elements in DOM.');
+    return;
+  }
+
+  const orderTotal = orderTotalEl.value;
+  const siteCurrency = siteCurrencyEl.value;
+
+  // Display currency and total initially
+  if (btnPriceText) {
+    btnPriceText.textContent = siteCurrency + orderTotal;
+  }
+
+  function updatePaymentButton() {
+    if (!paymentButton) return;
+
+    if (manualRadio && manualRadio.checked) {
+      paymentButton.removeAttribute('onClick');
+      paymentButton.setAttribute('data-bs-toggle', 'modal');
+      paymentButton.setAttribute('data-bs-target', '#manualPaymentModal');
+      paymentButton.classList.remove('paystack-button');
+      paymentButton.innerHTML = `
+        <span class="btn-text">Proceed to Manual Payment</span>
+        <span class="btn-price">${siteCurrency}${orderTotal}</span>
+      `;
+    } else {
+      paymentButton.removeAttribute('data-bs-toggle');
+      paymentButton.removeAttribute('data-bs-target');
+      paymentButton.setAttribute('onClick', 'payWithPaystack()');
+      paymentButton.classList.add('paystack-button');
+      paymentButton.innerHTML = `
+        <span class="btn-text">Pay with Paystack</span>
+        <span class="btn-price">${siteCurrency}${orderTotal}</span>
+      `;
+    }
+  }
+
+  if (paystackRadio) paystackRadio.addEventListener('change', updatePaymentButton);
+  if (manualRadio) manualRadio.addEventListener('change', updatePaymentButton);
 });

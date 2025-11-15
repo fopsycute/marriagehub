@@ -2,7 +2,6 @@
 
 <?php
 
-
 $requireLogin = $requireLogin ?? false; // page-specific
 $activeLog = 0; // 0 = guest, 1 = logged-in buyer
  $buyerId = 0;
@@ -167,15 +166,15 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <header id="header" class="header d-flex align-items-center sticky-top">
     <div class="container position-relative d-flex align-items-center justify-content-between">
 
-      <a href="<?php echo $siteurl; ?>index.php" class="logo d-flex align-items-center me-auto me-xl-0">
+  <a href="<?php echo $siteurl; ?>index.php" class="logo d-flex align-items-center order-0 me-auto me-xl-0">
         <!-- Uncomment the line below if you also wish to use an image logo -->
         <img src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" alt="">
        <!-- <h1 class="sitename">ZenBlog</h1> -->
 
       </a>
 
-      <nav id="navmenu" class="navmenu">
-        <ul>
+  <nav id="navmenu" class="navmenu order-1 flex-grow-1">
+  <ul class="d-lg-flex justify-content-lg-center align-items-center mb-0 w-100">
           <li><a href="<?php echo $siteurl; ?>" class="active">Home</a></li>
           <li><a href="<?php echo $siteurl; ?>about.php">About</a></li>
           <li><a href="<?php echo $siteurl; ?>blog.php">Blogs</a></li>
@@ -203,16 +202,36 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <li><a href="contact.html">Contact</a></li>
           --->
         </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
- 
-          <div class="dropdown account-dropdown">
+
+      <!-- Right-side actions for mobile: mobile toggle, cart, account -->
+  <div class="d-flex align-items-center ms-auto order-2">
+        <!-- Mobile nav toggle (visible on md and smaller screens) -->
+        <button class="btn btn-link p-0 d-lg-none mobile-nav-toggle me-2" aria-label="Toggle navigation">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+
+        <!-- Cart icon -->
+        <a href="<?php echo $siteurl; ?>cart.php" class="btn btn-link p-0 me-2 position-relative header-action-btn" aria-label="Cart">
+          <i class="bi bi-cart fs-5"></i>
+          <!-- badge (replace 0 with dynamic count if desired) -->
+            <?php
+            $cart_count = getCartCount($con, $siteprefix, $order_id);
+
+            ?>
+            <?php if ($cart_count >= 0): ?>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count" style="font-size:10px"><?php echo $cart_count; ?></span>
+          <?php endif; ?>
+        </a>
+      
+
+        <div class="dropdown account-dropdown">
   <button class="header-action-btn btn border-0 bg-transparent" data-bs-toggle="dropdown" aria-expanded="false">
     <i class="bi bi-person fs-5"></i>
     <span class="action-text d-none d-md-inline-block">Account</span>
   </button>
 
-  <div class="dropdown-menu shadow rounded-3">
+  <div class="dropdown-menu dropdown-menu-end shadow rounded-3">
     <div class="dropdown-header mb-2 px-3 pt-3">
       <h6>Welcome to <span class="sitename"><?php echo $sitename; ?></span></h6>
 

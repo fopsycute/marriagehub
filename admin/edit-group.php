@@ -68,7 +68,7 @@ if (isset($_GET['group_id'])) {
 }
 
 ?>
-		<form class="enrollment-edittribes" id="admineditGroupForm" method="POST" enctype="multipart/form-data">
+		<form class="enrollment-edittribes" id="admineditnewGroupForm" method="POST" enctype="multipart/form-data">
                  <!-- Group/Tribe Name -->
             <div class="row mb-3">
             <div class="col-lg-12 text-center mt-1" id="messages"></div> 
@@ -204,7 +204,7 @@ if (isset($_GET['group_id'])) {
                 </div>
             </div>
             <input type="hidden" name="user" value="<?php echo $user_id; ?>" >
-            <input type="hidden" name="action" value="edit_admingroup">
+            <input type="hidden" name="action" value="edit_newadmingroup">
             <!-- Group Rules -->
             <div class="row mb-3">
               <div class="col-12">
@@ -225,12 +225,18 @@ if (isset($_GET['group_id'])) {
             <div class="row mb-3">
               <div class="col-12">
                 <label class="form-label">Status</label>
-                <select name="status" class="form-control" required>
+                <select name="status" id="statusSelect" class="form-control" required>
                 <option value="" disabled <?= empty($status) ? 'selected' : '' ?>>Select</option>
                 <option value="pending" <?= ($status === 'pending') ? 'selected' : '' ?>>Pending</option>
                 <option value="active"  <?= ($status === 'active') ? 'selected' : '' ?>>Approved</option>
+                    <option value="suspended" <?= ($status == 'suspended') ? 'selected' : ''; ?>>Suspended</option>
                 </select>
               </div>
+              
+      <div class="mb-3" id="suspendReasonBox" style="display: none;">
+        <label class="form-label">Reason for Suspension</label>
+        <textarea name="suspend_reason" class="form-control" rows="3"><?= $suspend_reason ?? '' ?></textarea>
+      </div>
             </div>
 
 

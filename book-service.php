@@ -37,7 +37,7 @@ $order_id = $_GET['order_id'] ?? 1;
 
   <div class="form-group">
     <label>Email</label>
-    <input type="email" name="contact" class="form-control" required readonly value="<?php echo $buyerEmail; ?> ">
+    <input type="email" name="email" class="form-control" required readonly value="<?php echo $buyerEmail; ?> ">
   </div>
 
   <div class="form-group">

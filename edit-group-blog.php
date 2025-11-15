@@ -1,5 +1,3 @@
-
-
 <?php 
 $requireLogin = true;
 include "header.php"; 
@@ -113,7 +111,7 @@ if (isset($_GET['blog_id'])) {
                 $activeLog = 1;
                 $canAccess = true;
             } else {
-                // ✅ Otherwise, check if user is a group member
+                // Otherwise, check if user is a group member
                  $activeUserId = $adminAuth ?: ($vendorAuth ?: ($userAuth ?: $therapistAuth));
                 if (!empty($activeUserId) && !empty($group_id)) {
                     $checkMemberUrl = $sitelink . "admin.php?action=checkuserMember&group_id={$group_id}&user_id={$activeUserId}";
@@ -197,12 +195,8 @@ if (isset($_GET['blog_id'])) {
   }
   ?>
 </select>
-
-
       </div>
-
-
-      <!-- Sub-Categories -->
+  <!-- Sub-Categories -->
       <div class="form-group mb-2">
         <label for="subcategory">Sub-Categories</label>
        <select name="subcategory[]" id="subcategory" class="form-select select-multiple" required multiple>

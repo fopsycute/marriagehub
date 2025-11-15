@@ -149,7 +149,6 @@ function registerVendorEndpoint($postData, $filesData) {
     $gender      = mysqli_real_escape_string($con, $postData['gender']);
     $nationality = mysqli_real_escape_string($con, $postData['nationality']);
     $languages   = mysqli_real_escape_string($con, $postData['languages']);
-
     $businessName          = mysqli_real_escape_string($con, $postData['business_name']);
     $registeredBusiness    = mysqli_real_escape_string($con, $postData['registered_business_name']);
     $ownerName             = mysqli_real_escape_string($con, $postData['owner_name']);
@@ -179,7 +178,7 @@ $counter = 1;
 
 // Ensure the alt_title is unique
 while (true) {
-    $query = "SELECT COUNT(*) AS count FROM " . $siteprefix . "forums WHERE slug = ?";
+    $query = "SELECT COUNT(*) AS count FROM " . $siteprefix . "users WHERE slug = ?";
     $stmt = $con->prepare($query);
     $stmt->bind_param("s", $alt_title);
     $stmt->execute();

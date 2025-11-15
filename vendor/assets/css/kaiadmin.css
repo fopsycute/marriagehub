@@ -428,6 +428,8 @@ body {
   .page-wrapper.has-sidebar .page-inner {
     margin-left: 22.5rem; }
 
+
+
 .page-navs {
   position: relative;
   display: block;
@@ -931,6 +933,17 @@ body {
   color: #2A2F5B !important; }
   .btn-toggle:hover, .btn-toggle:focus {
     opacity: 1; }
+
+.fc-direction-ltr .fc-daygrid-event.fc-event-end, .fc-direction-rtl .fc-daygrid-event.fc-event-start {
+    color: #000;
+    margin-right: 2px;
+}
+
+.fc-direction-ltr .fc-button-group > .fc-button:not(:last-child) {
+    color: #000;
+    border-bottom-right-radius: 0px;
+    border-top-right-radius: 0px;
+}
 
 /* Sidebar style 2 */
 .sidebar.sidebar-style-2 .nav .nav-item {

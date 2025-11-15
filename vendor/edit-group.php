@@ -221,18 +221,7 @@ if (isset($_GET['group_id'])) {
                 <small class="text-muted">Recommended size: 1200 x 600px (JPG/PNG)</small>
               </div>
             </div>
-
-            <div class="row mb-3">
-              <div class="col-12">
-                <label class="form-label">Status</label>
-                <select name="status" class="form-control" required>
-                <option value="" disabled <?= empty($status) ? 'selected' : '' ?>>Select</option>
-                <option value="pending" <?= ($status === 'pending') ? 'selected' : '' ?>>Pending</option>
-                <option value="active"  <?= ($status === 'active') ? 'selected' : '' ?>>Approved</option>
-                </select>
-              </div>
-            </div>
-
+<input type="hidden" name="status" value="<?php echo $status; ?>" >
 
             <!-- Submit Button -->
             <button class="btn btn-primary mt-3" type="submit" id="submitBtn" >Edit Group</button>

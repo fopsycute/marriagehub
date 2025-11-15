@@ -30,12 +30,17 @@ $db_username = "learnora_learn";
 $db_pass = "7Ums6HDNrg)03*"; 
 $db_name = "learnora_learnorastore";
 
+
+$db_host = "localhost";
+$db_name = "marriage_hub_ng";
+$db_username = "root"; 
+
 */
 
 // ✅ Database credentials
-$db_host = "localhost";
-$db_username = "marriage_project";
-$db_pass = ")s2bF7dP]VB1w3";
+
+$db_username = "marriage_project"; 
+$db_pass = ")s2bF7dP]VB1w3"; 
 $db_name = "marriage_hub";
 
 // ✅ Avoid multiple connections
@@ -92,6 +97,9 @@ if ($sql2 && mysqli_num_rows($sql2) > 0) {
     $siteaccno = $row["account_number"];
     $siteaccname = $row["account_name"];
     $site_bank = $row["site_bank"];
+    $privacy_policy = $row["privacy_policy"];
+    $terms_policy = $row["terms_policy"];
+    $minimum_withdrawal  = $row["minimum_withdrawal"];
     $brevokey = $row["brevo_key"];
     $sitekeywords = $row["site_keywords"];
 }

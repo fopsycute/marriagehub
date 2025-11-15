@@ -64,7 +64,7 @@ function loginEndpoint($postData) {
     $redirectMap = [
         'admin' => "admin/",
         'vendor' => "vendor/",
-        'therapist' => "therapist/",
+        'therapist' => "therapist-dashboard/",
         'buyer' => "dashboard.php"
     ];
 

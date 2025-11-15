@@ -293,6 +293,23 @@
         <label class="form-label">Sub-Specializations</label>
         <select id="sub_specialization" name="sub_specialization[]" class="form-select select-multiple" required multiple>
         <option value="">-- Select Sub-Specialization --</option>
+          <?php
+  if (!empty($categories_selected)) {
+      $url = $siteurl . "script/register.php?action=subcategorieslists&parent_ids=" . implode(',', $categories_selected);
+      $data = curl_get_contents($url);
+      if ($data !== false) {
+          $subcategories = json_decode($data);
+          if (!empty($subcategories)) {
+              foreach ($subcategories as $subcat) {
+                  $subcatId = $subcat->id;
+                  $subcatName = $subcat->category_name;
+                  $selected = in_array($subcatId, $subcategories_selected) ? 'selected' : '';
+                  echo "<option value='{$subcatId}' {$selected}>{$subcatName}</option>";
+              }
+          }
+      }
+  }
+  ?>
         </select>
     </div>
     </div>

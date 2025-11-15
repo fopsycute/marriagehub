@@ -7,7 +7,7 @@
  <div class="container">
           <div class="page-inner">
             <div class="page-header">
-              <h3 class="fw-bold mb-3">Admin Questions</h3>
+              <h3 class="fw-bold mb-3">My Questions</h3>
               <ul class="breadcrumbs mb-3">
                 <li class="nav-home">
                   <a href="#">
@@ -18,13 +18,13 @@
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">Admin Questions</a>
+                  <a href="#">My Questions</a>
                 </li>
                 <li class="separator">
                   <i class="icon-arrow-right"></i>
                 </li>
                 <li class="nav-item">
-                  <a href="#">Admin Questions</a>
+                  <a href="#">My Questions</a>
                 </li>
               </ul>
             </div>
@@ -32,7 +32,7 @@
                 <div class="col-md-12">
                 <div class="card">
                   <div class="card-header">
-                    <h4 class="card-title">Admin Questions</h4>
+                    <h4 class="card-title">My Questions</h4>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive">

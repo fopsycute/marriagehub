@@ -19,14 +19,53 @@ if ($authentication) {
         if ($buyerData && empty($buyerData->error)) {
             $buyerId = $buyerData->id ?? '';
             $vendorId = $buyerData->id ?? '';
+            $title = $buyerData->title ?? '';
+            $wallet = $buyerData->wallet ?? '';
+            $gender = $buyerData->gender ?? '';
+            $bank_accname = $buyerData->bank_accname ?? '';
+            $bank_number = $buyerData->bank_number ?? '';
+            $bank_name = $buyerData->bank_name ?? '';
+            $services = $buyerData->services ?? '';
             $buyerfirstName = $buyerData->first_name;
+            $business_name = $buyerData->business_name;
+            $registered_business_name = $buyerData->registered_business_name;
+            $owner_name = $buyerData->owner_name;
+            $dob = $buyerData->dob;
+            $nationality = $buyerData->nationality;
+            $languages = $buyerData->languages;
+            $buyerlastName = $buyerData->last_name;
+            $experience_years = $buyerData->experience_years;
+            $coverage = $buyerData->coverage;
+            $onsite = $buyerData->onsite;
+            $availability = $buyerData->availability;
+            $consent = $buyerData->consent;
+            $subscription_status = $buyerData->subscription_status ?? '';
+            $status = $buyerData->status;
+            $buyermiddleName = $buyerData->middle_name;
+            $categories_selected = !empty($buyerData->category_id) ? explode(',', $buyerData->category_id) : [];
+            $subcategories_selected = !empty($buyerData->subcategory_id) ? explode(',', $buyerData->subcategory_id) : [];
             $email = $buyerData->email;
-            $logo = $buyerData->photo;
+            $address = $buyerData->address;
+            $logo = $siteurl.$imagePath.$buyerData->photo;
+            $phone = $siteurl.$imagePath.$buyerData->phone;
+            $website = $buyerData->website;
+            $state_residence = $buyerData->state_residence;
+            $facebook = $buyerData->facebook ?? '';
+            $subscription_end = $buyerData->subscription_end ?? '';
+            $subscription_start = $buyerData->subscription_start ?? '';
+            $twitter = $buyerData->twitter ?? '';
+            $instagram = $buyerData->instagram ?? '';
+            $linkedin = $buyerData->linkedin ?? '';
+            $myslug = $buyerData->slug ?? '';
+            $business_logo = $siteurl.$imagePath.$buyerData->business_logo;
+            $portfolio = $siteurl.$imagePath.$buyerData->portfolio;
             $buyerName = $buyerData->first_name . " " . $buyerData->last_name;
             $buyerEmail = $buyerData->email ?? '';
             $buyerStatus = $buyerData->status ?? 'inactive';
             $buyerVerified = $buyerData->is_verified ?? 0;
             $activeLog = 1;
+
+
         } else {
             // Invalid token or missing data
             $activeLog = 0;
@@ -97,6 +136,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <link href="assets/css/select2.min.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 <link rel="stylesheet" href="assets/css/kaiadmin.css" />
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="assets/css/demo.css" />
@@ -140,6 +180,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                   <p>Dashboard</p>
                
                 </a>
+                
               </li>
               <li class="nav-section">
                 <span class="sidebar-mini-icon">
@@ -154,9 +195,15 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                 </a>
                 <div class="collapse" id="base">
                   <ul class="nav nav-collapse">
-                    <li>
+
+                   <li>
                       <a href="add-listing.php">
                         <span class="sub-item">Add Listing</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="all-listings.php">
+                        <span class="sub-item">All Listings</span>
                       </a>
                     </li>
                     <li>
@@ -170,88 +217,62 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                         <span class="sub-item">Approved Listings</span>
                       </a>
                     </li>
-
-                         <li>
-                      <a href="all-categories.php">
-                        <span class="sub-item">All Categories</span>
-                      </a>
-                    </li>
-
-                        <li>
-                      <a href="all-subcategories.php">
-                        <span class="sub-item">All Sub Categories</span>
-                      </a>
-                    </li>
                    
                   </ul>
                 </div>
               </li>
-              <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarLayouts">
-                  <i class="fas fa-calendar-alt"></i>
-                  <p>Events</p>
-                  <span class="caret"></span>
-                </a>
-                <div class="collapse" id="sidebarLayouts">
-                  <ul class="nav nav-collapse">
-                    <li>
-                      <a href="add-event.php">
-                        <span class="sub-item">Add Event</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a href="all-events.php">
-                        <span class="sub-item">Manage Events</span>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </li>
 
-              <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#disputes">
+             
+
+                  <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#appointment">
                   <i class="fas fa-balance-scale"></i>
-                  <p>Disputes</p>
+                  <p> Appointments & Bookings</p>
                   <span class="caret"></span>
                 </a>
-                <div class="collapse" id="disputes">
+                <div class="collapse" id="appointment">
                   <ul class="nav nav-collapse">
                     <li>
-                      <a href="all-disputes.php">
-                        <span class="sub-item">All Disputes</span>
+                      <a href="upcoming-session.php">
+                        <span class="sub-item">Upcoming sessions </span>
                       </a>
                     </li>
+                    <li>
+                      <a href="booking-request.php">
+                        <span class="sub-item">Booking requests</span>
+                      </a>
+                    </li>
+                     <li>
+                      <a href="booking-history.php">
+                        <span class="sub-item">Booking history</span>
+                      </a>
+    </li>
                   </ul>
                 </div>
               </li>
-
-                <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#vendors">
-                  <i class="fas fa-user"></i>
-                  <p>Users</p>
-                  <span class="caret"></span>
-                </a>
-                <div class="collapse" id="vendors">
-                  <ul class="nav nav-collapse">
-                  
-                    <li>
-                      <a href="all-user.php">
-                        <span class="sub-item">Manage Users</span>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-
+      
+              
 
                 <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#questions">
-                  <i class="fas fa-user"></i>
+                  <i class="fas fa-question"></i>
                   <p>Questions</p>
                   <span class="caret"></span>
                 </a>
                 <div class="collapse" id="questions">
                   <ul class="nav nav-collapse">
+
+                   <li>
+                      <a href="all-question.php">
+                        <span class="sub-item">All Question</span>
+                      </a>
+                    </li>
+
+                  <li>
+                      <a href="add-question.php">
+                        <span class="sub-item">Add Question</span>
+                      </a>
+                    </li>
                   
                     <li>
                       <a href="my-question.php">
@@ -276,7 +297,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 
 
 
-              
+              <!---
                 <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#chats">
                   <i class="fas fa-comments"></i>
@@ -300,15 +321,21 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                   </ul>
                 </div>
               </li>
-
+      ---->
               <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#forms">
-                  <i class="fas fa-pen-square"></i>
+                  <i class="fas fa-newspaper"></i>
                   <p>Blog</p>
                   <span class="caret"></span>
                 </a>
                 <div class="collapse" id="forms">
                   <ul class="nav nav-collapse">
+
+                  <li>
+                      <a href="all-blog.php">
+                        <span class="sub-item">All Blog</span>
+                      </a>
+                    </li>
                     <li>
                       <a href="add-blog.php">
                         <span class="sub-item">Add Blog</span>
@@ -321,8 +348,8 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     </li>
 
                     <li>
-                      <a href="edit-blog.php">
-                        <span class="approved-blog.php">Approved Blog</span>
+                      <a href="approved-blog.php">
+                        <span class="sub-item">Approved Blog</span>
                       </a>
                     </li>
                        
@@ -381,23 +408,19 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                 </div>
               </li>
               <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#maps">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <p>Bookings & Payments</p>
+                <a data-bs-toggle="collapse" href="#wallet">
+                  <i class="fas fa-wallet"></i>
+                  <p>Wallet & Earnings</p>
                   <span class="caret"></span>
                 </a>
-                <div class="collapse" id="maps">
+                <div class="collapse" id="wallet">
                   <ul class="nav nav-collapse">
                     <li>
-                      <a href="booking-history.php">
-                        <span class="sub-item">Booking History</span>
+                      <a href="wallet.php">
+                        <span class="sub-item">Wallet</span>
                       </a>
                     </li>
-                         <li>
-                      <a href="earnings-breakdown.php">
-                        <span class="sub-item">Earnings Breakdown</span>
-                      </a>
-                    </li>
+                      
                     <li>
                       <a href="withdrawal.php">
                         <span class="sub-item">Withdrawal & Payout Logs</span>
@@ -407,6 +430,31 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                 </div>
               </li>
 
+
+              <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#reviews">
+                  <i class="fas fa-star"></i>
+                  <p>Reviews</p>
+                  <span class="caret"></span>
+                </a>
+                <div class="collapse" id="reviews">
+                  <ul class="nav nav-collapse">
+
+                  <li>
+                      <a href="all-reviews.php">
+                        <span class="sub-item">All Reviews</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="average-rating.php">
+                        <span class="sub-item">Average rating</span>
+                      </a>
+                    </li>
+                      
+                    
+                  </ul>
+                </div>
+              </li>
                 <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#settings">
                   <i class="fas fa-cog"></i>
@@ -421,13 +469,13 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                       </a>
                     </li>
                          <li>
-                      <a href="earnings-breakdown.php">
-                        <span class="sub-item">Earnings Breakdown</span>
+                      <a href="change-password.php">
+                        <span class="sub-item">Change Password</span>
                       </a>
                     </li>
                     <li>
-                      <a href="withdrawal.php">
-                        <span class="sub-item">Withdrawal & Payout Logs</span>
+                      <a href="subscription-plan.php">
+                        <span class="sub-item">-	Subscription Plan & Upgrade</span>
                       </a>
                     </li>
                   </ul>
@@ -474,6 +522,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
               <nav
                 class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex"
               >
+                <!---
                 <div class="input-group">
                   <div class="input-group-prepend">
                     <button type="submit" class="btn btn-search pe-1">
@@ -486,9 +535,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     class="form-control"
                   />
                 </div>
+                --->
               </nav>
 
               <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                <!--
                 <li
                   class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none"
                 >
@@ -605,6 +656,24 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     </li>
                   </ul>
                 </li>
+                --->
+                  <?php
+                $url = $siteurl . "script/admin.php?action=usernotificationlists&user_id=" . $buyerId;
+                $data = curl_get_contents($url);
+
+                $notifCount = 0; // default
+                $notifications = [];
+
+                if ($data !== false) {
+                    $notificationsData = json_decode($data);
+
+                    if (!empty($notificationsData)) {
+                        $notifCount = count($notificationsData);          // total unread notifications
+                        $notifications = array_slice($notificationsData, 0, 5); // latest 5
+                    }
+                }
+                ?>
+
                 <li class="nav-item topbar-icon dropdown hidden-caret">
                   <a
                     class="nav-link dropdown-toggle"
@@ -616,7 +685,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     aria-expanded="false"
                   >
                     <i class="fa fa-bell"></i>
-                    <span class="notification">4</span>
+                    <span class="notification"><?= $notifCount; ?></span>
                   </a>
                   <ul
                     class="dropdown-menu notif-box animated fadeIn"
@@ -624,143 +693,59 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                   >
                     <li>
                       <div class="dropdown-title">
-                        You have 4 new notification
+                        You have <?= $notifCount ?? 0; ?> new notification<?= ($notifCount ?? 0) != 1 ? 's' : ''; ?>
                       </div>
                     </li>
                     <li>
                       <div class="notif-scroll scrollbar-outer">
                         <div class="notif-center">
-                          <a href="#">
-                            <div class="notif-icon notif-primary">
-                              <i class="fa fa-user-plus"></i>
-                            </div>
-                            <div class="notif-content">
-                              <span class="block"> New user registered </span>
-                              <span class="time">5 minutes ago</span>
-                            </div>
-                          </a>
-                          <a href="#">
-                            <div class="notif-icon notif-success">
-                              <i class="fa fa-comment"></i>
-                            </div>
-                            <div class="notif-content">
-                              <span class="block">
-                                Rahmad commented on Admin
-                              </span>
-                              <span class="time">12 minutes ago</span>
-                            </div>
-                          </a>
-                          <a href="#">
-                            <div class="notif-img">
-                              <img
-                                src="assets/img/profile2.jpg"
-                                alt="Img Profile"
-                              />
-                            </div>
-                            <div class="notif-content">
-                              <span class="block">
-                                Reza send messages to you
-                              </span>
-                              <span class="time">12 minutes ago</span>
-                            </div>
-                          </a>
-                          <a href="#">
-                            <div class="notif-icon notif-danger">
-                              <i class="fa fa-heart"></i>
-                            </div>
-                            <div class="notif-content">
-                              <span class="block"> Farrah liked Admin </span>
-                              <span class="time">17 minutes ago</span>
-                            </div>
-                          </a>
+                  <?php
+                    if (!empty($notifications)) {
+                        foreach ($notifications as $notification) {
+                            $Id       = $notification->s;
+                            $message  = $notification->message;
+                            $content  = limitWords($message, 5);
+                            $dateAgo  = timeAgo($notification->date);
+                    ?>
+                            <a href="#">
+                                <div class="notif-icon notif-primary">
+                                    <i class="icon-bell"></i>
+                                </div>
+                                <div class="notif-content">
+                                    <span class="block"><?= $content; ?></span>
+                                    <span class="time"><?= $dateAgo; ?></span>
+                                </div>
+                            </a>
+                    <?php
+                        }
+                    } else {
+                        echo '<p class="text-center text-muted">No notifications available.</p>';
+                    }
+                    ?>
+                      
                         </div>
                       </div>
                     </li>
                     <li>
-                      <a class="see-all" href="javascript:void(0);"
+                      <a class="see-all" href="notifications.php"
                         >See all notifications<i class="fa fa-angle-right"></i>
                       </a>
                     </li>
                   </ul>
                 </li>
-                <li class="nav-item topbar-icon dropdown hidden-caret">
-                  <a
-                    class="nav-link"
-                    data-bs-toggle="dropdown"
-                    href="#"
-                    aria-expanded="false"
-                  >
-                    <i class="fas fa-layer-group"></i>
-                  </a>
-                  <div class="dropdown-menu quick-actions animated fadeIn">
-                    <div class="quick-actions-header">
-                      <span class="title mb-1">Quick Actions</span>
-                      <span class="subtitle op-7">Shortcuts</span>
-                    </div>
-                    <div class="quick-actions-scroll scrollbar-outer">
-                      <div class="quick-actions-items">
-                        <div class="row m-0">
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div class="avatar-item bg-danger rounded-circle">
-                                <i class="far fa-calendar-alt"></i>
-                              </div>
-                              <span class="text">Calendar</span>
-                            </div>
-                          </a>
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div
-                                class="avatar-item bg-warning rounded-circle"
-                              >
-                                <i class="fas fa-map"></i>
-                              </div>
-                              <span class="text">Maps</span>
-                            </div>
-                          </a>
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div class="avatar-item bg-info rounded-circle">
-                                <i class="fas fa-file-excel"></i>
-                              </div>
-                              <span class="text">Reports</span>
-                            </div>
-                          </a>
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div
-                                class="avatar-item bg-success rounded-circle"
-                              >
-                                <i class="fas fa-envelope"></i>
-                              </div>
-                              <span class="text">Emails</span>
-                            </div>
-                          </a>
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div
-                                class="avatar-item bg-primary rounded-circle"
-                              >
-                                <i class="fas fa-file-invoice-dollar"></i>
-                              </div>
-                              <span class="text">Invoice</span>
-                            </div>
-                          </a>
-                          <a class="col-6 col-md-4 p-0" href="#">
-                            <div class="quick-actions-item">
-                              <div
-                                class="avatar-item bg-secondary rounded-circle"
-                              >
-                                <i class="fas fa-credit-card"></i>
-                              </div>
-                              <span class="text">Payments</span>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
+              <li class="nav-item topbar-icon dropdown hidden-caret">
+          <?php if ($subscription_status == 'Free'): ?>
+            <a href="subscription-plan.php" class="btn btn-sm btn-primary d-flex align-items-center rounded">
+              <i class="fas fa-layer-group me-2"></i> Upgrade
+            </a>
+          <?php else: ?>
+            <a class="btn btn-sm text-success fw-semibold" href="subscription-plan.php">
+              <i class="fas fa-layer-group me-1"></i>
+              <?= htmlspecialchars($subscription_status); ?>
+            </a>
+          <?php endif; ?>
+        </li>
+
 
                 <li class="nav-item topbar-user dropdown hidden-caret">
                   <a
@@ -771,7 +756,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                   >
                     <div class="avatar-sm">
                       <img
-                        src="assets/img/profile.jpg"
+                        src="<?php echo $logo; ?>"
                         alt="..."
                         class="avatar-img rounded-circle"
                       />
@@ -787,7 +772,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                         <div class="user-box">
                           <div class="avatar-lg">
                             <img
-                              src="assets/img/profile.jpg"
+                              src="<?php echo $logo; ?>"
                               alt="image profile"
                               class="avatar-img rounded"
                             />
@@ -805,12 +790,12 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                       </li>
                       <li>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="settings.php">My Profile</a>
-                        <a class="dropdown-item" href="chat.php">Inbox</a>
+                     <!---   <a class="dropdown-item" href="settings.php">My Profile</a>  -->
+                      <!---  <a class="dropdown-item" href="chat.php">Inbox</a>  -->
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="settings.php">Account Setting</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Logout</a>
+                        <a class="dropdown-item" href="<?php echo $siteurl; ?>logout.php">Logout</a>
                       </li>
                     </div>
                   </ul>

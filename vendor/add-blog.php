@@ -15,7 +15,7 @@
             <div class="card-title">Blog</div>
           </div>
           <div class="card-body">
-    <form  method="POST" id="addgroupblog" enctype="multipart/form-data">    
+    <form  method="POST" id="addvendorblog" enctype="multipart/form-data">    
        <div class="col-lg-12 text-center mt-1" id="messages"></div> 
             <!-- Blog Title -->
             <div class="form-group">
@@ -34,7 +34,7 @@
               <label for="blogContent">Content</label>
               <textarea id="blogContent" class="editor" name="article"  placeholder="Write your blog content here..."></textarea>
             </div>
-            <input type="hidden" name="action" id="action" value="addgroupforum">
+            <input type="hidden" name="action" id="action" value="addvendorforum">
             <!-- Categories -->
              <div class="row">
               <div class="col-lg-6">
@@ -94,6 +94,8 @@
                <option value="pending"> pending</option>
             </select>
             </div>
+
+             <input type="hidden" id="articleLimit" value="<?= htmlspecialchars(getFeatureLimit($con, $buyerId, 'article_limit', $siteprefix)) ?>">
 
          
               <input type="hidden" name="user" value="<?php echo $buyerId; ?>">

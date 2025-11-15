@@ -76,6 +76,15 @@ include "header.php";
       <h4>My Question & Answer</h4>
     </a>
 
+       <a href="<?php echo $siteurl; ?>create-tickets.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-question"></i></div>
+      <h4>Create Tickets</h4>
+    </a>
+
+       <a href="<?php echo $siteurl; ?>all-reviews.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-star-fill"></i></div>
+      <h4>My Reviews</h4>
+    </a>
     <a href="settings.php" class="dashboard-item">
       <div class="dashboard-icon me-2"><i class="bi bi-gear"></i></div>
       <h4>Settings</h4>

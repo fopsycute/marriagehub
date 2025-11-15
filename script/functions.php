@@ -27,6 +27,37 @@ function generateMessage($message, $color) {
     return $hashedPassword;
 }
 
+
+function handleMultipleFileUpload($fileKey, $uploadDir) {
+    $uploadedFiles = [];
+    $defaultImages = ['default1.jpg', 'default2.jpg', 'default3.jpg', 'default4.jpg', 'default5.jpg'];
+    $randomImage = $defaultImages[array_rand($defaultImages)];
+
+    if (isset($_FILES[$fileKey])) {
+        $fileCount = count($_FILES[$fileKey]['name']);
+
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($_FILES[$fileKey]['error'][$i] === UPLOAD_ERR_OK) {
+                $fileExtension = pathinfo($_FILES[$fileKey]['name'][$i], PATHINFO_EXTENSION);
+                $fileName = uniqid() . '.' . $fileExtension;
+                $uploadedFile = $uploadDir . $fileName;
+
+                if (move_uploaded_file($_FILES[$fileKey]['tmp_name'][$i], $uploadedFile)) {
+                    $uploadedFiles[] = $fileName; // Add the new file name to the array
+                } else {
+                    $uploadedFiles[] = "Failed to move the uploaded file.";
+                }
+            } else {
+                $uploadedFiles[] = $randomImage;//"No file uploaded or an error occurred.";
+            }
+        }
+    }
+
+    return $uploadedFiles; // Return the array of uploaded file names or error messages
+}
+
+
+
 // uploadVideos.php or inside your functions.php
 function uploadVideos($files, $uploadDir) {
     // ✅ Ensure upload directory exists
@@ -311,6 +342,127 @@ function renderReplies($parent_id, $siteurl, $imagePath, $buyerId, $activeLog, $
     }
 }
 
+
+// Helper: Convert timestamp to "time ago" format
+function timeAgo($datetime) {
+    $timestamp = strtotime($datetime);
+    $difference = time() - $timestamp;
+
+    if ($difference < 60) {
+        return "Just now";
+    } elseif ($difference < 3600) {
+        $minutes = floor($difference / 60);
+        return $minutes . " minute" . ($minutes > 1 ? "s" : "") . " ago";
+    } elseif ($difference < 86400) {
+        $hours = floor($difference / 3600);
+        return $hours . " hour" . ($hours > 1 ? "s" : "") . " ago";
+    } elseif ($difference < 172800) {
+        return "Yesterday";
+    } else {
+        $days = floor($difference / 86400);
+        return $days . " day" . ($days > 1 ? "s" : "") . " ago";
+    }
+}
+
+function updateDisputeStatus($con, $siteprefix, $dispute_id, $status) {
+    $status = mysqli_real_escape_string($con, $status);
+    $dispute_id = mysqli_real_escape_string($con, $dispute_id);
+    
+    $sql = "UPDATE " . $siteprefix . "disputes 
+            SET status = '$status', 
+                created_at = NOW() 
+            WHERE ticket_number = '$dispute_id'";
+            
+    $result = mysqli_query($con, $sql);
+    
+    if ($result) {
+        return true;
+    }
+    return false;
+}
+
+
+function notifyDisputeRecipient($con, $siteprefix, $dispute_id) {
+    // Get recipient ID
+    $query = "SELECT recipient_id FROM ".$siteprefix."disputes WHERE ticket_number = ?";
+    $stmt = $con->prepare($query);
+    $stmt->bind_param("s", $dispute_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $recipient_id = $row['recipient_id'];
+    
+    if (!$recipient_id) {
+        return false;
+    }
+
+    $message = "There has been a new update on dispute ($dispute_id). Please check the ticket for more details.";
+    $rDetails = getUserDetails($con, $siteprefix, $recipient_id);
+    $r_email = $rDetails['email'];
+    $r_name = $rDetails['first_name'];
+    $r_emailSubject = "Dispute Update ($dispute_id)";
+    $r_emailMessage = "<p>There has been a new update on dispute ($dispute_id). Login to your dashboard to check</p>";
+    
+    //sendEmail($r_email, $r_name, $siteName, $siteMail, $r_emailMessage, $r_emailSubject);
+    
+    $date = date('Y-m-d H:i:s');
+    $status = 0;
+    $link = "ticket.php?ticket_number=$dispute_id";
+    $msgtype = "Dispute Update";
+    
+    return insertAlert($con, $recipient_id, $message, $date, $status);
+}
+
+
+function getBadgeColor($status) {
+    switch ($status) {
+        case 'cancelled':
+            return 'danger'; // Gray for pending contract
+        case 'Inactive':
+                return 'danger'; // Gray for pending contract
+        case 'draft':
+            return 'info'; // Info for pending payment
+        case 'awaiting-response':
+            return 'info'; // Info for pending payment
+        case 'pending':
+        case 'suspended':
+                return 'warning'; // Info for pending payment
+        case 'inprogress':
+        case 'approved':
+            return 'success';
+        case 'resolved':
+            return 'success';
+        case 'under-review':
+            return 'danger'; // Gray for pending contract
+        default:
+            return 'success'; // Success for all other statuses
+    }
+}
+
+//function to get username and email
+function getUserDetails($con, $siteprefix, $user_id) {
+    $query = "SELECT * FROM " . $siteprefix . "users WHERE id = '$user_id'";
+    $result = mysqli_query($con, $query);
+    return mysqli_fetch_assoc($result);
+}
+
+function getCartCount($con, $siteprefix, $order_id) {
+    $sql = "SELECT COUNT(*) as count FROM ".$siteprefix."order_items oi 
+    LEFT JOIN ".$siteprefix."orders o ON oi.order_id = o.order_id 
+    WHERE o.order_id='$order_id'";
+    $sql2 = mysqli_query($con, $sql);
+    $row = mysqli_fetch_array($sql2);
+    return $row['count'];
+}
+
+function insertWithdraw($con, $user_id, $amount,$bank, $bankname, $bankno, $date, $status) {
+    global $siteprefix;
+$query = "INSERT INTO {$siteprefix}withdrawal (user,amount,bank,bank_name,bank_number, date, status) VALUES ('$user_id', '$amount', '$bank','$bankname','$bankno','$date', '$status')";
+$insert = mysqli_query($con, "UPDATE {$siteprefix}users SET wallet = CAST(wallet AS DECIMAL(10,2)) - CAST('$amount' AS DECIMAL(10,2)) WHERE id ='$user_id'") or die('Could not connect: ' . mysqli_error($con));
+    $submit = mysqli_query($con, $query);
+    if ($submit) { echo "";} 
+    else { die('Could not connect: ' . mysqli_error($con)); }}
+
 function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject) {
     global $siteimg, $adminlink, $siteurl, $brevokey;
 
@@ -418,5 +570,16 @@ function getFeatureLimit($con, $vendorId, $feature, $siteprefix) {
     $query->close();
 
     return strtolower($limit) === 'unlimited' ? 'unlimited' : (int)$limit;
+}
+
+function formatNumber($number, $no = 2) {
+    if (!is_numeric($number) || !is_numeric($no)) {
+        return "0.00";
+    }
+    try {
+        return number_format((float)$number, (int)$no);
+    } catch (Exception $e) {
+        return "0.00";
+    }
 }
 ?>

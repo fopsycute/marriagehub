@@ -145,9 +145,8 @@ if (isset($_GET['blog_id'])) {
               <label for="blogTags">Tags</label>
               <input type="text" id="blogTags" name="blogTags" class="form-control" placeholder="Add tags (comma separated)" value="<?php echo $tags; ?>">
             </div>
-<input type="hidden" name="status" value="<?php echo $status; ?>">
-        
-         
+<input type="hidden" name="status" 
+    value="<?php echo ($status === 'rejected') ? 'pending' : htmlspecialchars($status); ?>">
 
             <!-- Submit Button -->
             <button class="btn btn-primary"  id="submitBtn">Submit Blog</button>

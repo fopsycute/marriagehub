@@ -44,6 +44,17 @@
     toggleReason(); // initial check
   });
 
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('statusSelect');
+    const reasonBox = document.getElementById('rejectReasonBox');
+    function toggleReason() {
+      reasonBox.style.display = (statusSelect.value === 'rejected') ? 'block' : 'none';
+    }
+    statusSelect.addEventListener('change', toggleReason);
+    toggleReason(); // initial check
+  });
+
   // Event Type "Other" toggle
   document.getElementById('eventType').addEventListener('change', function() {
     document.getElementById('otherEventType').style.display = this.value.includes('Other') ? 'block' : 'none';

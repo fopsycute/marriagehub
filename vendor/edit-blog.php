@@ -55,7 +55,7 @@ if (isset($_GET['blog_id'])) {
 }
 
 ?>
- <form  method="POST" id="editForum" enctype="multipart/form-data">
+ <form  method="POST" id="vendoreditForum" enctype="multipart/form-data">
      <div class="col-lg-12 text-center mt-1" id="messages"></div> 
             <!-- Blog Title -->
             <div class="form-group">
@@ -74,7 +74,7 @@ if (isset($_GET['blog_id'])) {
               <label for="blogContent">Content</label>
               <textarea id="blogContent" name="blogContent" class="editor" placeholder="Write your blog content here..."><?php echo $article; ?></textarea>
             </div>
-
+             <input type="hidden" name="user" value="<?php echo $buyerId; ?>">
             <!-- Categories -->
             <!-- Categories -->
       <div class="form-group">
@@ -132,7 +132,7 @@ if (isset($_GET['blog_id'])) {
       </div>
 
        <input type="hidden" name="blog_id" value="<?php echo $blogId; ?>">
-    <input type="hidden" name="action" value="updateblog">
+    <input type="hidden" name="action" value="updatevendorblog">
             <!-- Tags -->
             <div class="form-group">
               <label for="blogTags">Tags</label>

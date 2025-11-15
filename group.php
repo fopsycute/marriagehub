@@ -301,14 +301,14 @@ if (!$canAccess) {
       <h4 class="mb-0">Group Blog</h4>
 
       <div>
-        <?php if ($accessRole === 'memeber') {  ?>
+        <?php if ($accessRole === 'member') {  ?>
            <a href="<?php echo $siteurl; ?>add-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog
           </a>   <a href="<?php echo $siteurl; ?>group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> my Blog
           </a>
             <?php } ?>
-        <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'subadmin') { ?>
+        <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'member' || $accessRole === 'subadmin') { ?>
           <a href="<?php echo $siteurl; ?>create-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog
           </a>   <a href="<?php echo $siteurl; ?>all-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">

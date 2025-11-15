@@ -80,7 +80,7 @@
       <!-- Description -->
       <div class="form-group">
         <label for="description">Description</label>
-        <textarea class="form-control" id="description" name="description" rows="4"
+        <textarea class="editor" id="editor" name="description" rows="4"
                   placeholder="Describe what it is, how it works, and why it matters..."></textarea>
       </div>
 
@@ -95,10 +95,7 @@
         <input class="form-check-input" type="radio" name="itemType" id="serviceType" value="Service">
         <label class="form-check-label" for="serviceType">Service</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="itemType" id="bothType" value="Both">
-        <label class="form-check-label" for="bothType">Both</label>
-      </div>
+      
     </div>
 
     <!-- Booking notice -->
@@ -199,7 +196,7 @@
     <div class="form-group mt-3">
       <label for="pricingNotes">Pricing Notes (Optional)</label>
       <textarea
-        class="form-control"
+        class="editor"
         id="pricingNotes"
         rows="2"
         name="pricingNotes"

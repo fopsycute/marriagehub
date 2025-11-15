@@ -15,17 +15,19 @@
             <div class="card-title">Category</div>
           </div>
           <div class="card-body">
-
+    <form method="POST" id="addcategory">
+       <div class="text-center mt-1" id="messages"></div> 
             <!-- Category Name -->
             <div class="form-group">
               <label for="categoryName">Name</label>
-              <input type="text" class="form-control" id="categoryName" placeholder="Enter category name">
+              <input type="text" class="form-control" id="categoryName" name="categoryName" placeholder="Enter category name">
             </div>
-         
+         <input type="hidden" name="action" value="addcategory">
             <div class="form-group">
             <!-- Submit Button -->
-            <button class="btn btn-primary">Submit Category</button>
+            <button type="submit" id="submitcategory" class="btn btn-primary">Submit Category</button>
             </div>
+    </form>
           </div>
         </div>
 

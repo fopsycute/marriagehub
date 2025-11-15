@@ -8,21 +8,11 @@
                     <?php echo $sitename; ?>
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#"> Help </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#"> Licenses </a>
-                </li>
               </ul>
             </nav>
-            <div class="copyright">
-              2024, made with <i class="fa fa-heart heart text-danger"></i> by
-              <a href="http://www.themekita.com"><?php echo $sitename; ?></a>
-            </div>
             <div>
-              Distributed by
-              <a target="_blank" href="https://themewagon.com/"><?php echo $sitename; ?></a>.
+        
+              <a target="_blank" href="<?php echo $siteurl; ?>"><?php echo $sitename; ?></a>.
             </div>
           </div>
         </footer>
@@ -243,6 +233,7 @@
 
     <!-- Chart Circle -->
     <script src="assets/js/plugin/chart-circle/circles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
       <!-- Select2 -->
   <script src="assets/js/select2.min.js"></script>
       <script src="assets/js/main.js"></script>

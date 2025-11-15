@@ -51,7 +51,7 @@
             <th>Name</th>
             <th>Email</th>
             <th>Status</th>
-            <th></th>
+          
           </tr>
         </tfoot>
           <tbody>
@@ -66,7 +66,7 @@ if ($data !== false) {
         foreach ($users as $user) {
 
             // ✅ Only display blogs where status is "pending"
-            if (isset($user->status)) {
+            if (isset($user->status) && $user->user_type == 'buyer' ) {
                 $userId = $user->id;
                 $email = $user->email;
                 $author = $user->first_name . ' ' . $user->last_name;

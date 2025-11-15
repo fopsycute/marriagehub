@@ -35,6 +35,7 @@ if (isset($_GET['blog_id'])) {
             $article = $blogdetail->article ?? '';
             $tags = $blogdetail->tags ?? '';
             $featured_image = $blogdetail->featured_image ?? '';
+            $reject_reason = $blogdetail->reject_reason ?? '';
             // Convert the blog’s stored category/subcategory values into arrays
             $categories_selected = !empty($blogdetail->categories) ? explode(',', $blogdetail->categories) : [];
             $subcategories_selected = !empty($blogdetail->subcategories) ? explode(',', $blogdetail->subcategories) : [];
@@ -141,11 +142,17 @@ if (isset($_GET['blog_id'])) {
 
           <div class="form-group">
           <label for="status">Status</label>
-          <select name="status" class="form-control" required>
+          <select name="status" class="form-control" id="statusSelect" required>
             <option value="">Select Status</option>
             <option value="active" <?php echo ($status === 'active') ? 'selected' : ''; ?>>Published</option>
             <option value="pending" <?php echo ($status === 'pending') ? 'selected' : ''; ?>>Pending</option>
+             <option value="rejected" <?php echo ($status === 'rejected') ? 'selected' : ''; ?>>Disapprrove</option>
           </select>
+
+            <div class="mb-3" id="rejectReasonBox" style="display: none;">
+        <label class="form-label">Reason for Rejection</label>
+        <textarea name="reject_reason" class="editor"><?= $reject_reason ?? '' ?></textarea>
+      </div>
         </div>
          
 

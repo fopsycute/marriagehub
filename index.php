@@ -296,8 +296,8 @@
                 if ($count >= 6) break; // ✅ limit 6 questions
 
                 $questionId = $question->id;
-                $title = htmlspecialchars($question->title);
-                $article = htmlspecialchars($question->article);
+                $title = $question->title;
+                $article = $question->article;
                   $slug = $question->slug ?? '';
                 $date = date('M d, Y', strtotime($question->created_at));
                 $category = !empty($question->category_names) ? trim(explode(',', $question->category_names)[0]) : 'Uncategorized';
@@ -456,9 +456,30 @@ if (!empty($allUsers)):
         $rate = !empty($user->rate) ? $user->rate : 0;
         $link= $siteurl . "therapist/" . $slug;
 
-        $photo = !empty($user->photo)
-            ? $siteurl . $imagePath . $user->photo
-            : $siteurl . "assets/img/user.jpg";
+    $photo = !empty($user->photo)
+      ? $siteurl . $imagePath . $user->photo
+      : $siteurl . "assets/img/user.jpg";
+
+    // Fetch rating for this therapist via new API endpoint
+    $avgRating = 0.0;
+    $reviewCount = 0;
+    if (!empty($userId)) {
+      $ratingApi = $siteurl . "script/admin.php?action=therapist_rating&therapist_id=" . urlencode($userId);
+      $ratingRaw = curl_get_contents($ratingApi);
+      if ($ratingRaw !== false) {
+        $ratingJson = json_decode($ratingRaw, true);
+        if (is_array($ratingJson)) {
+          $avgRating = isset($ratingJson['avg_rating']) ? floatval($ratingJson['avg_rating']) : 0.0;
+          $reviewCount = isset($ratingJson['review_count']) ? intval($ratingJson['review_count']) : 0;
+        }
+      }
+    }
+
+    // star calculation (round to nearest 0.5)
+    $rounded = round($avgRating * 2) / 2;
+    $fullStars = (int) floor($rounded);
+    $halfStar = ($rounded - $fullStars) == 0.5 ? 1 : 0;
+    $emptyStars = 5 - $fullStars - $halfStar;
 
         // Social media links
         $socialLinks = [];
@@ -474,12 +495,16 @@ if (!empty($allUsers)):
               <img src="<?php echo $photo; ?>" class="img-fluid" alt="<?php echo $fullName; ?>">
               <div class="overlay-content">
                 <div class="rating-stars">
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-half"></i>
-                  <span>4.8</span>
+                  <?php for ($i=0; $i<$fullStars; $i++): ?>
+                    <i class="bi bi-star-fill"></i>
+                  <?php endfor; ?>
+                  <?php if ($halfStar): ?>
+                    <i class="bi bi-star-half"></i>
+                  <?php endif; ?>
+                  <?php for ($i=0; $i<$emptyStars; $i++): ?>
+                    <i class="bi bi-star"></i>
+                  <?php endfor; ?>
+                  <span><?php echo number_format($avgRating, (floor($avgRating) == $avgRating) ? 0 : 1); ?></span>
                 </div>
                 <div class="course-count">
                   <span><?php echo $sitecurrency . number_format($rate, 2); ?></span>
@@ -497,7 +522,7 @@ if (!empty($allUsers)):
                   <span class="label">Per Session</span>
                 </div>
                 <div class="stat">
-                  <span class="number">4.8</span>
+                  <span class="number"><?php echo number_format($avgRating, (floor($avgRating) == $avgRating) ? 0 : 1); ?></span>
                   <span class="label">Rating</span>
                 </div>
               </div>
@@ -538,8 +563,291 @@ endif;
 
     </section><!--- therapists Section -->
 
-  
+    <section id="best-sellers" class="best-sellers section">
 
+      <!-- Section Title -->
+      <div class="container section-title aos-init aos-animate" data-aos="fade-up">
+        <h2>Explore Top-Quality Products</h2>
+        <p>Explore quality products sourced directly from our trusted vendors.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-5">
+         
+          <!-- Product 4 -->
+  <?php
+$url = $siteurl . "script/admin.php?action=listinglists";
+$data = curl_get_contents($url);
+$limit = 4; // Number of listings to show
+$count = 0;
+
+if ($data !== false) {
+    $listings = json_decode($data);
+
+    if (!empty($listings)) {
+        foreach ($listings as $listing) {
+            // ✅ Only active listings
+            if (isset($listing->status) && strtolower($listing->status) === 'active' && $listing->type =='Product') {
+                $count++;
+                if ($count > $limit) break;
+
+                // 🧩 Extract data
+                $listingId   = $listing->id;
+                $title       = htmlspecialchars($listing->title);
+                $slug        = htmlspecialchars($listing->slug ?? '');
+                $pricingType = htmlspecialchars($listing->pricing_type ?? '');
+                $price       = htmlspecialchars($listing->price ?? '');
+                $priceMin    = htmlspecialchars($listing->price_min ?? '');
+                $priceMax    = htmlspecialchars($listing->price_max ?? '');
+                $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
+                $category    = htmlspecialchars(trim($categoryNames[0]));
+                $featuredImg = !empty($listing->featured_image)
+                    ? $siteurl . $imagePath . $listing->featured_image
+                    : $siteurl . "assets/img/default-product.jpg";
+                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+
+                // 🧩 Seller Info
+                $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
+                $sellerPhoto = !empty($listing->photo)
+                    ? $siteurl . $imagePath . $listing->photo
+                    : $siteurl . "assets/img/user.jpg";
+
+                // 🧩 Compute Display Price
+                $displayPrice = 'Contact for price';
+                if ($pricingType === 'Starting Price' && !empty($price)) {
+                    $displayPrice = $sitecurrency  . number_format($price, 2);
+                } elseif ($pricingType === 'Price Range' && !empty($priceMin) && !empty($priceMax)) {
+                    $displayPrice = $sitecurrency . number_format($priceMin, 2) . $sitecurrency .'-'. number_format($priceMax, 2);
+                }
+
+
+                    // ✅ Check wishlist status
+              $isWishlisted = false; // Always define first
+
+        if (!empty($buyerId)) {
+            // ✅ Use $siteurl instead of undefined $sitelink
+            $apiCheckUrl = $siteurl . "script/user.php?action=checkWishlist&user_id={$buyerId}&listing_id={$listingId}";
+            $wishlistData = curl_get_contents($apiCheckUrl);
+
+            if ($wishlistData !== false) {
+                $wishlistResult = json_decode($wishlistData, true);
+
+                // ✅ Make it flexible to match possible response structures
+                if (is_array($wishlistResult)) {
+                    if (isset($wishlistResult['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['isWishlisted'];
+                    } elseif (isset($wishlistResult['data']['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['data']['isWishlisted'];
+                    }
+                }
+            }
+        }
+                ?>
+
+                <!-- 🛍️ Product Card -->
+                <div class="col-lg-3 col-md-6 col-6">
+                  
+                    <div class="product-item">
+                        <div class="product-image">
+                            <div class="product-badge trending-badge"><?php echo $category; ?></div>
+                            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
+                            <div class="product-actions">
+                                       <button 
+                      class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
+                      title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
+                      data-product-id="<?php echo $listingId; ?>"
+                    >
+                      <?php if ($isWishlisted): ?>
+                        <i class="bi bi-heart-fill text-danger"></i>
+                      <?php else: ?>
+                        <i class="bi bi-heart"></i>
+                      <?php endif; ?>
+                    </button>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category"><?php echo $category; ?></div>
+                            <h4 class="product-name">
+                                <a href="<?php echo $listingUrl; ?>"><?php echo $title; ?></a>
+                            </h4>
+                            <div class="product-price"><?php echo $displayPrice; ?></div>
+
+                            <!--Seller Info -->
+                            <div class="mt-3 d-flex align-items-center">
+                                <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
+                                <span class="small text-muted"><?php echo $sellerName; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php
+            }
+        }
+    }
+}
+?>
+
+          <!-- End Product 4 -->
+
+        </div>
+<?php if ($count >= $limit): ?>
+    <div class="text-center mt-4">
+        <a href="<?php echo $siteurl; ?>products.php" class="btn btn-primary px-4 py-2">
+            View All Products
+        </a>
+    </div>
+<?php endif; ?>
+
+      </div>
+
+</section>
+
+
+
+<section id="best-sellers" class="best-sellers section">
+
+      <!-- Section Title -->
+      <div class="container section-title aos-init aos-animate" data-aos="fade-up">
+        <h2>Quality Services You Can Trust</h2>
+        <p>Explore quality services sourced directly from our trusted vendors.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-5">
+         
+          <!-- Product 4 -->
+  <?php
+$url = $siteurl . "script/admin.php?action=listinglists";
+$data = curl_get_contents($url);
+$limit = 4; // Number of listings to show
+$count = 0;
+
+if ($data !== false) {
+    $listings = json_decode($data);
+
+    if (!empty($listings)) {
+        foreach ($listings as $listing) {
+            // ✅ Only active listings
+            if (isset($listing->status) && strtolower($listing->status) === 'active' && $listing->type =='Service') {
+                $count++;
+                if ($count > $limit) break;
+
+                // 🧩 Extract data
+                $listingId   = $listing->id;
+                $title       = htmlspecialchars($listing->title);
+                $slug        = htmlspecialchars($listing->slug ?? '');
+                $pricingType = htmlspecialchars($listing->pricing_type ?? '');
+                $price       = htmlspecialchars($listing->price ?? '');
+                $priceMin    = htmlspecialchars($listing->price_min ?? '');
+                $priceMax    = htmlspecialchars($listing->price_max ?? '');
+                $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
+                $category    = htmlspecialchars(trim($categoryNames[0]));
+                $featuredImg = !empty($listing->featured_image)
+                    ? $siteurl . $imagePath . $listing->featured_image
+                    : $siteurl . "assets/img/default-product.jpg";
+                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+
+                // 🧩 Seller Info
+                $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
+                $sellerPhoto = !empty($listing->photo)
+                    ? $siteurl . $imagePath . $listing->photo
+                    : $siteurl . "assets/img/user.jpg";
+
+                // 🧩 Compute Display Price
+                $displayPrice = 'Contact for price';
+                if ($pricingType === 'Starting Price' && !empty($price)) {
+                    $displayPrice = $sitecurrency  . number_format($price, 2);
+                } elseif ($pricingType === 'Price Range' && !empty($priceMin) && !empty($priceMax)) {
+                    $displayPrice = $sitecurrency . number_format($priceMin, 2) . $sitecurrency .'-'. number_format($priceMax, 2);
+                }
+
+
+                    // ✅ Check wishlist status
+              $isWishlisted = false; // Always define first
+
+        if (!empty($buyerId)) {
+            // ✅ Use $siteurl instead of undefined $sitelink
+            $apiCheckUrl = $siteurl . "script/user.php?action=checkWishlist&user_id={$buyerId}&listing_id={$listingId}";
+            $wishlistData = curl_get_contents($apiCheckUrl);
+
+            if ($wishlistData !== false) {
+                $wishlistResult = json_decode($wishlistData, true);
+
+                // ✅ Make it flexible to match possible response structures
+                if (is_array($wishlistResult)) {
+                    if (isset($wishlistResult['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['isWishlisted'];
+                    } elseif (isset($wishlistResult['data']['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['data']['isWishlisted'];
+                    }
+                }
+            }
+        }
+                ?>
+
+                <!-- 🛍️ Product Card -->
+                <div class="col-lg-3 col-md-6 col-6">
+                  
+                    <div class="product-item">
+                        <div class="product-image">
+                            <div class="product-badge trending-badge"><?php echo $category; ?></div>
+                            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
+                            <div class="product-actions">
+                                       <button 
+                      class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
+                      title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
+                      data-product-id="<?php echo $listingId; ?>"
+                    >
+                      <?php if ($isWishlisted): ?>
+                        <i class="bi bi-heart-fill text-danger"></i>
+                      <?php else: ?>
+                        <i class="bi bi-heart"></i>
+                      <?php endif; ?>
+                    </button>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category"><?php echo $category; ?></div>
+                            <h4 class="product-name">
+                                <a href="<?php echo $listingUrl; ?>"><?php echo $title; ?></a>
+                            </h4>
+                            <div class="product-price"><?php echo $displayPrice; ?></div>
+
+                            <!--Seller Info -->
+                            <div class="mt-3 d-flex align-items-center">
+                                <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
+                                <span class="small text-muted"><?php echo $sellerName; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php
+            }
+        }
+    }
+}
+?>
+
+          <!-- End Product 4 -->
+
+        </div>
+<?php if ($count >= $limit): ?>
+    <div class="text-center mt-4">
+        <a href="<?php echo $siteurl; ?>products.php" class="btn btn-primary px-4 py-2">
+            View All Services
+        </a>
+    </div>
+<?php endif; ?>
+
+      </div>
+
+</section>
 
   </main>
 <?php include "footer.php"; ?>
