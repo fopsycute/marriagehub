@@ -168,7 +168,7 @@ if ($data !== false) {
                 $featuredImg = !empty($listing->featured_image)
                     ? $siteurl . $imagePath . $listing->featured_image
                     : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                $listingUrl  = $siteurl . "products/" . $slug;
 
                 // 🧩 Seller Info
                 $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
@@ -299,7 +299,7 @@ function renderListings(listings) {
     const categoryNames = listing.category_names ? listing.category_names.split(',') : ['General'];
     const category = categoryNames[0] ? categoryNames[0].trim() : 'General';
     const featuredImg = listing.featured_image ? (SITEURL + IMAGE_PATH + listing.featured_image) : (SITEURL + 'assets/img/default-product.jpg');
-    const listingUrl = SITEURL + 'products.php?slug=' + encodeURIComponent(slug);
+    const listingUrl = SITEURL + 'products/' + encodeURIComponent(slug);
     const sellerName = ((listing.first_name || '') + ' ' + (listing.last_name || '')).trim();
     const sellerPhoto = listing.photo ? (SITEURL + IMAGE_PATH + listing.photo) : (SITEURL + 'assets/img/user.jpg');
     let displayPrice = 'Contact for price';

@@ -71,7 +71,7 @@ if ($data !== false) {
                         </div>
                         <div class="product-details">
                       <h6 class="product-title">
-                <a href="<?php echo $siteurl . 'products.php?slug=' . $slug; ?>">
+                <a href="<?php echo $siteurl . 'products/' . $slug; ?>">
                   <?php echo htmlspecialchars($title); ?>
                 </a>
               </h6>

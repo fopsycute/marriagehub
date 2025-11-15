@@ -83,7 +83,7 @@ if ($data !== false) {
                 $featuredImg = !empty($listing->featured_image)
                     ? $siteurl . $imagePath . $listing->featured_image
                     : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                $listingUrl  = $siteurl . "products/" . $slug;
 
                 if(strtolower($status) === 'active'){
                     $statusBadge = '<span class="badge bg-success">Active</span>';

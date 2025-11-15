@@ -53,7 +53,7 @@ $linkedin     = $vendor['linkedin'] ?? '';
 $twitter      = $vendor['twitter'] ?? '';
 $instagram    = $vendor['instagram'] ?? '';
 $facebook     = $vendor['facebook'] ?? '';
-$shareUrl     = $siteurl . "vendor-profile.php?slug=" . urlencode($slug);
+$shareUrl     = $siteurl . "vendor-profile/" . urlencode($slug);
 
 ?>
 
@@ -166,7 +166,7 @@ $shareUrl     = $siteurl . "vendor-profile.php?slug=" . urlencode($slug);
                                                             $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
                                                             $category    = htmlspecialchars(trim($categoryNames[0]));
                                                             $featuredImg = !empty($listing->featured_image) ? $siteurl . $imagePath . $listing->featured_image : $siteurl . "assets/img/default-product.jpg";
-                                                            $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                                                            $listingUrl  = $siteurl . "products/" . $slug;
 
                                                             $displayPrice = 'Contact for price';
                                                             if ($pricingType === 'Starting Price' && !empty($price)) $displayPrice = $sitecurrency . number_format($price, 2);
@@ -195,7 +195,7 @@ $shareUrl     = $siteurl . "vendor-profile.php?slug=" . urlencode($slug);
 
                                         <?php if ($count >= 4): ?>
                                             <div class="text-center mt-4">
-                                                <a href="<?php echo $siteurl . 'vendor-products.php?slug=' . urlencode($vendorSlug); ?>" class="btn btn-outline-primary">View All Vendor Products</a>
+                                                <a href="<?php echo $siteurl . 'vendor-products/' . urlencode($vendorSlug); ?>" class="btn btn-outline-primary">View All Vendor Products</a>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -228,7 +228,7 @@ $shareUrl     = $siteurl . "vendor-profile.php?slug=" . urlencode($slug);
                                                             $pricingType = htmlspecialchars($listing->pricing_type ?? '');
                                                             $price       = htmlspecialchars($listing->price ?? '');
                                                             $featuredImg = !empty($listing->featured_image) ? $siteurl . $imagePath . $listing->featured_image : $siteurl . "assets/img/default-service.jpg";
-                                                            $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                                                            $listingUrl  = $siteurl . "products/" . $slug;
 
                                                             $displayPrice = 'Contact for price';
                                                             if ($pricingType === 'Starting Price' && !empty($price)) $displayPrice = $sitecurrency . number_format($price, 2);
@@ -254,7 +254,7 @@ $shareUrl     = $siteurl . "vendor-profile.php?slug=" . urlencode($slug);
 
                                         <?php if ($count >= 4): ?>
                                             <div class="text-center mt-4">
-                                                <a href="<?php echo $siteurl . 'vendor-services.php?slug=' . urlencode($vendorSlug); ?>" class="btn btn-outline-primary">View All Vendor Services</a>
+                                                <a href="<?php echo $siteurl . 'vendor-services/' . urlencode($vendorSlug); ?>" class="btn btn-outline-primary">View All Vendor Services</a>
                                             </div>
                                         <?php endif; ?>
                                     </div>

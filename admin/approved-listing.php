@@ -83,7 +83,7 @@ if ($data !== false) {
                 $featuredImg = !empty($listing->featured_image)
                     ? $siteurl . $imagePath . $listing->featured_image
                     : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products?slug=" . $slug;
+                $listingUrl  = $siteurl . "products/" . $slug;
                 ?>
                 <tr>
 

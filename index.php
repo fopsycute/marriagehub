@@ -605,7 +605,7 @@ if ($data !== false) {
                 $featuredImg = !empty($listing->featured_image)
                     ? $siteurl . $imagePath . $listing->featured_image
                     : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                $listingUrl  = $siteurl . "products/" . $slug;
 
                 // 🧩 Seller Info
                 $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
@@ -695,7 +695,7 @@ if ($data !== false) {
         </div>
 <?php if ($count >= $limit): ?>
     <div class="text-center mt-4">
-        <a href="<?php echo $siteurl; ?>products.php" class="btn btn-primary px-4 py-2">
+        <a href="<?php echo $siteurl; ?>marketplace" class="btn btn-primary px-4 py-2">
             View All Products
         </a>
     </div>
@@ -749,7 +749,7 @@ if ($data !== false) {
                 $featuredImg = !empty($listing->featured_image)
                     ? $siteurl . $imagePath . $listing->featured_image
                     : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                $listingUrl  = $siteurl . "products/" . $slug;
 
                 // 🧩 Seller Info
                 $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
@@ -839,7 +839,7 @@ if ($data !== false) {
         </div>
 <?php if ($count >= $limit): ?>
     <div class="text-center mt-4">
-        <a href="<?php echo $siteurl; ?>products.php" class="btn btn-primary px-4 py-2">
+        <a href="<?php echo $siteurl; ?>services.php" class="btn btn-primary px-4 py-2">
             View All Services
         </a>
     </div>

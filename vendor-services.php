@@ -128,7 +128,7 @@ $vendorName = htmlspecialchars(trim(($vendor['first_name'] ?? '') . ' ' . ($vend
                                 <?php if (!empty($_GET['price_range'])): ?>
                                     <span class="filter-tag"><?php echo htmlspecialchars($_GET['price_range']); ?> <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=price_range]').value=''; document.getElementById('marketFilter').submit();"><i class="bi bi-x"></i></button></span>
                                 <?php endif; ?>
-                                <button class="clear-all-btn" type="button" onclick="location.href='vendor-services.php?slug=<?php echo urlencode($vendorSlug); ?>'">Clear All</button>
+                                <button class="clear-all-btn" type="button" onclick="location.href='vendor-services/<?php echo urlencode($vendorSlug); ?>'">Clear All</button>
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ $vendorName = htmlspecialchars(trim(($vendor['first_name'] ?? '') . ' ' . ($vend
                             $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
                             $category    = htmlspecialchars(trim($categoryNames[0]));
                             $featuredImg = !empty($listing->featured_image) ? $siteurl . $imagePath . $listing->featured_image : $siteurl . "assets/img/default-product.jpg";
-                            $listingUrl  = $siteurl . "products.php?slug=" . $slug;
+                            $listingUrl  = $siteurl . "products/" . $slug;
 
                             $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
                             $sellerPhoto = !empty($listing->photo) ? $siteurl . $imagePath . $listing->photo : $siteurl . "assets/img/user.jpg";
@@ -298,7 +298,7 @@ function renderListings(listings) {
     const categoryNames = listing.category_names ? listing.category_names.split(',') : ['General'];
     const category = categoryNames[0] ? categoryNames[0].trim() : 'General';
     const featuredImg = listing.featured_image ? (SITEURL + IMAGE_PATH + listing.featured_image) : (SITEURL + 'assets/img/default-product.jpg');
-    const listingUrl = SITEURL + 'products.php?slug=' + encodeURIComponent(slug);
+    const listingUrl = SITEURL + 'products/' + encodeURIComponent(slug);
     const sellerName = ((listing.first_name || '') + ' ' + (listing.last_name || '')).trim();
     const sellerPhoto = listing.photo ? (SITEURL + IMAGE_PATH + listing.photo) : (SITEURL + 'assets/img/user.jpg');
     let displayPrice = 'Contact for price';
