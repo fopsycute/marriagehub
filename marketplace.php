@@ -103,7 +103,7 @@
                         <?php if (!empty($_GET['price_range'])): ?>
                         <span class="filter-tag"><?php echo htmlspecialchars($_GET['price_range']); ?> <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=price_range]').value=''; document.getElementById('marketFilter').submit();"><i class="bi bi-x"></i></button></span>
                         <?php endif; ?>
-                        <button class="clear-all-btn" type="button" onclick="location.href='marketplace.php'">Clear All</button>
+                        <button class="clear-all-btn btn-primary" type="button" onclick="location.href='<?php echo $siteurl . 'marketplace'; ?>'">Clear All</button>
                       </div>
                     </div>
                   </div>
@@ -424,7 +424,7 @@ function updateActiveFilters() {
     html += `<span class="filter-tag">${escapeHtml(price)} <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=price_range]').value=''; scheduleLiveFetch();"><i class="bi bi-x"></i></button></span>`;
   }
   // category/subcategory filters removed from UI; search covers these fields
-  html += `<button class="clear-all-btn" type="button" onclick="document.getElementById('marketFilter').reset(); scheduleLiveFetch();">Clear All</button>`;
+  html += `<button class="clear-all-btn btn-primary" type="button" onclick="document.getElementById('marketFilter').reset(); scheduleLiveFetch();">Clear All</button>`;
   container.innerHTML = html;
 }
 

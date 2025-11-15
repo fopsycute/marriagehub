@@ -1,4 +1,3 @@
-
 <?php 
 $requireLogin = true;
 include "header.php"; ?>
