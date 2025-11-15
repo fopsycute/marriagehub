@@ -240,9 +240,9 @@
     <!-- Datatables -->
     <script src="assets/js/plugin/datatables/datatables.min.js"></script>
 
-    <!-- Bootstrap Notify -->
+    <!-- Bootstrap Notify
     <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-
+ -->
     <!-- jQuery Vector Maps -->
     <script src="assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
     <script src="assets/js/plugin/jsvectormap/world.js"></script>

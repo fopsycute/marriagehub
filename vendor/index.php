@@ -8,13 +8,16 @@
             >
               <div>
                 <h3 class="fw-bold mb-3">Dashboard</h3>
-                <h6 class="op-7 mb-2">Therapist Dashboard</h6>
+                <h6 class="op-7 mb-2">Vendors Dashboard</h6>
               </div>
+              <!---
               <div class="ms-md-auto py-2 py-md-0">
                 <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
                 <a href="#" class="btn btn-primary btn-round">Add Customer</a>
               </div>
+              --->
             </div>
+            <!---
             <div class="row">
               <div class="col-sm-6 col-md-3">
                 <div class="card card-stats card-round">
@@ -539,7 +542,7 @@
                   </div>
                   <div class="card-body p-0">
                     <div class="table-responsive">
-                      <!-- Projects table -->
+                   
                       <table class="table align-items-center mb-0">
                         <thead class="thead-light">
                           <tr>
@@ -662,6 +665,7 @@
                 </div>
               </div>
             </div>
+            --->
           </div>
         </div>
 

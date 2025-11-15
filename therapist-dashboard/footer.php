@@ -250,9 +250,9 @@
     <script src="assets/js/plugin/datatables/datatables.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
-    <!-- Bootstrap Notify -->
+    <!-- Bootstrap Notify 
     <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-
+      -->
     <!-- jQuery Vector Maps -->
     <script src="assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
     <script src="assets/js/plugin/jsvectormap/world.js"></script>
