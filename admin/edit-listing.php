@@ -63,7 +63,7 @@ if (!empty($listingId)) {
   <!-- DESCRIPTION -->
   <div class="form-group">
     <label for="description">Description</label>
-    <textarea class="form-control" name="description" ><?= $description ?></textarea>
+    <textarea class="editor" name="description" ><?= $description ?></textarea>
   </div>
 
   <!-- TYPE -->

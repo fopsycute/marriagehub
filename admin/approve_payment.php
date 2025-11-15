@@ -140,7 +140,7 @@ if ($data !== false) {
       </div>
       <div class="modal-body">
         <p>Please provide a reason for rejecting this payment:</p>
-        <textarea class="form-control rejectReason" id="rejectReason<?php echo $walletId; ?>" rows="3" placeholder="Enter reason..."></textarea>
+        <textarea class="editor rejectReason" id="rejectReason<?php echo $walletId; ?>" rows="3" placeholder="Enter reason..."></textarea>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

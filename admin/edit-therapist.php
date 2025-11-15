@@ -228,7 +228,7 @@ if (isset($_GET['therapist_id'])) {
 
    <div class="mb-3">
     <label class="form-label">Practice Full Address</label>
-  <textarea name="address" class="form-control" rows="2"><?= htmlspecialchars($address ?? '') ?></textarea>
+  <textarea name="address" class="editor" rows="2"><?= htmlspecialchars($address ?? '') ?></textarea>
   </div>
               <div class="row mb-3">
                 <div class="col-md-6">
@@ -491,7 +491,7 @@ $is_other = !in_array($work_with, $options);
               <h4 class="mt-5">Section 4: Profile & Uploads</h4>
               <div class="mb-3">
                 <label class="form-label">Professional Bio (100–200 words)</label>
-                <textarea name="bio" class="form-control" rows="5"><?= htmlspecialchars($bio ?? '') ?></textarea>
+                <textarea name="bio" class="editor" rows="5"><?= htmlspecialchars($bio ?? '') ?></textarea>
               </div>
               <div class="mb-3">
                 <label class="form-label">Upload CV / Resume (PDF or Word)</label>

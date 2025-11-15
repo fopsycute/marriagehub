@@ -465,7 +465,7 @@ if (!empty($buyerId)) {
                       <div class="row">
                           <input type="hidden" value="post_productreview" name="action">
                         <div class="col form-group">
-                          <textarea name="comment" class="" placeholder="Your Review*"></textarea>
+                          <textarea name="comment" class="editor" placeholder="Your Review*"></textarea>
                         </div>
                       </div>
 

@@ -88,7 +88,7 @@ include "header.php";
               <!-- COMMENT -->
               <div class="mb-3">
                 <label class="form-label">Your Review</label>
-                <textarea name="comment" class="form-control" rows="4" required><?php echo $comment; ?></textarea>
+                <textarea name="comment" class="editor" rows="4" required><?php echo $comment; ?></textarea>
               </div>
 
               <div class="text-center">
