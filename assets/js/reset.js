@@ -4,8 +4,8 @@ $(document).ready(function() {
     const token = urlParams.get('token');
     const action = urlParams.get('action');
 
-    const siteUrl = $('#siteurl').val(); 
-    const ajaxUrl = siteUrl + "script/register.php"; 
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/register.php";
 
     if (id && token && action === 'verifyemail') {
         $.ajax({
@@ -20,7 +20,6 @@ $(document).ready(function() {
                 alert(res.messages);
 
                 if (res.status === 'success') {
-                    // Use the redirect returned from PHP
                     if (res.redirect) {
                         window.location.href = siteUrl + res.redirect;
                     }

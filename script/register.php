@@ -633,34 +633,44 @@ if (strlen($password) < 8 ||
 function verified($con, $userId, $token) {
     global $siteprefix;
     $response = ['status' => 'error', 'messages' => ''];
-
+    
     if ($userId && $token) {
-        // Escape inputs
         $userId = mysqli_real_escape_string($con, $userId);
         $token  = mysqli_real_escape_string($con, $token);
 
-        // Find pending verification
+        // Find unverified token
         $sql = "SELECT * FROM {$siteprefix}email_verifications 
-                WHERE user_id = '$userId' AND token = '$token' AND verified = 0 
+                WHERE user_id = '$userId' 
+                AND token = '$token' 
+                AND verified = 0 
                 LIMIT 1";
         $result = mysqli_query($con, $sql);
 
         if ($row = mysqli_fetch_assoc($result)) {
+
+            // Check expiration
             if (strtotime($row['expires_at']) >= time()) {
 
-                // ✅ Mark verification as used
-                mysqli_query($con, "UPDATE {$siteprefix}email_verifications 
-                                    SET verified = 1 
-                                    WHERE id = '{$row['id']}'");
+                // Mark token as used
+                mysqli_query($con, "
+                    UPDATE {$siteprefix}email_verifications 
+                    SET verified = 1 
+                    WHERE id = '{$row['id']}'
+                ");
 
-                // ✅ Fetch user type and slug
-                $userQuery = mysqli_query($con, "SELECT user_type, slug FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
+                // Fetch user details
+                $userQuery = mysqli_query($con, "
+                    SELECT user_type, slug 
+                    FROM {$siteprefix}users 
+                    WHERE id = '$userId' LIMIT 1
+                ");
                 $user = mysqli_fetch_assoc($userQuery);
                 $userType = strtolower(trim($user['user_type'] ?? ''));
                 $userSlug = trim($user['slug'] ?? '');
 
+                // Vendor flow
                 if ($userType === 'vendor') {
-                    // ✅ Vendor-specific actions
+
                     mysqli_query($con, "
                         UPDATE {$siteprefix}users 
                         SET 
@@ -673,29 +683,29 @@ function verified($con, $userId, $token) {
                         WHERE id = '$userId'
                     ");
 
-                    $response = [
+                    return [
                         'status' => 'success',
-                        'messages' => 'Email verified successfully! You have been placed on the Free plan.',
+                        'messages' => 'Email verified successfully! You are now on the Free plan.',
                         'redirect' => 'vendor-pricing/' . $userSlug
                     ];
-                } else {
-                    // ✅ Non-vendor users
-                    mysqli_query($con, "
-                        UPDATE {$siteprefix}users 
-                        SET 
-                            is_verified = 1,
-                            is_active = 1,
-                            status = 'active',
-                            verification_token = NULL
-                        WHERE id = '$userId'
-                    ");
-
-                    $response = [
-                        'status' => 'success',
-                        'messages' => 'Email verified successfully! You can now log in.',
-                        'redirect' => 'login.php'
-                    ];
                 }
+
+                // Normal user
+                mysqli_query($con, "
+                    UPDATE {$siteprefix}users 
+                    SET 
+                        is_verified = 1,
+                        is_active = 1,
+                        status = 'active',
+                        verification_token = NULL
+                    WHERE id = '$userId'
+                ");
+
+                return [
+                    'status' => 'success',
+                    'messages' => 'Email verified successfully! You can now log in.',
+                    'redirect' => 'login.php'
+                ];
 
             } else {
                 $response['messages'] = 'Verification link has expired.';
@@ -709,7 +719,6 @@ function verified($con, $userId, $token) {
 
     return $response;
 }
-
 
 function ResetLink($postData, $siteName, $siteMail){   
     global $con, $siteprefix, $siteurl;
