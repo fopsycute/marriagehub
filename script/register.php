@@ -633,7 +633,7 @@ if (strlen($password) < 8 ||
 function verified($con, $userId, $token) {
     global $siteprefix;
     $response = ['status' => 'error', 'messages' => ''];
-    
+
     if ($userId && $token) {
         $userId = mysqli_real_escape_string($con, $userId);
         $token  = mysqli_real_escape_string($con, $token);
@@ -665,11 +665,11 @@ function verified($con, $userId, $token) {
                     WHERE id = '$userId' LIMIT 1
                 ");
                 $user = mysqli_fetch_assoc($userQuery);
-                $userType = strtolower(trim($user['user_type'] ?? ''));
+                $userType = $user['user_type'];
                 $userSlug = trim($user['slug'] ?? '');
 
                 // Vendor flow
-                if ($userType === 'vendor') {
+                if ($userType == 'vendor') {
 
                     mysqli_query($con, "
                         UPDATE {$siteprefix}users 
@@ -864,11 +864,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['action'])) {
         $response = getalleventsdata($con);
     }  
     
-   if ($_GET['action'] === 'verifyemail') {
-        $userId = $_GET['id'] ?? '';
-        $token  = $_GET['token'] ?? '';
-        $response = verified($con, $userId, $token);
-    }
+if (isset($_GET['action']) && strtolower($_GET['action']) === 'verifyemail') {
+    $userId = $_GET['id'] ?? '';
+    $token  = $_GET['token'] ?? '';
+    $response = verified($con, $userId, $token);
+}
     
     if ($_GET['action'] == 'subcategorieslists' && isset($_GET['parent_ids'])) {
         $response = getsubcategoriesbyparents($con, $_GET['parent_ids']);
