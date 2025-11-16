@@ -665,11 +665,13 @@ function verified($con, $userId, $token) {
                     WHERE id = '$userId' LIMIT 1
                 ");
                 $user = mysqli_fetch_assoc($userQuery);
-                $userType = $user['user_type'];
+
+                // FIXED userType
+                $userType = strtolower(trim($user['user_type']));
                 $userSlug = trim($user['slug'] ?? '');
 
-                // Vendor flow
-                if ($userType == 'vendor') {
+                // Vendor flow (FIXED condition)
+                if ($userType === 'vendor') {
 
                     mysqli_query($con, "
                         UPDATE {$siteprefix}users 
@@ -690,7 +692,7 @@ function verified($con, $userId, $token) {
                     ];
                 }
 
-                // Normal user
+                // Normal user flow
                 mysqli_query($con, "
                     UPDATE {$siteprefix}users 
                     SET 
@@ -719,6 +721,7 @@ function verified($con, $userId, $token) {
 
     return $response;
 }
+
 
 function ResetLink($postData, $siteName, $siteMail){   
     global $con, $siteprefix, $siteurl;
