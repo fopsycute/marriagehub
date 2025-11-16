@@ -468,7 +468,7 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
 
     $htmlBody = "
         <div style='width:600px; padding:40px; background-color:#000000; color:#fff;'>
-          <p><img src='" . $siteurl . "uploads/" . $siteimg . "' style='width:10%; height:auto;' /></p>
+          <p><img src='" . $siteurl . "assets/img" . $siteimg . "' style='width:10%; height:auto;' /></p>
 
             <p style='font-size:14px; color:#fff;'>
                 <span style='font-size:14px; color:#F57C00;'>Dear $firstName,</span><br>

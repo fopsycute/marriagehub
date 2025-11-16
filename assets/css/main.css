@@ -570,6 +570,22 @@ h6 {
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
+
+.blog-card h5{
+  font-size:14px;
+}
+  .blog-card p{
+    font-size:12px;
+  }
+@media (max-width: 576px) {
+.blog-card h5{
+    font-size:12px;
+  }
+  .blog-card p{
+    font-size:10px;
+  }
+}
+
 .blog-img-wrapper {
   position: relative;
 }

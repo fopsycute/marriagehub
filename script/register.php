@@ -308,11 +308,33 @@ if (strlen($password) < 8 ||
 
     // Prepare email
     $emailMessage = "
-    Thank you for registering as a vendor on {$siteName}.<br>
-    Please verify your email by clicking the link below:<br><br>
+    Thank you for registering as a vendor on {$siteName}.<br><br>
+
+    Please verify your email by clicking the button below:<br><br>
+
+    <a href='{$verificationLink}' 
+        style='
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #ff6a00f5;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        '
+    >
+        Verify Email
+    </a>
+
+    <br><br>
+    If the button above does not work, copy and paste this link into your browser:<br>
     <a href='{$verificationLink}'>{$verificationLink}</a><br><br>
+
     This link will expire in 24 hours.
-    ";
+";
+
 
     $emailSubject = "Verify Your Email for {$siteName}";
 
@@ -503,7 +525,17 @@ while (true) {
         $emailMessage = "
             Thank you for registering as a therapist on {$siteName}.<br>
             Please verify your email by clicking the link below:<br><br>
-            <a href='{$verificationLink}'>{$verificationLink}</a><br><br>
+            <a href='{$verificationLink}' style='
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #ff6a00f5;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        '>{$verificationLink}</a><br><br>
             This link will expire in 24 hours.
         ";
         $emailSubject = "Verify Your Therapist Account on {$siteName}";
@@ -619,7 +651,17 @@ if (strlen($password) < 8 ||
     $emailBody = "
         <p>Thank you for registering on <strong>{$siteName}</strong>!</p>
         <p>Please verify your email by clicking the link below:</p>
-        <p><a href='{$verifyLink}'>{$verifyLink}</a></p>
+        <p><a href='{$verifyLink}' style='
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #ff6a00f5;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        '>{$verifyLink}</a></p>
         <p>This link will expire in 24 hours.</p>
     ";
 

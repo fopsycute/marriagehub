@@ -121,7 +121,9 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 --->
   <!-- Vendor CSS Files -->
   <link href="<?php echo $siteurl; ?>assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!---
    <link rel="stylesheet" href="<?php echo $siteurl; ?>admin/assets/css/plugins.min.css" />
+  --->
   <link href="<?php echo $siteurl; ?>assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/aos/aos.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
