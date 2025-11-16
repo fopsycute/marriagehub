@@ -7,6 +7,11 @@ $(document).ready(function() {
     });
 });
 
+// data table
+$(document).ready(function() {
+    $('#multi-filter-select').DataTable();
+});
+
 
 
 //select multicategory
