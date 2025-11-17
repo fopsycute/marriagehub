@@ -7,12 +7,6 @@ $(document).ready(function() {
     });
 });
 
-// data table
-$(document).ready(function() {
-    $('#multi-filter-select').DataTable();
-});
-
-
 
 //select multicategory
   // when category changes
@@ -4711,7 +4705,7 @@ $(document).on('click', '.wishlist-btn', function (e) {
     var user_id = $('#user_id').val();
     var siteurl = $('#siteurl').val();
 
-    if (!user_id) {
+    if (!user_id || user_id === "0") {
         window.location.href = siteurl + 'login';
         return;
     }
@@ -4725,23 +4719,54 @@ $(document).on('click', '.wishlist-btn', function (e) {
             listing_id: listing_id,
             user_id: user_id
         },
-        success: function (data) {
+        success: function(response) {
+            var data;
+            try {
+                data = typeof response === 'string' ? JSON.parse(response) : response;
+            } catch (e) {
+                showToast('Unexpected server response.');
+                return;
+            }
+
+            // Toggle heart icon
             if (data.status === 'success') {
                 icon.removeClass('bi-heart').addClass('bi-heart-fill text-red-500');
                 button.addClass('added').attr('title', 'Remove from Wishlist');
-                showToast(data.message);
             } else if (data.status === 'removed') {
                 icon.removeClass('bi-heart-fill text-red-500').addClass('bi-heart');
                 button.removeClass('added').attr('title', 'Add to Wishlist');
-                showToast(data.message);
-            } else {
-                showToast('Error updating wishlist');
+            }
+
+            showToast(data.message);
+
+            // 🔹 Update wishlist count instantly
+            if (typeof data.wishlist_count !== "undefined") {
+                updateWishlistCount(data.wishlist_count);
             }
         },
         error: function () {
             showToast('Network error. Please try again.');
         }
     });
+});
+
+
+$(document).on("click", ".bio-btn-toggle", function(e) {
+    e.preventDefault();
+
+    let wrapper = $(this).closest(".bio-wrapper");
+    let shortText = wrapper.find(".bio-text-short");
+    let fullText = wrapper.find(".bio-text-full");
+
+    if (fullText.hasClass("d-none")) {
+        fullText.removeClass("d-none");
+        shortText.addClass("d-none");
+        $(this).text("Read Less");
+    } else {
+        fullText.addClass("d-none");
+        shortText.removeClass("d-none");
+        $(this).text("Read More");
+    }
 });
 
 

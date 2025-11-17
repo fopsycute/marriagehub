@@ -38,7 +38,7 @@ $db_username = "root";
 */
 
 // ✅ Database credentials
-
+$db_host = "localhost";
 $db_username = "marriage_project"; 
 $db_pass = ")s2bF7dP]VB1w3"; 
 $db_name = "marriage_hub";

@@ -235,15 +235,14 @@ if (!empty($buyerId)) {
         </p>
               </div>
 
-                 <!-- 🧩 Variation Dropdown -->
-                         <!-- ✅ Hidden input -->
+              <!-- 🧩 Variation Dropdown -->
+            <!-- ✅ Hidden input -->
           <input type="hidden" id="single-price" value="<?php echo $price; ?>">
           <input type="hidden" id="base-price" value="<?php echo $displayPrice; ?>">
           <input type="hidden" id="siteCurrency" value="<?php echo htmlspecialchars($sitecurrency); ?>">
           <input type="hidden" id="limited-slot" value="<?php echo $limited_slot; ?>">
           <input type="hidden" id="listing_id" value="<?php echo $listingId; ?>">
-           <input type="hidden" id="user_id" value="<?php echo !empty($buyerId) ? $buyerId : ''; ?>">
-
+          <input type="hidden" id="user_id" value="<?php echo !empty($buyerId) ? $buyerId : ''; ?>">
                
           <?php if (!empty($variations)): ?>
         <div class="availability-status">
@@ -313,6 +312,7 @@ if (!empty($buyerId)) {
                     <i class="bi bi-bag-plus"></i>
                     Add to Cart
                   </button>
+                  
           <button 
   class="btn icon-action wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
   title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 

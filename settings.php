@@ -91,6 +91,18 @@ include "header.php";
     </div>
   </div>
 
+   <div class="row mB-3">
+       <div class="col-md-4 form-group p_star mb-3">
+         <input type="text" class="form-control" name="bank_name" placeholder="Bank Name" value="<?php echo htmlspecialchars($bank_name); ?>">
+           </div>
+            <div class="col-md-4 form-group p_star mb-3">
+             <input type="text" class="form-control" name="bank_accname" placeholder="Bank Account Name" value="<?php echo htmlspecialchars($bank_accname); ?>">
+              </div>
+              <div class="col-md-4 form-group p_star mb-3">
+              <input type="text" class="form-control" name="bank_number" placeholder="Bank Account Number" value="<?php echo htmlspecialchars($bank_number); ?>">
+              </div>
+      </div>
+
   <div class="row mb-3">
     <div class="col-md-3"><input type="url" name="facebook" value="<?= $facebook; ?>" placeholder="Facebook" class="form-control"></div>
     <div class="col-md-3"><input type="url" name="twitter" value="<?= $twitter; ?>" placeholder="Twitter" class="form-control"></div>
@@ -110,10 +122,7 @@ include "header.php";
   </div>
   <input type="hidden" name="status" value="<?php echo $status; ?>" >
 
-<div class="mb-3" id="suspendReasonBox" style="display: none;">
-  <label class="form-label">Reason for Suspension</label>
-  <textarea name="suspend_reason" class="editor" rows="3"><?= htmlspecialchars($suspend_reason ?? '') ?></textarea>
-</div>
+
   <button type="submit" class="btn btn-primary">Update</button>
 </form>
 

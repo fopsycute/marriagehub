@@ -523,9 +523,12 @@ while (true) {
 
         $verificationLink = "$siteurl/verify.php?id=$userId&token=$verificationToken&action=verifyemail";
         $emailMessage = "
-            Thank you for registering as a therapist on {$siteName}.<br>
-            Please verify your email by clicking the link below:<br><br>
-            <a href='{$verificationLink}' style='
+    Thank you for registering as a vendor on {$siteName}.<br><br>
+
+    Please verify your email by clicking the button below:<br><br>
+
+    <a href='{$verificationLink}' 
+        style='
             display: inline-block;
             padding: 12px 20px;
             background-color: #ff6a00f5;
@@ -535,9 +538,17 @@ while (true) {
             font-size: 12px;
             font-weight: bold;
             font-family: Arial, sans-serif;
-        '>{$verificationLink}</a><br><br>
-            This link will expire in 24 hours.
-        ";
+        '
+    >
+        Verify Email
+    </a>
+
+    <br><br>
+    If the button above does not work, copy and paste this link into your browser:<br>
+    <a href='{$verificationLink}'>{$verificationLink}</a><br><br>
+
+    This link will expire in 24 hours.
+";
         $emailSubject = "Verify Your Therapist Account on {$siteName}";
         sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject);
 
@@ -649,9 +660,12 @@ if (strlen($password) < 8 ||
     $verifyLink = "$siteurl/verify.php?id=$userId&token=$token&action=verifyemail";
 
     $emailBody = "
-        <p>Thank you for registering on <strong>{$siteName}</strong>!</p>
-        <p>Please verify your email by clicking the link below:</p>
-        <p><a href='{$verifyLink}' style='
+    Thank you for registering as a vendor on {$siteName}.<br><br>
+
+    Please verify your email by clicking the button below:<br><br>
+
+    <a href='{$verifyLink}' 
+        style='
             display: inline-block;
             padding: 12px 20px;
             background-color: #ff6a00f5;
@@ -661,9 +675,17 @@ if (strlen($password) < 8 ||
             font-size: 12px;
             font-weight: bold;
             font-family: Arial, sans-serif;
-        '>{$verifyLink}</a></p>
-        <p>This link will expire in 24 hours.</p>
-    ";
+        '
+    >
+        Verify Email
+    </a>
+
+    <br><br>
+    If the button above does not work, copy and paste this link into your browser:<br>
+    <a href='{$verifyLink}'>{$verifyLink}</a><br><br>
+
+    This link will expire in 24 hours.
+";
 
     $emailSubject = "Verify Your Email for {$siteName}";
     sendEmail($email, $siteName, $siteMail, $firstName, $emailBody, $emailSubject);

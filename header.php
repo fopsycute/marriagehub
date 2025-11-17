@@ -45,6 +45,7 @@ if ($authentication) {
             $last_name      = $buyerData->last_name ?? '';
             $title          = $buyerData->title ?? '';
             $status         = $buyerData->status ?? '';
+            $wallet         = $buyerData->wallet ?? 0;
             $dob            = $buyerData->dob ?? '';
             $gender         = $buyerData->gender ?? '';
             $nationality    = $buyerData->nationality ?? '';
@@ -58,9 +59,11 @@ if ($authentication) {
             $twitter        = $buyerData->twitter ?? '';
             $instagram      = $buyerData->instagram ?? '';
             $linkedin       = $buyerData->linkedin ?? '';
-            $bio            = $buyerData->bio ?? '';
             $photo          = $buyerData->photo ?? '';
             $suspend_reason = $buyerData->suspend_reason ?? '';
+            $bank_name      = $buyerData->bank_name ?? '';
+            $bank_accname   = $buyerData->bank_accname ?? '';
+            $bank_number    = $buyerData->bank_number ?? '';
 
 $photo_url = !empty($photo)
   ? $siteurl . "uploads/" . $photo
@@ -124,26 +127,18 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <!---
    <link rel="stylesheet" href="admin/assets/css/plugins.min.css" />
   --->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
   <link href="<?php echo $siteurl; ?>assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/aos/aos.css" rel="stylesheet">
   <link href="<?php echo $siteurl; ?>assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-    <link href="<?php echo $siteurl;?>assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="<?php echo $siteurl;?>assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <!-- DataTables Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <?php include "script/tinymce.php"; ?>
-
-
   <!-- Main CSS File -->
   <link href="<?php echo $siteurl; ?>assets/css/main.css" rel="stylesheet">
-
-  <!-- =======================================================
-  * Template Name: ZenBlog
-  * Template URL: https://bootstrapmade.com/zenblog-bootstrap-blog-template/
-  * Updated: Aug 08 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body class="index-page">
@@ -228,6 +223,20 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count" style="font-size:10px"><?php echo $cart_count; ?></span>
           <?php endif; ?>
         </a>
+        <?php
+     
+            $wishlist_count = getWishlistCountByUser($con, $buyerId);
+         
+          ?>
+
+        <!-- wishlist icon -->
+        <a href="<?php echo $siteurl; ?>wishlist.php" class="btn btn-link p-0 me-2 position-relative header-action-btn" aria-label="Cart">
+          <i class="bi bi-heart-fill fs-5"></i>
+          <!-- badge (replace 0 with dynamic count if desired) --> 
+             <?php if ($wishlist_count >= 0): ?>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-count" style="font-size:10px"><?php echo $wishlist_count; ?></span>
+         <?php endif; ?>
+        </a>
       
 
         <div class="dropdown account-dropdown">
@@ -261,15 +270,13 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
     <?php } ?>
   </div>
 </div>
-
-      
-
     </div>
   </header>
 <!-- Hidden key -->
 <input type="hidden" id="paystack-key" value="<?php echo $apikey; ?>">
 <input type="hidden" id="order_id" value="<?php echo $order_id; ?>">
 <input type="hidden" value="<?php echo $siteurl; ?>" id="siteurl">
+ <input type="hidden" id="user_id" value="<?php echo !empty($buyerId) ? $buyerId : ''; ?>">
 
 
 

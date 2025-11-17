@@ -3738,7 +3738,7 @@ section,
 
 @media (max-width: 576px) {
   .product-details .product-details .purchase-section .action-buttons {
-    flex-direction: column;
+    flex-direction: row;
   }
 }
 
@@ -4753,6 +4753,83 @@ section,
 @media (max-width: 991.98px) {
     .cart .cart-summary {
         position: static;
+    }
+}
+
+
+/* receipt */
+.receipt-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    max-width: 750px;
+    margin: auto;
+    border: 1px solid #eee;
+}
+.receipt-logo{
+  width:200px;
+  height:100px;
+  object-fit:contain;
+  margin-bottom:15px;
+}
+.receipt-header {
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+.receipt-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+.receipt-details p {
+    margin: 3px 0;
+    font-size: 14px;
+}
+.table th {
+    background: #222;
+    color: #fff;
+}
+.print-btn, .pdf-btn {
+    margin-right: 10px;
+}
+@media print {
+    #actionButtons { display: none !important; }
+    body { background: #fff !important; }
+}
+
+/* Remove default print header and footer */
+@page {
+    margin: 0;
+}
+
+/* PRINT ONLY TICKET */
+@media print {
+
+    /* Hide everything */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* Show ticket area */
+    #ticketContent, #ticketContent * {
+        visibility: visible !important;
+    }
+
+    /* Prevent layout shifting */
+    #ticketContent {
+        position: absolute;
+        top: 00;
+        left: 00;
+        width: 100%;
+       
+    }
+
+    /* Hide print/download buttons */
+    #downloadBtn,
+    #printBtn {
+        display: none !important;
     }
 }
 

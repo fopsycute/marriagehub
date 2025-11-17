@@ -92,7 +92,7 @@ if ($data !== false) {
                     <td><span class="badge bg-info"><?php echo $role; ?></span></td>
                     <td><?php echo date('M d, Y', strtotime($joined)); ?></td>
                     <td><a href="<?php echo $viewLink; ?>" class="btn btn-sm btn-primary">View Group</a></td>
-                  
+                    <td></td>
                 </tr>
 <?php
             }

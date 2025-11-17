@@ -27,18 +27,22 @@ include "header.php";
                 </div>
                 <div class="instructor-info">
                   <h2>Welcome back 👋 <span class="text-primary"><?php echo $buyerfirstName; ?></span></h2>
-                  <?php 
-                  $shortBio = limitWords(strip_tags($bio), 10);
-                  $isTruncated = (str_word_count(strip_tags($bio)) > 10);
-                ?>
+<?php
+  $bioShort = limitWords(strip_tags($bio), 10);
+  $bioLong = strip_tags($bio);
+  $isLong = (str_word_count($bioLong) > 10);
+?>
 
-                <p class="title bio-text">
-                  <span class="bio-short"><?php echo $shortBio; ?></span>
-                  <?php if ($isTruncated): ?>
-                    <span class="bio-full d-none"><?php echo $bio; ?></span>
-                    <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-                  <?php endif; ?>
-                </p>  
+<p class="bioBox mt-3 text-center">
+    <span class="bioShort"><?php echo $bioShort; ?></span>
+
+    <?php if ($isLong): ?>
+        <span class="bioFull d-none"><?php echo $bioLong; ?></span>
+      <a href="#" class="bioToggle text-primary ms-1" style="font-size: 0.9em;" onclick="toggleBio(this)">Read More</a>
+
+    <?php endif; ?>
+</p>
+
                 </div>
 				
 	
@@ -55,9 +59,30 @@ include "header.php";
       <div class="dashboard-icon me-2"><i class="bi bi-person-circle"></i></div>
       <h4>My Profile</h4>
     </a>
+      <?php
+       $url = $siteurl . "script/admin.php?action=usernotificationlists&user_id=" . $buyerId;
+        $data = curl_get_contents($url);
+
+          $notifCount = 0; // default
+          $notifications = [];
+
+          if ($data !== false) {
+          $notificationsData = json_decode($data);
+
+          if (!empty($notificationsData)) {
+            $notifCount = count($notificationsData);          // total unread notifications
+            $notifications = array_slice($notificationsData, 0, 5); // latest 5
+                    }
+                }
+                ?>
+
+    <a href="<?php echo $siteurl; ?>notifications.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-bell"></i></div>
+      <h4>Notifications</h4><sup><?php echo $notifCount; ?> </sup>
+    </a>
 
     <a href="<?php echo $siteurl; ?>my-blog.php" class="dashboard-item">
-      <div class="dashboard-icon me-2"><i class="bi bi-calendar"></i></div>
+      <div class="dashboard-icon me-2"><i class="bi bi-file-earmark-post"></i></div>
       <h4>My Blogs</h4>
     </a>
 
@@ -77,7 +102,7 @@ include "header.php";
     </a>
 
        <a href="<?php echo $siteurl; ?>create-tickets.php" class="dashboard-item">
-      <div class="dashboard-icon me-2"><i class="bi bi-question"></i></div>
+      <div class="dashboard-icon me-2"><i class="bi bi-exclamation-triangle"></i></div>
       <h4>Create Tickets</h4>
     </a>
 
@@ -90,9 +115,13 @@ include "header.php";
       <h4>Settings</h4>
     </a>
 
-    <a href="transaction-history.php" class="dashboard-item">
+    <a href="wallet.php" class="dashboard-item">
       <div class="dashboard-icon me-2"><i class="bi bi-credit-card"></i></div>
       <h4>Payment History</h4>
+    </a>
+    <a href="change-password.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-lock"></i></div>
+      <h4>Change Password</h4>
     </a>
 
     <a href="forgot-password.php" class="dashboard-item">

@@ -20,7 +20,7 @@ include "header.php";
                   <div class="card-body">
                     <div class="table-responsive">
                       <table
-                        id="multi-filter-select"
+                       id="multi-filter-select"
                         class="display table table-striped table-hover">
                      <thead>
           <tr>
@@ -84,7 +84,7 @@ if ($data !== false) {
                     <td><?php echo $author; ?></td>
                     <td><?php echo $content; ?></td>
                     <td><?php echo $date; ?></td>
-                    <td><span class="badge bg-<?php echo $statuslog; ?>"><?php echo ucfirst($status); ?></span></td>
+                    <td><span class="badge bg-<?php echo $statuslog; ?>"><?php echo $status; ?></span></td>
               
                     <?php
                     echo "

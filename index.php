@@ -653,17 +653,18 @@ if ($data !== false) {
                             <div class="product-badge trending-badge"><?php echo $category; ?></div>
                             <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
                             <div class="product-actions">
-                                       <button 
-                      class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
-                      title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
-                      data-product-id="<?php echo $listingId; ?>"
-                    >
-                      <?php if ($isWishlisted): ?>
-                        <i class="bi bi-heart-fill text-danger"></i>
-                      <?php else: ?>
-                        <i class="bi bi-heart"></i>
-                      <?php endif; ?>
-                    </button>
+                                      <button 
+                                  class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
+                                  title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
+                                  data-product-id="<?php echo $listingId; ?>"
+                              >
+                                  <?php if ($isWishlisted): ?>
+                                      <i class="bi bi-heart-fill text-red-500"></i>
+                                  <?php else: ?>
+                                      <i class="bi bi-heart"></i>
+                                  <?php endif; ?>
+                              </button>
+
                             </div>
                         </div>
 

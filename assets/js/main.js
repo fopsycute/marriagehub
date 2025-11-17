@@ -1,3 +1,34 @@
+// Ensure jsPDF is available
+document.addEventListener("DOMContentLoaded", function () {
+
+    window.downloadPDF = async function () {
+        const ticket = document.getElementById('ticketContent');
+        const button = document.getElementById('downloadBtn');
+
+        if (!ticket) {
+            console.error("ticketContent not found!");
+            return;
+        }
+
+        button.style.display = 'none';
+
+        const canvas = await html2canvas(ticket, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const width = pdf.internal.pageSize.getWidth();
+        const height = (canvas.height * width) / canvas.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+        pdf.save("order_receipt.pdf");
+
+        button.style.display = 'inline-block';
+    };
+
+});
+
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const siteurl = document.getElementById("siteurl").value;
@@ -213,37 +244,71 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 
 
-   $(document).ready(function () {
-  $("#multi-filter-select").DataTable({
-    pageLength: 5,
-    initComplete: function () {
-      this.api()
-        .columns()
-        .every(function () {
-          var column = this;
+$(document).ready(function() {
+    // Check if table exists
+    var $table = $('#multi-filter-select');
+    if (!$table.length || !$.fn.DataTable) return; // Table or DataTables not loaded
 
-          // Create select filter
-          var select = $('<select class="form-select form-select-sm"><option value="">All</option></select>')
-            .appendTo($(column.footer()).empty())
-            .on("change", function () {
-              var val = $.fn.dataTable.util.escapeRegex($(this).val());
-              column.search(val ? "^" + val + "$" : "", true, false).draw();
-            });
+    // Ensure <tfoot> exists
+    if ($table.find('tfoot').length === 0) {
+        var colCount = $table.find('thead tr').first().children('th,td').length;
+        var $tfoot = $('<tfoot><tr></tr></tfoot>');
+        for (var i = 0; i < colCount; i++) {
+            $tfoot.find('tr').append('<th></th>');
+        }
+        $table.append($tfoot);
+    }
 
-          // Populate dropdown with unique values (strip HTML to get clean text)
-          column
-            .data()
-            .unique()
-            .sort()
-            .each(function (d) {
-              var text = $('<div>').html(d).text().trim(); // convert HTML to plain text
-              if (text.length > 0 && select.find("option[value='" + text + "']").length === 0) {
-                select.append('<option value="' + text + '">' + text + "</option>");
-              }
+    // Initialize DataTable
+    var table = $table.DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        initComplete: function() {
+            var api = this.api();
+
+            // Add a multi-select filter to each footer cell
+            api.columns().every(function() {
+                var column = this;
+                var $footer = $(column.footer());
+                $footer.empty();
+
+                // Create select element
+                var select = $('<select class="form-select form-select-sm" multiple="multiple" style="width:100%"><option value="">All</option></select>');
+                $footer.append(select);
+
+                // Populate options with unique column values (strip HTML)
+                column.data().unique().sort().each(function(d) {
+                    var text = $('<div>').html(d).text().trim();
+                    if (text.length && select.find("option[value='" + text + "']").length === 0) {
+                        select.append('<option value="' + text + '">' + text + '</option>');
+                    }
+                });
+
+                // Handle long column titles for placeholder
+                var colTitle = $(column.header()).text().trim();
+                var shortTitle = colTitle.length > 20 ? colTitle.substring(0, 17) + '...' : colTitle;
+
+                // Initialize Select2
+                select.select2({
+                    placeholder: "Filter " + shortTitle,
+                    allowClear: true,
+                    width: 'resolve' // make dropdown match column width
+                });
+
+                // Filter table on change
+                select.on('change', function() {
+                    var vals = $(this).val(); // array of selected values
+                    if (vals && vals.length > 0) {
+                        column.search(vals.join('|'), true, false).draw();
+                    } else {
+                        column.search('', true, false).draw();
+                    }
+                });
             });
-        });
-    },
-  });
+        }
+    });
 });
 
 
@@ -267,6 +332,13 @@ function updateCartCount(count) {
   const cartCountElement = document.querySelector('.cart-count');
   if (cartCountElement) {
     cartCountElement.textContent = count;
+  }
+}
+
+function updateWishlistCount(count) {
+  const wishlistCountElement = document.querySelector('.wishlist-count');
+  if (wishlistCountElement) {
+    wishlistCountElement.textContent = count;
   }
 }
 
@@ -374,6 +446,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const container = this.closest('.bio-text');
       const shortBio = container.querySelector('.bio-short');
       const fullBio = container.querySelector('.bio-full');
+
+      if (fullBio.classList.contains('d-none')) {
+        shortBio.classList.add('d-none');
+        fullBio.classList.remove('d-none');
+        this.textContent = 'Read Less';
+      } else {
+        fullBio.classList.add('d-none');
+        shortBio.classList.remove('d-none');
+        this.textContent = 'Read More';
+      }
+    });
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.read-toggles').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const container = this.closest('.bio-text');
+      const shortBio = container.querySelector('.bio-shorts');
+      const fullBio = container.querySelector('.bio-fulls');
 
       if (fullBio.classList.contains('d-none')) {
         shortBio.classList.add('d-none');
@@ -1799,3 +1892,23 @@ document.addEventListener('DOMContentLoaded', function() {
   if (paystackRadio) paystackRadio.addEventListener('change', updatePaymentButton);
   if (manualRadio) manualRadio.addEventListener('change', updatePaymentButton);
 });
+
+
+
+function toggleBio(el) {
+    let parent = el.closest(".bioBox");
+    let shortText = parent.querySelector(".bioShort");
+    let fullText = parent.querySelector(".bioFull");
+
+    if (fullText.classList.contains("d-none")) {
+        // Expand
+        fullText.classList.remove("d-none");
+        shortText.classList.add("d-none");
+        el.textContent = "Read Less";
+    } else {
+        // Collapse
+        fullText.classList.add("d-none");
+        shortText.classList.remove("d-none");
+        el.textContent = "Read More";
+    }
+}

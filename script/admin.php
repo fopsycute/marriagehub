@@ -2056,6 +2056,61 @@ function respondReview($postData) {
 }
 
 
+function getallUserWishlist($con, $user_id)
+{
+    global $siteprefix;
+
+    // Sanitize user_id
+    $user_id = mysqli_real_escape_string($con, $user_id);
+
+    $query = "
+        SELECT 
+            w.id AS wishlist_id,
+            w.date_added,
+            l.listing_id,
+            l.title,
+            l.slug,
+            l.pricing_type,
+            l.price,
+            l.price_min,
+            l.price_max,
+            (
+                SELECT file_name
+                FROM {$siteprefix}listing_images AS li
+                WHERE li.listing_id = l.listing_id
+                ORDER BY li.id ASC
+                LIMIT 1
+            ) AS featured_image,
+            (
+                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+                FROM {$siteprefix}categories AS c
+                WHERE FIND_IN_SET(c.id, l.categories)
+            ) AS category_names,
+            u.first_name,
+            u.last_name,
+            u.photo AS seller_photo
+        FROM {$siteprefix}wishlist AS w
+        INNER JOIN {$siteprefix}listings AS l ON w.listing_id = l.listing_id
+        INNER JOIN {$siteprefix}users AS u ON l.user_id = u.id
+        WHERE w.user_id = '$user_id'
+        ORDER BY w.date_added DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $wishlistData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $wishlistData[] = $row;
+        }
+        return $wishlistData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
+
+
 
 function rejectbookings($postData) {
     global $con, $siteprefix, $siteurl, $siteName, $siteMail;
@@ -4963,6 +5018,9 @@ function updateUserEndpoint($postData, $filesData)
     $bio          = mysqli_real_escape_string($con, trim($postData['bio'] ?? ''));
     $newStatus    = mysqli_real_escape_string($con, trim($postData['status'] ?? 'pending'));
     $suspendReason = mysqli_real_escape_string($con, trim($postData['suspend_reason'] ?? ''));
+    $bank_name = mysqli_real_escape_string($con, $_POST['bank_name']);
+    $bank_accname = mysqli_real_escape_string($con, $_POST['bank_accname']);
+    $bank_number = mysqli_real_escape_string($con, $_POST['bank_number']);
 
     // ✅ Get old data
     $result = mysqli_query($con, "SELECT status, photo, email, first_name, last_name FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
@@ -5030,6 +5088,9 @@ function updateUserEndpoint($postData, $filesData)
             bio = '$bio',
             status = '$newStatus',
             suspend_reason = '$suspendReason',
+            bank_name = '$bank_name',
+            bank_accname = '$bank_accname',
+            bank_number = '$bank_number',
             photo = '$photoFile'
         WHERE id = '$userId'
     ";
@@ -5311,6 +5372,14 @@ function getWalletTotals($con, $user_id) {
     $wallet_result = mysqli_query($con, $wallet_query);
     $wallet_balance = $wallet_result ? (mysqli_fetch_assoc($wallet_result)['wallet'] ?? 0) : 0;
 
+    $cleared_query = "SELECT
+        SUM(CASE
+            WHEN reason LIKE '%Dispute Resolution:%' AND status = 'credit' THEN amount
+            ELSE 0
+        END) AS total_dispute_amount FROM {$siteprefix}wallet_history WHERE user='$user_id'";
+    $cleared_result = mysqli_query($con, $cleared_query);
+    $total_dispute_amount = $cleared_result ? (mysqli_fetch_assoc($cleared_result)['total_dispute_amount'] ?? 0) : 0;
+
     // ✅ Total Amount Earned (credits)
     $earned_query = "SELECT SUM(amount) AS total_earned 
                      FROM {$siteprefix}wallet_history 
@@ -5323,7 +5392,8 @@ function getWalletTotals($con, $user_id) {
         'total_pending'   => $total_pending,
         'total_requested' => $total_requested,
         'wallet_balance'  => $wallet_balance,
-        'total_earned'    => $total_earned
+        'total_earned'    => $total_earned,
+        'total_dispute_amount' => $total_dispute_amount
     ];
 }
 
@@ -6942,6 +7012,13 @@ if ($_GET['action'] == 'memberid') {
     if ($_GET['action'] == 'fetchbuyerinfo') {
         if (!empty($_GET['user_id'])) {
             $response = getBuyerInfo($con, $_GET['user_id']);
+        }
+    }
+
+
+    if ($_GET['action'] == 'getusersWishlist') {
+        if (!empty($_GET['user_id'])) {
+            $response = getallUserWishlist($con, $_GET['user_id']);
         }
     }
 

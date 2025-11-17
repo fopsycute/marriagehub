@@ -134,15 +134,15 @@ include "header.php";
 							<?php endforeach; ?>
 						</select>
 					</div>
-
+					<!--
 					<div class="mb-3">
 						<label class="form-label">Subcategory</label>
 						<select name="subcategory" id="subcategory" class="form-select">
 							<option value="">All subcategories</option>
-							<!-- populated dynamically when a category is selected -->
+							 populated dynamically when a category is selected
 						</select>
 					</div>
-
+					 -->
 					<div class="mb-3">
 						<label class="form-label">Per page</label>
 						<select name="per_page" class="form-select">

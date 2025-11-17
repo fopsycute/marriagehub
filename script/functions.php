@@ -529,6 +529,27 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
 }
 
 
+
+function formatDateTime($dateTime) {
+    if (empty($dateTime)) { return '';  }
+    $timestamp = strtotime($dateTime);
+    // Check if the input contains both date and time
+    $hasTime = strpos($dateTime, 'T') !== false;
+    if ($hasTime) { return date('M j, Y \a\t h:i A', $timestamp); } else {
+     return date('M j, Y', $timestamp);
+}}
+
+ function getWishlistCountByUser($con, $user_id) {
+    $sql = "SELECT COUNT(*) as count FROM ma_wishlist WHERE user_id = '$user_id'";
+    $result = mysqli_query($con, $sql);
+    if ($result) {
+        $row = mysqli_fetch_array($result);
+        return $row['count'];
+    }
+    return 0;
+}
+
+
 // ✅ Check vendor plan validity and feature
 function canAccess($con, $vendorId, $feature, $siteprefix) {
     $query = $con->prepare("

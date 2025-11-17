@@ -70,7 +70,7 @@ include "header.php";
                                     <td><?php echo $consultDate; ?></td>
                                     <td><span class="badge bg-<?php echo $bookingBadge; ?>"><?php echo ucfirst($bookingStatus); ?></span></td>
                                     <td><span class="badge bg-<?php echo $paymentBadge; ?>"><?php echo ucfirst($paymentStatus); ?></span></td>
-                                    <td>$<?php echo $amount; ?></td>
+                                    <td><?php echo $sitecurrency . $amount; ?></td>
                                   </tr>
                                   <?php
                               }
