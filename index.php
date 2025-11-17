@@ -594,6 +594,7 @@ if ($data !== false) {
 
                 // 🧩 Extract data
                 $listingId   = $listing->id;
+                $listing_id = $listing->listing_id;
                 $title       = htmlspecialchars($listing->title);
                 $slug        = htmlspecialchars($listing->slug ?? '');
                 $pricingType = htmlspecialchars($listing->pricing_type ?? '');
@@ -656,7 +657,7 @@ if ($data !== false) {
                                       <button 
                                   class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
                                   title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
-                                  data-product-id="<?php echo $listingId; ?>"
+                                  data-product-id="<?php echo $listing_id; ?>"
                               >
                                   <?php if ($isWishlisted): ?>
                                       <i class="bi bi-heart-fill text-red-500"></i>

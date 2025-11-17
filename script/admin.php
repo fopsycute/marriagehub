@@ -2064,7 +2064,6 @@ function getallUserWishlist($con, $user_id) {
         SELECT 
             w.id AS wishlist_id,
             w.date_added,
-            l.id,
             l.listing_id,
             l.title,
             l.slug,
@@ -2089,7 +2088,7 @@ function getallUserWishlist($con, $user_id) {
             u.last_name,
             u.photo AS seller_photo
         FROM {$siteprefix}wishlist AS w
-        INNER JOIN {$siteprefix}listings AS l ON w.listing_id = l.id
+        INNER JOIN {$siteprefix}listings AS l ON w.listing_id = l.listing_id
         INNER JOIN {$siteprefix}users AS u ON l.user_id = u.id
         WHERE w.user_id = '$user_id'
         ORDER BY w.date_added DESC
