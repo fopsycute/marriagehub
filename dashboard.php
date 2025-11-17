@@ -91,6 +91,11 @@ include "header.php";
       <h4>My Bookings</h4>
     </a>
 
+     <a href="<?php echo $siteurl; ?>my-orders.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-cart"></i></div>
+      <h4>My Orders</h4>
+    </a>
+
     <a href="<?php echo $siteurl; ?>my-group.php" class="dashboard-item">
       <div class="dashboard-icon me-2"><i class="bi bi-people"></i></div>
       <h4>Tribes / Groups</h4>

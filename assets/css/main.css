@@ -4503,9 +4503,11 @@ section,
 }
 
 .cart .cart-items .cart-actions .coupon-form .input-group .btn {
+/*
     border-top-color: ;
     border-right-color: ;
     border-bottom-color: ;
+    */
     border-left: none;
     font-size: 0.875rem;
     background-color: color-mix(in srgb, var(--default-color), transparent 10%);

@@ -9,7 +9,7 @@ if (empty($buyerId)) {
 }
 
 // Pagination setup
-$limit = 12; // items per page
+$limit = 1; // items per page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
