@@ -4477,6 +4477,62 @@ $(document).ready(function () {
 });
 
 
+// add adverts
+$(document).ready(function () {
+  // Attach submit handler once
+  $('#advertsForm').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/admin.php";
+
+    // Prevent double click
+    $('#submitAdverts').prop('disabled', true).text('Submitting...');
+    $('#messages').removeClass('alert alert-success alert-danger').hide();
+
+    $.ajax({
+      type: 'POST',
+      url: ajaxUrl,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      success: function (response) {
+        if (response.status === 'success') {
+          $('#messages')
+            .addClass('alert alert-success')
+            .html(response.messages)
+            .fadeIn();
+          form.reset();
+          setTimeout(() => {
+            alert(response.messages || "Adverts submitted successfully!");
+            location.reload();
+          }, 800);
+        } else {
+          $('#messages')
+            .addClass('alert alert-danger')
+            .html(response.messages)
+            .fadeIn();
+          $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 600);
+        }
+      },
+      error: function (xhr) {
+        console.error(xhr.responseText);
+        $('#messages')
+          .addClass('alert alert-danger')
+          .text('An error occurred while submitting. Please try again.')
+          .fadeIn();
+        $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 600);
+      },
+      complete: function () {
+        $('#submitAdverts').prop('disabled', false).text('Submit Adverts');
+      }
+    });
+  });
+});
+
 
 
 

@@ -2,7 +2,6 @@
 $requireLogin = true;
 include "header.php";
 
-// Ensure user is logged in
 if (empty($buyerId)) {
     header("Location: " . $siteurl . "login.php");
     exit;
@@ -10,35 +9,32 @@ if (empty($buyerId)) {
 
 // Pagination setup
 $limit = 12; // items per page
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if ($page < 1) $page = 1;
-$offset = ($page - 1) * $limit;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 
-// Fetch wishlist items via your API
-$url = $siteurl . "script/admin.php?action=listinglists&user_id=" . urlencode($buyerId);
+// Fetch all wishlist items via API
+$url = $siteurl . "script/admin.php?action=getusersWishlist&user_id=" . urlencode($buyerId);
 $data = curl_get_contents($url);
-$wishlist = [];
-$totalItems = 0;
 
+$wishlist = [];
 if ($data !== false) {
-    $listings = json_decode($data, true);
-    if (!empty($listings)) {
+    $allItems = json_decode($data, true);
+    if (!empty($allItems)) {
         // Filter only active listings
-        foreach ($listings as $listing) {
+        foreach ($allItems as $listing) {
             if (isset($listing['status']) && strtolower($listing['status']) === 'active') {
                 $wishlist[] = $listing;
             }
         }
-        $totalItems = count($wishlist);
     }
 }
 
+$totalItems = count($wishlist);
 $totalPages = ceil($totalItems / $limit);
+$offset = ($page - 1) * $limit;
 $currentItems = array_slice($wishlist, $offset, $limit);
 ?>
 
 <section id="best-sellers" class="best-sellers section">
-
   <div class="container section-title" data-aos="fade-up">
     <h2>My Wishlist</h2>
   </div>
@@ -48,7 +44,7 @@ $currentItems = array_slice($wishlist, $offset, $limit);
 
       <?php if (!empty($currentItems)): ?>
         <?php foreach ($currentItems as $listing):
-          $listingId   = $listing['id'];
+          $listingId   = $listing['listing_id'];
           $title       = htmlspecialchars($listing['title']);
           $slug        = htmlspecialchars($listing['slug'] ?? '');
           $pricingType = $listing['pricing_type'] ?? '';
@@ -61,9 +57,9 @@ $currentItems = array_slice($wishlist, $offset, $limit);
           $listingUrl  = $siteurl . "products/" . $slug;
 
           $sellerName  = htmlspecialchars(trim(($listing['first_name'] ?? '') . ' ' . ($listing['last_name'] ?? '')));
-          $sellerPhoto = !empty($listing['photo']) ? $siteurl . $imagePath . $listing['photo'] : $siteurl . "assets/img/user.jpg";
+          $sellerPhoto = !empty($listing['seller_photo']) ? $siteurl . $imagePath . $listing['seller_photo'] : $siteurl . "assets/img/user.jpg";
 
-          // Compute display price
+          // Display price
           $displayPrice = 'Contact for price';
           if ($pricingType === 'Starting Price' && !empty($price)) {
               $displayPrice = $sitecurrency . number_format($price, 2);
@@ -71,20 +67,7 @@ $currentItems = array_slice($wishlist, $offset, $limit);
               $displayPrice = $sitecurrency . number_format($priceMin, 2) . $sitecurrency . '-' . number_format($priceMax, 2);
           }
 
-          // Check wishlist status
-          $isWishlisted = false;
-          $apiCheckUrl = $siteurl . "script/user.php?action=checkWishlist&user_id={$buyerId}&listing_id={$listingId}";
-          $wishlistData = curl_get_contents($apiCheckUrl);
-          if ($wishlistData !== false) {
-              $wishlistResult = json_decode($wishlistData, true);
-              if (is_array($wishlistResult)) {
-                  if (isset($wishlistResult['isWishlisted'])) {
-                      $isWishlisted = (bool)$wishlistResult['isWishlisted'];
-                  } elseif (isset($wishlistResult['data']['isWishlisted'])) {
-                      $isWishlisted = (bool)$wishlistResult['data']['isWishlisted'];
-                  }
-              }
-          }
+          $isWishlisted = true; // all items fetched are in wishlist
         ?>
 
         <!-- Product Card -->
@@ -94,14 +77,10 @@ $currentItems = array_slice($wishlist, $offset, $limit);
               <div class="product-badge trending-badge"><?php echo $category; ?></div>
               <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
               <div class="product-actions">
-                <button class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>"
-                        title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>"
+                <button class="action-btn wishlist-btn added"
+                        title="Remove from Wishlist"
                         data-product-id="<?php echo $listingId; ?>">
-                  <?php if ($isWishlisted): ?>
-                    <i class="bi bi-heart-fill text-red-500"></i>
-                  <?php else: ?>
-                    <i class="bi bi-heart"></i>
-                  <?php endif; ?>
+                  <i class="bi bi-heart-fill text-red-500"></i>
                 </button>
               </div>
             </div>
@@ -138,15 +117,11 @@ $currentItems = array_slice($wishlist, $offset, $limit);
         <div class="container">
           <nav class="d-flex justify-content-center" aria-label="Page navigation">
             <ul class="pagination">
-              <!-- Previous -->
               <li class="page-item <?php if($page <= 1) echo 'disabled'; ?>">
-                <a class="page-link" href="?page=<?php echo max(1, $page - 1); ?>" aria-label="Previous">
-                  <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Previous</span>
-                </a>
+                <a class="page-link" href="?page=<?php echo max(1, $page - 1); ?>">Previous</a>
               </li>
 
               <?php
-              // Display page numbers
               for ($i = 1; $i <= $totalPages; $i++):
                   if ($i == 1 || $i == $totalPages || ($i >= $page - 1 && $i <= $page + 1)):
               ?>
@@ -157,11 +132,8 @@ $currentItems = array_slice($wishlist, $offset, $limit);
                 <li class="page-item disabled"><span class="page-link">...</span></li>
               <?php endif; endfor; ?>
 
-              <!-- Next -->
               <li class="page-item <?php if($page >= $totalPages) echo 'disabled'; ?>">
-                <a class="page-link" href="?page=<?php echo min($totalPages, $page + 1); ?>" aria-label="Next">
-                  <span class="d-none d-sm-inline">Next</span> <i class="bi bi-arrow-right"></i>
-                </a>
+                <a class="page-link" href="?page=<?php echo min($totalPages, $page + 1); ?>">Next</a>
               </li>
             </ul>
           </nav>
@@ -170,7 +142,6 @@ $currentItems = array_slice($wishlist, $offset, $limit);
     <?php endif; ?>
 
   </div>
-
 </section>
 
 <?php include "footer.php"; ?>

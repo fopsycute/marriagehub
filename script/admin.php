@@ -2056,11 +2056,8 @@ function respondReview($postData) {
 }
 
 
-function getallUserWishlist($con, $user_id)
-{
+function getallUserWishlist($con, $user_id) {
     global $siteprefix;
-
-    // Sanitize user_id
     $user_id = mysqli_real_escape_string($con, $user_id);
 
     $query = "
@@ -2086,6 +2083,7 @@ function getallUserWishlist($con, $user_id)
                 FROM {$siteprefix}categories AS c
                 WHERE FIND_IN_SET(c.id, l.categories)
             ) AS category_names,
+            l.status,
             u.first_name,
             u.last_name,
             u.photo AS seller_photo
@@ -2097,18 +2095,14 @@ function getallUserWishlist($con, $user_id)
     ";
 
     $result = mysqli_query($con, $query);
-
+    $wishlistData = [];
     if ($result) {
-        $wishlistData = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $wishlistData[] = $row;
         }
-        return $wishlistData;
-    } else {
-        return ['error' => mysqli_error($con)];
     }
+    return $wishlistData;
 }
-
 
 
 
