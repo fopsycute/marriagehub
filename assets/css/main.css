@@ -7862,3 +7862,94 @@ eckout .checkout-section .section-content .form-group .form-select {
   color: color-mix(in srgb, var(--default-color), transparent 30%);
   margin: 10px 0 0 0;
 }
+
+/* Sidebar card styles: compact, elevated widget for right column */
+.sidebar-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 28px rgba(21, 31, 50, 0.06);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.sidebar-card h5 { font-weight: 600; }
+
+.sidebar-card .swiper { width: 100%; }
+.sidebar-card .swiper-wrapper { border-radius: 8px; overflow: hidden; }
+.sidebar-card .swiper-slide { background-size: cover; background-position: center; min-height: 160px; border-radius: 8px; }
+
+.sidebar-card .swiper-slide a { display: block; width: 100%; height: 100%; }
+
+/* Make sidebar sticky on desktop */
+@media (min-width: 992px) {
+  .sidebar-sticky { position: sticky; top: 110px; }
+}
+
+/* Slightly reduce controls size inside sidebar */
+.sidebar-card .swiper-button-next, .sidebar-card .swiper-button-prev { width: 36px; height: 36px; }
+
+/* Sidebar image control */
+.sidebar-banner-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+.product-banner-img {
+  width: 480px;
+  height: 60px;
+  object-fit: cover;
+  display: block;
+}
+/* Small advert badge in corner of widget */
+.sidebar-card .badge-advert {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 193, 7, 0.95);
+  color: #1f2d3d;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.sidebar-card { position: relative; }
+
+/* Top banner styles */
+.top-banner-section { width: 100%; background: transparent; padding: 8px 0; }
+.top-banner-inner { max-width: 1200px; margin: 0 auto; }
+.top-banner-card { position: relative; overflow: hidden; border-radius: 10px; /* fixed height to create a long banner */
+  height: 420px;
+}
+.top-banner-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 768px) {
+  .top-banner-card { height: 280px; }
+}
+
+@media (max-width: 576px) {
+  .top-banner-card { height: 200px; }
+}
+
+.top-banner-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: rgba(255,193,7,0.96);
+  color: #12202b;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.top-banner-cta { position: absolute; right: 12px; bottom: 12px; }
+.top-banner-cta .btn { font-size: 13px; padding: 6px 10px; }
+
+/* Listing ad card styling */
+.ad-card { display:block; }
+.ad-card img { width:100%; height:auto; max-height:420px; object-fit:cover; }
+
+

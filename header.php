@@ -142,7 +142,15 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 </head>
 
 <body class="index-page">
-  <?php include "top-banner.php"; ?>
+  <?php 
+  if (basename($_SERVER['PHP_SELF']) == 'index.php') {
+    include "top-banner.php";
+}
+
+  if (basename($_SERVER['PHP_SELF']) == 'therapist.php' || basename($_SERVER['PHP_SELF']) == 'vendor-profile.php' || basename($_SERVER['PHP_SELF']) == 'dashboard.php') {
+    include "profile-banner.php";
+}
+  ?>
 
 <!-- ======= Top Header ======= -->
 <div class="top-header bg-light py-2 border-bottom">
@@ -286,5 +294,5 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
  <input type="hidden" id="user_id" value="<?php echo !empty($buyerId) ? $buyerId : ''; ?>">
 
 
-
+<?php include "banner-interstitial.php"; ?>
 

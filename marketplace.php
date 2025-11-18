@@ -151,6 +151,7 @@ if ($data !== false) {
   }
 
   if (!empty($listings)) {
+    include "listing-banner.php"; 
     foreach ($listings as $listing) {
             // ✅ Only active listings
             if (isset($listing->status) && strtolower($listing->status) === 'active' && $listing->type == 'Product') {
@@ -253,6 +254,7 @@ if ($data !== false) {
 
 </div>
         </div>
+        
     
         </section>
     <!-- Pagination -->

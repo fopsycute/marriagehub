@@ -74,7 +74,9 @@
       </div>
 
     </section><!-- /Slider Section -->
-
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-md-8 col-12">
    <!-- Trending Category Section -->
 <section id="trending-category" class="trending-category section">
   <!-- Section Title -->
@@ -122,7 +124,7 @@
 
                       ?>
                       
-                      <div class="col-lg-3 col-md-6 col-6">
+                      <div class="col-lg-6 col-md-6 col-12">
                  <div class="card blog-card h-100 shadow-sm border-0">
           <a href="<?php echo $blogUrl; ?>" class="blog-img-wrapper position-relative">
             <img src="<?php echo $blogimage; ?>" class="card-img-top" alt="<?php echo $title; ?>">
@@ -156,6 +158,15 @@
 
 
 </section><!-- /Trending Category Section -->
+
+</div>
+    <div class="col-lg-4 col-md-4 col-12">
+      <?php include "home-sidebar-banner.php"; ?>
+    </div>
+  </div>
+</div>
+</div>
+</div>
 
     <!-- Community Group -->
   <section id="featured-courses" class="featured-courses section">

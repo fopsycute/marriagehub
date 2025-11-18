@@ -1,6 +1,7 @@
+
 <?php
 // Load banners
-$banners = loadBanners($con, $siteprefix, $siteurl, 'home-page-top-banner');
+$banners = loadBanners($con, $siteprefix, $siteurl, 'profile-pages-top-banner');
 
 // Debug: output banner URLs as an HTML comment so you can inspect them in page source
 if (!empty($banners)) {
