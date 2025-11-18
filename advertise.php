@@ -49,7 +49,7 @@
                                 <td><?= $description ?></td>
                                 <td><?= $price_per_day ?></td>
                                 <td>
-                                    <a href="buy-advert?slug=<?= $slug ?>" class="btn btn-sm btn-primary">
+                                    <a href="buy-advert/<?= $slug ?>" class="btn btn-sm btn-primary">
                                         <i class="fa fa-eye"></i> Buy
                                     </a>
                                 </td>
