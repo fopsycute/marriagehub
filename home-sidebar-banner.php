@@ -1,3 +1,9 @@
+<div class="sidebar-card sidebar-sticky" data-aos="fade-up" data-aos-delay="80">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <h5 class="mb-0">Sponsored</h5>
+    <small class="text-muted">Advert</small>
+  </div>
+
 <?php
 // Sidebar banner widget — compact card for sidebar
 $banners = [];
@@ -14,11 +20,6 @@ if (!empty($banners)) {
 if (!empty($banners)):
 ?>
 
-<div class="sidebar-card sidebar-sticky" data-aos="fade-up" data-aos-delay="80">
-  <div class="d-flex align-items-center justify-content-between mb-2">
-    <h5 class="mb-0">Sponsored</h5>
-    <small class="text-muted">Advert</small>
-  </div>
 
   <div class="swiper init-swiper sidebar-swiper">
     <script type="application/json" class="swiper-config">
