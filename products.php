@@ -603,6 +603,9 @@ if ($data !== false) {
             </div>
 
             <?php
+           
+        include 'inline-ad.php';
+
         }
 
         // Pagination UI

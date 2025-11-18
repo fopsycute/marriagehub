@@ -120,7 +120,7 @@
     <script src="<?php echo $siteurl; ?>assets/js/reset.js"></script>
     <?php endif; ?>
 
-
+<?php include "sidebar-ad.php"; ?>
 
 
 </body>
