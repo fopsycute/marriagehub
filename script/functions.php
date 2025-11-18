@@ -149,6 +149,40 @@ function uploadImages($fileData, $uploadDir, $allowedTypes = ['image/jpeg', 'ima
     return $uploadedFiles;
 }
 
+
+function loadBanners($con, $siteprefix, $siteurl, $slug) {
+    $slug = mysqli_real_escape_string($con, $slug);
+
+    $query = "
+        SELECT aa.banner, aa.redirect_url, aa.advert_id
+        FROM {$siteprefix}active_adverts AS aa
+        INNER JOIN {$siteprefix}ad_placements AS ap
+            ON aa.advert_id = ap.id
+        WHERE ap.slug = '$slug'
+        AND aa.status='active'
+        ORDER BY aa.created_at DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $banners = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $bannerUrl = $siteurl . "uploads/" . $row['banner'];
+            $redirect  = !empty($row['redirect_url']) ? $row['redirect_url'] : '#';
+
+            $banners[] = [
+                'banner' => $bannerUrl,
+                'redirect' => $redirect
+            ];
+        }
+        return $banners; // return array instead of echoing
+    }
+
+   
+}
+
+
 // ✅ Limit content to a specific number of words
 function limitWords($string, $word_limit = 5)
 {
@@ -603,4 +637,6 @@ function formatNumber($number, $no = 2) {
         return "0.00";
     }
 }
+
+
 ?>

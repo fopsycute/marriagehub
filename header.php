@@ -142,6 +142,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 </head>
 
 <body class="index-page">
+  <?php include "top-banner.php"; ?>
 
 <!-- ======= Top Header ======= -->
 <div class="top-header bg-light py-2 border-bottom">

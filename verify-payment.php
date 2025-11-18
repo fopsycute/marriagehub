@@ -536,7 +536,7 @@ function verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, 
         INSERT INTO {$siteprefix}active_adverts 
         (advert_id, user_id, banner, redirect_url, start_date, end_date, created_at,status)
         VALUES 
-        ('$advert_id', '$user_id', '$banner', '$redirect_url', '$start_date', '$end_date', '$date', 'inprogress')
+        ('$advert_id', '$user_id', '$banner', '$redirect_url', '$start_date', '$end_date', '$date', 'active')
     ");
 
     // 4. ADD TO ADMIN PROFITS

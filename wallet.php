@@ -156,28 +156,31 @@ $total_dispute_amount = $totals['total_dispute_amount'] ?? '0.00';
                   
                   <div class="card-body">
                     <div class="table-responsive">
-                      <table
-                        id="multi-filter-select"
-                        class="display table table-striped table-hover">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Transaction Type</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th></th>
-                          </tr>
-                        </thead>
+ <table
+    id="multi-filter-select"
+    class="display table table-striped table-hover">
+    
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Transaction Type</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
 
-                         <tfoot>
-                          <tr>
-                            <th>Date</th>
-                            <th>Transaction Type</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                          </tr>
-                        </tfoot>
-                       <tbody>
+    <tfoot>
+      <tr>
+        <th>Date</th>
+        <th>Transaction Type</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </tfoot>
+
+    <tbody>
 <?php
 $url = $siteurl . "script/admin.php?action=walletuser&user_id=$buyerId";
 $data = curl_get_contents($url);
@@ -188,6 +191,7 @@ if ($data !== false) {
     $wallets = json_decode($data, true);
 
     if (!empty($wallets)) {
+
         foreach ($wallets as $wallet) {
             if ($count >= $limit) break;
 
@@ -197,7 +201,6 @@ if ($data !== false) {
             $status = $wallet['status'] ?? '';
             $id     = $wallet['id'] ?? $count;
 
-            // Always green badge
             $badge = '<span class="badge bg-success">' .$status . '</span>';
 
             echo "
@@ -215,7 +218,6 @@ if ($data !== false) {
                         View
                     </button>
 
-                    <!-- Modal -->
                     <div class='modal fade' id='transactionModal$id' tabindex='-1' aria-hidden='true'>
                       <div class='modal-dialog modal-dialog-centered'>
                         <div class='modal-content'>
@@ -240,16 +242,36 @@ if ($data !== false) {
 
             $count++;
         }
+
     } else {
-        echo '<tr><td colspan="5" class="text-center text-muted">No wallet transactions found.</td></tr>';
+        // NO DATA FOUND — ALWAYS RETURN 5 CELLS
+        echo "
+        <tr>
+            <td colspan='1'>No wallet transactions found.</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>";
     }
+
 } else {
-    echo '<tr><td colspan="5" class="text-center text-danger">Error fetching wallet data.</td></tr>';
+    // ERROR FETCHING — ALSO 5 CELLS
+    echo "
+    <tr>
+        <td colspan='1'>Error fetching data.</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>";
 }
 ?>
 </tbody>
 
-                      </table>
+</table>
+
+
                     </div>
                   </div>
                 </div>

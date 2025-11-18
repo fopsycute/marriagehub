@@ -65,6 +65,13 @@ body {
   font-family: var(--default-font);
 }
 
+/* Top banner styles (simple preview) */
+#top-banner { width:100%; background:transparent; padding:6px 0; text-align:center; z-index:1000; }
+#top-banner .top-banner-inner { padding:6px 0; }
+#top-banner img { max-width:100%; height:auto; display:block; margin:0 auto; }
+#top-banner.top-banner-placeholder { background: rgba(255,122,0,0.04); color: #333; }
+
+
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -4503,10 +4510,7 @@ section,
 }
 
 .cart .cart-items .cart-actions .coupon-form .input-group .btn {
-    border-tgit add assets/css/main.css dashboard.php
-git commit -m "Resolve merge conflicts after pulling remote"
-git push origin main
-op-color: ;
+    border-top-color: ;
     border-right-color: ;
     border-bottom-color: ;
     border-left: none;
@@ -4684,7 +4688,10 @@ op-color: ;
 
 .cart .cart-summary .payment-methods .payment-title {
     font-size: 0.875rem;
-    color: color-mix(in srgb, var(--default-color), transparent 30%);
+    color: colgit add assets/css/main.css dashboard.php
+git commit -m "Resolve merge conflicts after pulling remote"
+git push origin main
+or-mix(in srgb, var(--default-color), transparent 30%);
     margin-bottom: 0.5rem;
     text-align: center;
 }
@@ -4757,11 +4764,6 @@ op-color: ;
     .cart .cart-summary {
         position: static;
     }
-}
-
-/* adverts table */
-.adverts-table tbody tr:hover {
-    background-color: #d1ecf1;
 }
 
 
@@ -4961,7 +4963,12 @@ op-color: ;
   box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15);
 }
 
-.checkout .checkout-section .section-content .form-group .form-select {
+.
+c/* adverts table */
+h.adverts-table tbody tr:hover {
+    background-color: #d1ecf1;
+}
+eckout .checkout-section .section-content .form-group .form-select {
   background-position: right 16px center;
   padding-right: 40px;
 }

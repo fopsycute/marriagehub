@@ -47,7 +47,7 @@ if ($data !== false) {
             $amount = $wallet['amount'] ?? '0';
             $reason = $wallet['reason'] ?? '';
             $status = $wallet['status'] ?? '';
-            $id     = $wallet['id'] ?? $count; // unique modal ID
+            $id     = $wallet['id'] ?? $count;
 
             $badge = '<span class="badge bg-success">' . htmlspecialchars($status) . '</span>';
 
@@ -62,38 +62,34 @@ if ($data !== false) {
                         View
                     </button>
 
-                    <!-- Modal -->
                     <div class='modal fade' id='transactionModal$id' tabindex='-1' aria-hidden='true'>
-                      <div class='modal-dialog modal-dialog-centered'>
-                        <div class='modal-content'>
-                          <div class='modal-header bg-primary text-white'>
-                            <h5 class='modal-title'>Transaction Details</h5>
-                            <button type='button' class='btn-close btn-close-white' data-bs-dismiss='modal'></button>
-                          </div>
-                          <div class='modal-body'>
-                            <p><strong>Date:</strong> " . htmlspecialchars($date) . "</p>
-                            <p><strong>Type:</strong> " . htmlspecialchars($reason) . "</p>
-                            <p><strong>Amount:</strong> ₦" . htmlspecialchars($amount) . "</p>
-                            <p><strong>Status:</strong> $badge</p>
-                          </div>
-                          <div class='modal-footer'>
-                            <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                          </div>
+                        <div class='modal-dialog modal-dialog-centered'>
+                            <div class='modal-content'>
+                                <div class='modal-header bg-primary text-white'>
+                                    <h5 class='modal-title'>Transaction Details</h5>
+                                    <button type='button' class='btn-close btn-close-white' data-bs-dismiss='modal'></button>
+                                </div>
+                                <div class='modal-body'>
+                                    <p><strong>Date:</strong> " . htmlspecialchars($date) . "</p>
+                                    <p><strong>Type:</strong> " . htmlspecialchars($reason) . "</p>
+                                    <p><strong>Amount:</strong> ₦" . htmlspecialchars($amount) . "</p>
+                                    <p><strong>Status:</strong> $badge</p>
+                                </div>
+                                <div class='modal-footer'>
+                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
+                                </div>
+                            </div>
                         </div>
-                      </div>
                     </div>
                 </td>
             </tr>";
             $count++;
         }
-    } else {
-        echo '<tr><td colspan="5" class="text-center text-muted">No wallet transactions found.</td></tr>';
     }
-} else {
-    echo '<tr><td colspan="5" class="text-center text-danger">Error fetching wallet data.</td></tr>';
 }
 ?>
-    </tbody>
+</tbody>
+
 </table>
 
 
