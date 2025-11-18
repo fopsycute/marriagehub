@@ -955,6 +955,96 @@ function addcategoryendpoint($postData) {
 }
 
 
+function addAdPlacementEndpoint($postData) {
+    global $con, $siteprefix;
+
+    // Sanitize inputs
+    $placementName = mysqli_real_escape_string($con, trim($postData['placement_name'] ?? ''));
+    $size          = mysqli_real_escape_string($con, trim($postData['size'] ?? ''));
+    $description   = mysqli_real_escape_string($con, trim($postData['description'] ?? ''));
+    $pricePerDay   = isset($postData['price']) ? floatval($postData['price']) : 0;
+    $status        = mysqli_real_escape_string($con, trim($postData['status'] ?? 'Inactive'));
+
+    // Validation
+    if (empty($placementName)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Ad Placement name is required.", "red")
+        ];
+    }
+
+    if (empty($size)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Ad Size is required.", "red")
+        ];
+    }
+
+    if ($pricePerDay <= 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Price per day must be greater than 0.", "red")
+        ];
+    }
+
+    // Generate base slug
+    $baseSlug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $placementName), '-'));
+
+    // Make slug unique
+    $slug = $baseSlug;
+    $counter = 1;
+    while (true) {
+        $slugCheckQuery = "SELECT COUNT(*) AS count FROM {$siteprefix}ad_placements WHERE slug = '$slug'";
+        $slugResult = mysqli_query($con, $slugCheckQuery);
+        $slugRow = mysqli_fetch_assoc($slugResult);
+
+        if ($slugRow['count'] == 0) {
+            break; // slug is unique
+        }
+
+        $slug = $baseSlug . '-' . $counter;
+        $counter++;
+    }
+
+    // Check if placement already exists
+    $checkQuery = "SELECT COUNT(*) AS count 
+                   FROM {$siteprefix}ad_placements 
+                   WHERE placement_name = '$placementName'";
+    $checkResult = mysqli_query($con, $checkQuery);
+    $row = mysqli_fetch_assoc($checkResult);
+
+    if ($row['count'] > 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage(
+                "Ad Placement \"$placementName\" already exists.",
+                "red"
+            )
+        ];
+    } else {
+        // Insert ad placement
+        $insertQuery = "INSERT INTO {$siteprefix}ad_placements 
+                        (placement_name, size, description, price_per_day, status, slug) 
+                        VALUES ('$placementName', '$size', '$description', '$pricePerDay', '$status', '$slug')";
+
+        if (mysqli_query($con, $insertQuery)) {
+            return [
+                'status' => 'success',
+                'messages' => "Ad Placement \"$placementName\" created successfully!"
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'messages' => generateMessage(
+                    "Failed to create Ad Placement: " . mysqli_error($con),
+                    "red"
+                )
+            ];
+        }
+    }
+}
+
+
 
 function addsubcategoryendpoint($postData) {
     global $con, $siteprefix;
@@ -1118,6 +1208,25 @@ function getalldisputestickets($con)
             $disputeData[] = $row;
         }
         return $disputeData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
+function getalladplacements($con)
+{
+    global $siteprefix;
+
+    $query = "SELECT *
+            FROM {$siteprefix}ad_placements ORDER BY id DESC";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $adPlacementData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $adPlacementData[] = $row;
+        }
+        return $adPlacementData;
     } else {
         return ['error' => mysqli_error($con)];
     }
@@ -2328,6 +2437,128 @@ function markAlluserNotificationsRead($postData) {
     return $update ? "All notifications have been marked as read." : "Failed to update notifications: " . mysqli_error($con);
 }
 
+function editAdPlacementEndpoint($postData) {
+    global $con, $siteprefix;
+
+    // Sanitize inputs
+    $adverId       = isset($postData['adver_id']) ? intval($postData['adver_id']) : 0;
+    $placementName = mysqli_real_escape_string($con, trim($postData['placement_name'] ?? ''));
+    $size          = mysqli_real_escape_string($con, trim($postData['size'] ?? ''));
+    $description   = mysqli_real_escape_string($con, trim($postData['description'] ?? ''));
+    $pricePerDay   = isset($postData['price']) ? floatval($postData['price']) : 0;
+    $status        = mysqli_real_escape_string($con, trim($postData['status'] ?? 'Inactive'));
+
+    // Validate required fields
+    if ($adverId <= 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Invalid Ad Placement ID.", "red")
+        ];
+    }
+
+    if (empty($placementName)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Ad Placement name is required.", "red")
+        ];
+    }
+
+    if (empty($size)) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Ad Size is required.", "red")
+        ];
+    }
+
+    if ($pricePerDay <= 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Price per day must be greater than 0.", "red")
+        ];
+    }
+
+    // Fetch current placement data
+    $currentQuery = "SELECT placement_name, slug FROM {$siteprefix}ad_placements WHERE id = $adverId";
+    $currentResult = mysqli_query($con, $currentQuery);
+    if (!$currentResult || mysqli_num_rows($currentResult) == 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Ad Placement not found.", "red")
+        ];
+    }
+
+    $currentData = mysqli_fetch_assoc($currentResult);
+
+    // Only generate new slug if name has changed
+    if ($placementName !== $currentData['placement_name']) {
+        // Generate base slug
+        $baseSlug = strtolower(trim(preg_replace('/[^A-Za-z0-9]+/', '-', $placementName), '-'));
+
+        // Make slug unique
+        $slug = $baseSlug;
+        $counter = 1;
+        while (true) {
+            $slugCheckQuery = "SELECT COUNT(*) AS count 
+                               FROM {$siteprefix}ad_placements 
+                               WHERE slug = '$slug' AND id != $adverId";
+            $slugResult = mysqli_query($con, $slugCheckQuery);
+            $slugRow = mysqli_fetch_assoc($slugResult);
+
+            if ($slugRow['count'] == 0) {
+                break; // slug is unique
+            }
+
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+    } else {
+        $slug = $currentData['slug']; // keep current slug
+    }
+
+    // Check if placement name already exists (excluding current record)
+    $checkQuery = "SELECT COUNT(*) AS count 
+                   FROM {$siteprefix}ad_placements 
+                   WHERE placement_name = '$placementName' AND id != $adverId";
+    $checkResult = mysqli_query($con, $checkQuery);
+    $row = mysqli_fetch_assoc($checkResult);
+
+    if ($row['count'] > 0) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage(
+                "Ad Placement \"$placementName\" already exists.",
+                "red"
+            )
+        ];
+    } else {
+        // Update ad placement
+        $updateQuery = "UPDATE {$siteprefix}ad_placements 
+                        SET placement_name='$placementName',
+                            size='$size',
+                            description='$description',
+                            price_per_day='$pricePerDay',
+                            status='$status',
+                            slug='$slug'
+                        WHERE id = $adverId";
+
+        if (mysqli_query($con, $updateQuery)) {
+            return [
+                'status' => 'success',
+                'messages' => "Ad Placement \"$placementName\" updated successfully!"
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'messages' => generateMessage(
+                    "Failed to update Ad Placement: " . mysqli_error($con),
+                    "red"
+                )
+            ];
+        }
+    }
+}
+
+
 
 function deletelistingEndpoint($postData) {
     global $con,$siteprefix;
@@ -2335,6 +2566,15 @@ function deletelistingEndpoint($postData) {
     $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
     return mysqli_query($con, "DELETE FROM  {$siteprefix}listings WHERE id= '$imageId'") ? 'Deleted Successfully.' : 'Failed to delete blog: ' . mysqli_error($con);
 }
+
+function deleteadvertEndpoint($postData) {
+    global $con,$siteprefix;
+    if (!isset($postData["image_id"])) return "Advert ID is missing.";
+    $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
+    return mysqli_query($con, "DELETE FROM  {$siteprefix}ad_placements WHERE id= '$imageId'") ? 'Deleted Successfully.' : 'Failed to delete blog: ' . mysqli_error($con);
+}
+
+
 
 function deletecategoryEndpoint($postData) {
     global $con, $siteprefix;
@@ -3079,6 +3319,14 @@ function getblogID($con, $blog_id) {
     $result = mysqli_query($con, $query);
     return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : ['error' => mysqli_error($con)];
 }
+
+function getadvertsID($con, $advert_id) {
+    global $con,$siteprefix;
+    $query = "SELECT * FROM  {$siteprefix}ad_placements WHERE id= '$advert_id'";
+    $result = mysqli_query($con, $query);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : ['error' => mysqli_error($con)];
+}
+
 
 function getallusersnotifications($con, $user_id)
 {
@@ -3838,6 +4086,27 @@ function getListingPriceBounds($con)
 }
 
 
+// adverts slug
+
+function getalladvertbyslug($con, $slug)
+{
+    global $siteprefix;
+
+     $query = "SELECT * FROM  {$siteprefix}ad_placements WHERE slug= '" . mysqli_real_escape_string($con, $slug) . "' LIMIT 1";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $advertData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $advertData[] = $row;
+        }
+        return $advertData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
 
 function getallblogbyslug($con, $slug)
 {
@@ -3902,6 +4171,58 @@ function getallblogbyslug($con, $slug)
     }
 }
 
+function createAdvertOrder($postData, $fileData) {
+    global $con, $siteprefix, $siteurl;
+
+    // ✅ VALIDATE
+    if (empty($postData["advert_id"])) {
+        return ["status" => "error", "message" => "Advert ID missing"];
+    }
+
+    if (empty($postData["reference"])) {
+        return ["status" => "error", "message" => "Missing payment reference"];
+    }
+
+    if (empty($postData["user_id"])) {
+        return ["status" => "error", "message" => "User not logged in"];
+    }
+
+    $advert_id    = mysqli_real_escape_string($con, $postData["advert_id"]);
+    $reference    = mysqli_real_escape_string($con, $postData["reference"]);
+    $start_date   = mysqli_real_escape_string($con, $postData["start_date"]);
+    $end_date     = mysqli_real_escape_string($con, $postData["end_date"]);
+    $redirect_url = mysqli_real_escape_string($con, $postData["url_redirection"]);
+    $amount       = mysqli_real_escape_string($con, $postData["total_amount"]);
+    $user_id      = mysqli_real_escape_string($con, $postData["user_id"]);
+
+    // ✅ CHECK IF REFERENCE EXISTS
+    $check = mysqli_query($con,
+        "SELECT id FROM {$siteprefix}advert_orders WHERE reference='$reference' LIMIT 1"
+    );
+
+    if (mysqli_num_rows($check) > 0) {
+        return ["status" => "error", "message" => "Duplicate reference"];
+    }
+
+    // ✅ FILE UPLOAD
+    $imageName = "";
+    if (!empty($fileData["bannerimage"]["name"])) {
+        $imageName = uniqid() . "_" . basename($fileData["bannerimage"]["name"]);
+        move_uploaded_file($fileData["bannerimage"]["tmp_name"], "../uploads/" . $imageName);
+    }
+
+    // ✅ INSERT ORDER WITH USER_ID
+    mysqli_query($con,
+        "INSERT INTO {$siteprefix}advert_orders 
+        (advert_id, user_id, reference, start_date, end_date, redirect_url, banner, amount, status, date)
+        VALUES ('$advert_id', '$user_id', '$reference', '$start_date', '$end_date', '$redirect_url', '$imageName', '$amount', 'pending', NOW())"
+    );
+
+    return [
+        "status" => "success",
+        "message" => "Order created successfully. Proceed to payment."
+    ];
+}
 
 
 
@@ -6768,6 +7089,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'groupuserstatus') {
 if ($_GET['action'] == 'questionlists') {
               $response = getallquestions($con);} 
 
+if ($_GET['action'] == 'advertlists') {
+              $response = getalladplacements($con);} 
+              
+
     if ($_GET['action'] == 'subscriptionlists') {
     $response = getallsubscriptions($con);
 }
@@ -6947,7 +7272,17 @@ $response = isset($_GET['booking_id']) ? getbookingsID($con, $_GET['booking_id']
      if ($_GET['action'] == 'editblog') {  
         $response = isset($_GET['blog_id']) ? getblogID($con, $_GET['blog_id']) : ['error' => 'Blog ID is required'];}
 
-         if ($_GET['action'] == 'editcategory') {  
+
+
+        if ($_GET['action'] == 'editadverts') {  
+        $response = isset($_GET['advert_id']) ? getadvertsID($con, $_GET['advert_id']) : ['error' => 'Advert ID is required'];}
+
+        if ($_GET['action'] == 'advertslug') {  
+        $response = isset($_GET['slug']) ? getalladvertbyslug($con, $_GET['slug']) : ['error' => 'Advert slug is required'];}
+
+         
+        
+        if ($_GET['action'] == 'editcategory') {  
         $response = isset($_GET['category_id']) ?  getcategoriesID($con, $_GET['category_id']) : ['error' => 'Category ID is required'];}
 
         if ($_GET['action'] == 'editsubcategory') {  
@@ -7117,6 +7452,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
       if($_POST['action'] == 'deletelistings'){
     $response = deletelistingEndpoint($_POST);}
 
+        if($_POST['action'] == 'editplacement'){
+    $response = editAdPlacementEndpoint($_POST);
+        }
+
+        if($_POST['action'] == 'deleteadvert'){
+    $response = deleteadvertEndpoint($_POST);}
+
+    
+
     if($_POST['action'] == 'deletecategory'){
     $response = deletecategoryEndpoint($_POST);}
 
@@ -7172,6 +7516,9 @@ if($_POST['action'] == 'updatewallet'){
     $response = approvewithdrawal($_POST);
 }
 
+if ($_POST["action"] == "create-advert-order") {
+    $response = createAdvertOrder($_POST, $_FILES);
+}
 if($_POST['action'] == 'editcategoryadmin'){
     $response = updateCategoryEndpoint($_POST);
 } // end
@@ -7186,8 +7533,12 @@ if($_POST['action'] == 'editcategoryadmin'){
 
 
    if($_POST['action'] == 'addcategory'){
-    $response = addCategoryEndpoint($_POST);
+    $response =  addcategoryendpoint($_POST);
 } // end
+
+   if($_POST['action'] == 'addplacement'){
+    $response =  addAdPlacementEndpoint($_POST);
+}
 
    if($_POST['action'] == 'changePassword'){
     $response = changePasswordEndpoint($_POST);

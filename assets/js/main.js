@@ -1,3 +1,138 @@
+
+// ===== Advert Purchase Script =====
+document.addEventListener("DOMContentLoaded", function () {
+
+    // --- Elements ---
+    const payBtn       = document.getElementById("payNowBtn");
+    const priceElem    = document.getElementById("advert_price"); // e.g. "₦1,500"
+    const totalPriceEl = document.getElementById("total_price");
+    const paystackKey  = document.getElementById("paystack-key").value;
+    const advertIdElem = document.getElementById("advert_id");
+    const startInput   = document.getElementById("start_date");
+    const endInput     = document.getElementById("end_date");
+    const emailElem    = document.getElementById("buyer_email");
+    const redirectElem = document.getElementById("url_redirection");
+    const bannerInput  = document.getElementById("bannerimage");
+    const userIdElem   = document.getElementById("user_id");
+
+    const siteUrl      = document.getElementById("siteurl").value;
+    const ajaxUrl      = siteUrl + "script/admin.php"; // PHP endpoint
+
+    const pricePerDay  = parseFloat(priceElem.dataset.price || priceElem.innerText.replace(/[₦,]/g, ""));
+
+    // --- Redirect if user not logged in ---
+    const user_id = userIdElem.value;
+    if (!user_id) {
+        window.location.href = siteUrl + 'login';
+        return;
+    }
+
+    // --- Total price calculation ---
+    function calculateTotal() {
+        if (!startInput.value || !endInput.value) {
+            totalPriceEl.innerText = "₦0.00";
+            return 0;
+        }
+
+        const startDate = new Date(startInput.value);
+        const endDate   = new Date(endInput.value);
+
+        if (endDate < startDate) {
+            totalPriceEl.innerText = "₦0.00";
+            return 0;
+        }
+
+        const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // inclusive
+        const total = days * pricePerDay;
+        totalPriceEl.innerText = "₦" + total.toLocaleString();
+        return total;
+    }
+
+    startInput.addEventListener('change', calculateTotal);
+    endInput.addEventListener('change', calculateTotal);
+
+    // --- Click handler ---
+    payBtn.addEventListener("click", async function (e) {
+        e.preventDefault();
+
+        const advertId    = advertIdElem.value;
+        const startDate   = startInput.value;
+        const endDate     = endInput.value;
+        const userEmail   = emailElem.value;
+        const redirectUrl = redirectElem.value;
+
+        // --- Validation ---
+        if (!startDate || !endDate) {
+            alert("Please select valid start & end dates.");
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            alert("Start date cannot be after end date.");
+            return;
+        }
+
+        if (!bannerInput.files.length) {
+            alert("Please upload a banner image.");
+            return;
+        }
+
+        const totalAmount = calculateTotal();
+        if (totalAmount <= 0) {
+            alert("Invalid date selection.");
+            return;
+        }
+
+        const payAmount = totalAmount * 100; // Convert to Kobo
+        const reference = "ADV-" + Date.now(); // Unique reference
+
+        // --- Prepare FormData ---
+        const fd = new FormData();
+        fd.append("action", "create-advert-order");
+        fd.append("advert_id", advertId);
+        fd.append("start_date", startDate);
+        fd.append("end_date", endDate);
+        fd.append("url_redirection", redirectUrl);
+        fd.append("total_amount", totalAmount);
+        fd.append("reference", reference);
+        fd.append("bannerimage", bannerInput.files[0]);
+        fd.append("user_id", user_id);
+
+        // --- Save order via AJAX ---
+        try {
+            const response = await fetch(ajaxUrl, { method: "POST", body: fd });
+            const result   = await response.json();
+
+            if (result.status !== "success") {
+                alert(result.message || "Failed to create order. Try again.");
+                return;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred while saving your order.");
+            return;
+        }
+
+        // --- Open Paystack payment popup ---
+        const handler = PaystackPop.setup({
+            key: paystackKey,
+            email: userEmail,
+            amount: payAmount,
+            currency: "NGN",
+            ref: reference,
+            callback: function () {
+                // Redirect to verification page
+                window.location.href = `${siteUrl}verify-payment.php?action=verify-advert-payment&reference=${reference}`;
+            },
+            onClose: function () {
+                alert("Payment window closed.");
+            }
+        });
+
+        handler.openIframe();
+    });
+});
+
 // Ensure jsPDF is available
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -1500,6 +1635,10 @@ document.getElementById("paystackBtn").addEventListener("click", function () {
 });
 
 
+
+
+
+
  document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.payButton').forEach(button => {
         button.addEventListener('click', function () {
@@ -1912,3 +2051,6 @@ function toggleBio(el) {
         el.textContent = "Read More";
     }
 }
+
+
+

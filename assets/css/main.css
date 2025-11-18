@@ -4759,6 +4759,11 @@ op-color: ;
     }
 }
 
+/* adverts table */
+.adverts-table tbody tr:hover {
+    background-color: #d1ecf1;
+}
+
 
 /* receipt */
 .receipt-card {

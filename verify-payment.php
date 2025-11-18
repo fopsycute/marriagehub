@@ -475,6 +475,113 @@ function verifySubscriptionPayment($con, $siteprefix, $siteurl, $sitecurrency, $
     exit;
 }
 
+function verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName = '', $siteMail = '') {
+
+    if (!isset($_GET['reference'])) {
+        die("Invalid payment request.");
+    }
+
+    $reference = mysqli_real_escape_string($con, $_GET['reference']);
+    $currentdatetime = date('Y-m-d H:i:s');
+    $date = $currentdatetime;
+
+    // 1. FETCH ORDER (only pending allowed)
+    $orderQuery = mysqli_query($con, "
+        SELECT *
+        FROM {$siteprefix}advert_orders
+        WHERE reference='$reference'
+        LIMIT 1
+    ");
+
+    if (!$orderQuery || mysqli_num_rows($orderQuery) === 0) {
+        die("Order not found.");
+    }
+
+    $order = mysqli_fetch_assoc($orderQuery);
+
+    if ($order['status'] !== 'pending') {
+        die("Payment already processed.");
+    }
+
+    $advert_id     = $order['advert_id'];
+    $user_id       = $order['user_id'];
+    $amount        = $order['amount'];
+    $start_date    = $order['start_date'];
+    $end_date      = $order['end_date'];
+    $banner        = $order['banner'];
+    $redirect_url  = $order['redirect_url'];
+
+    // Fetch buyer info
+    $userQuery = mysqli_query($con, "
+        SELECT first_name, email
+        FROM {$siteprefix}users
+        WHERE id='$user_id' LIMIT 1
+    ");
+    if (!$userQuery || mysqli_num_rows($userQuery) === 0) {
+        die("Buyer not found.");
+    }
+    $user = mysqli_fetch_assoc($userQuery);
+    $buyer_name  = $user['first_name'];
+    $buyer_email = $user['email'];
+
+    // 2. MARK ORDER AS PAID
+    mysqli_query($con, "
+        UPDATE {$siteprefix}advert_orders
+        SET status='paid', paid_at='$date'
+        WHERE reference='$reference'
+    ");
+
+    // 3. INSERT INTO ACTIVE ADVERTS
+    mysqli_query($con, "
+        INSERT INTO {$siteprefix}active_adverts 
+        (advert_id, user_id, banner, redirect_url, start_date, end_date, created_at,status)
+        VALUES 
+        ('$advert_id', '$user_id', '$banner', '$redirect_url', '$start_date', '$end_date', '$date', 'inprogress')
+    ");
+
+    // 4. ADD TO ADMIN PROFITS
+    mysqli_query($con, "
+        INSERT INTO {$siteprefix}profits (amount, advert_id, type, date)
+        VALUES ('$amount', '$advert_id', 'Advert Purchase', '$date')
+    ");
+
+    // 5. ADMIN ALERT
+    insertAdminAlert(
+        $con,
+        "A new advert payment of {$sitecurrency}" . number_format($amount, 2) . " was received.",
+        "profits.php",
+        $date,
+        "adverts",
+        0
+    );
+
+    // 6. BUYER ALERT
+    insertAlert(
+        $con,
+        $user_id,
+        "Your advert payment of {$sitecurrency}" . number_format($amount, 2) . " was successful. Your advert is now active.",
+        $date,
+        0
+    );
+
+    // 7. BUYER EMAIL
+    $subject = "Advert Payment Successful";
+    $message = "
+        <p>Your advert payment of <strong>{$sitecurrency}" . number_format($amount, 2) . "</strong> was successful.</p>
+        <p>Your advert from <strong>{$start_date}</strong> to <strong>{$end_date}</strong> is now active.</p>
+    ";
+    sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $message, $subject);
+
+    // 8. REDIRECT USER
+    echo "<script>
+        alert('Payment successful! Your advert is now active.');
+        window.location.href='{$siteurl}';
+    </script>";
+    exit;
+}
+
+
+
 // ✅ Handle verification call
 if (isset($_GET['action']) && $_GET['action'] === 'verify_payment') {
     verifySubscriptionPayment($con, $siteprefix, $siteurl, $sitecurrency, $siteName, $siteMail);
@@ -486,5 +593,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'verify-therapist-payment') {
 // ✅ Handle verification action
 if (isset($_GET['action']) && $_GET['action'] === 'verify-group-payment') {
     paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency);
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'verify-advert-payment') {
+    verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName, $siteMail);
 }
 ?>

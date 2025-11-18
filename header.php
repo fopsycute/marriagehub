@@ -158,6 +158,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
       <a href="<?php echo $siteurl; ?>dashboard.php" class="text-dark text-decoration-none">
         <i class="bi bi-journal-text me-1"></i> Submit Articles & Questions
       </a>
+
+      <span class="text-secondary">|</span>
+      <a href="<?php echo $siteurl; ?>advertise.php" class="text-dark text-decoration-none">
+        <i class="bi bi-badge-ad me-1"></i> Advertise with us
+      </a>
     </div>
   </div>
 </div>

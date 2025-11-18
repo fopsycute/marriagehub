@@ -265,7 +265,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 
               <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#ServiceListing">
-                  <i class="fas fa-user"></i>
+                  <i class="fas fa-shopping-cart"></i>
                   <p>Listing Management</p>
                   <span class="caret"></span>
                 </a>
@@ -289,15 +289,27 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                       </a>
                     </li>
 
+                   </ul>
+                </div>
+              </li>
 
-                    <li>
-                      <a href="admin-listings.php">
-                        <span class="sub-item">Admin Listings</span>
+                    <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#ads">
+                 <i class="fa-brands fa-buysellads"></i>
+                  <p>Ads Management</p>
+                  <span class="caret"></span>
+                </a>
+                <div class="collapse" id="ads">
+                  <ul class="nav nav-collapse">
+
+                  <li>
+                      <a href="add-ads.php">
+                        <span class="sub-item">Add Ads</span>
                       </a>
                     </li>
                      <li>
-                      <a href="pending-listings.php">
-                        <span class="sub-item">Pending Listings</span>
+                      <a href="advertlists.php">
+                        <span class="sub-item">All Ads</span>
                       </a>
                     </li>
 
