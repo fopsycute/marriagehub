@@ -66,11 +66,11 @@ include "header.php"; ?>
                   <div class="payment_methods mt-3">
                 <h4>Select Payment Method</h4>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" checked>
+                    <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack"  onchange="updatePaymentButton()" checked>
                     <label class="form-check-label" for="paystack">Pay with Paystack</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment_method" id="manual" value="manual">
+                    <input class="form-check-input" type="radio" name="payment_method" id="manual" value="manual"  onchange="updatePaymentButton()">
                     <label class="form-check-label" for="manual">Manual Bank Transfer</label>
                 </div>
                 </div>
@@ -206,5 +206,10 @@ include "header.php"; ?>
 
   </div>
 </section>
+<script>
+
+
+
+  </script>
 
 <?php include "footer.php"; ?>

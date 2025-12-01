@@ -213,7 +213,7 @@
 
       <div class="form-group">
         <label for="availability">Availability</label>
-        <select class="select2-single form-control" id="availability" name="availability">
+        <select class="select2-single form-control" id="availability" name="availability" onchange="toggleSlotField(this)">
           <option value="Always Available">Always Available</option>
           <option value="By Appointment">By Appointment</option>
           <option value="Limited Slot">Limited Slot</option>
@@ -221,6 +221,10 @@
         </select>
       </div>
 
+
+
+
+     
       <!-- Hidden input that appears only for Limited Slot -->
 <div class="form-group" id="slotField" style="display:none;">
   <label for="available_slots">Number of Slots Available</label>

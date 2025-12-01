@@ -3,7 +3,7 @@
 <div class="container">
   <div class="page-inner">
     <div class="page-header">
-      <h3 class="fw-bold mb-3">Edit Vendors</h3>
+      <h3 class="fw-bold mb-3">Edit Therapists</h3>
       <ul class="breadcrumbs mb-3">
         <li class="nav-home">
           <a href="#"><i class="icon-home"></i></a>
@@ -11,7 +11,7 @@
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="#">Edit</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
-        <li class="nav-item"><a href="#">Vendors</a></li>
+        <li class="nav-item"><a href="#">Therapists</a></li>
       </ul>
     </div>
 
@@ -44,6 +44,9 @@ if (isset($_GET['therapist_id'])) {
             $institution = $user->institution  ?? '';
             $highest_qualification = $user->qualification  ?? '';
             $graduation_year = $user->graduation_year  ?? '';
+            $cv = $user->cv  ?? '';
+            $passport = $user->passport  ?? '';
+            $license = $user->license  ?? '';
             $status = $user->status ?? '';
             $dob = $user->dob ?? '';
             $gender = $user->gender ?? '';
@@ -52,26 +55,45 @@ if (isset($_GET['therapist_id'])) {
             $business_name = $user->business_name;
             $registered_business_name = $user->registered_business_name;
             $owner_name = $user->owner_name;
+            $session_format = $user->session_format ?? '';
             $nationality = $user->nationality ?? '';
             $languages = $user->languages ?? '';
             $phone = $user->phone ?? '';
             $website = $user->website ?? '';
             $email = $user->email ?? '';
             $work_with = $user->work_with ?? '';
-            $specialization_selected  = $user->specializations ?? '';
-            $subspec_selected = $user->sub_specialization ?? '';
+            $specialization_selected  = !empty($user->specializations) ? explode(',', $user->specializations) : [];
+            $subspec_selected = !empty($user->sub_specialization) ? explode(',', $user->sub_specialization) : [];
             $categories_selected = !empty($user->category_id) ? explode(',', $user->category_id) : [];
             $subcategories_selected = !empty($user->subcategory_id) ? explode(',', $user->subcategory_id) : [];
             $profession_selected  = !empty($user->professional_field) ? explode(',', $user->professional_field) : [];
             $subprofession_selected  = !empty($user->professional_title) ? explode(',', $user->professional_title) : [];
             $state_residence = $user->state_residence ?? '';
-            $lga = $user->state_lga ?? '';
+            $lga = $user->lga ?? '';
             $experience_years = $user->experience_years;
             $business_logo = $siteurl.$imagePath.$user->business_logo;
-            $portfolio = $siteurl.$imagePath.$user->portfolio;
+            $portfolio = $user->portfolio;
             $coverage = $user->coverage;
             $onsite = $user->onsite;
-            $availability = $user->availability;
+          $consultation_days = $user->consultation_days ?? '';
+          $preferred_days_selected = [];
+          $start_time = '';
+          $end_time = '';
+
+          if (!empty($consultation_days)) {
+              // Split the days from times
+              $parts = explode('|', $consultation_days);
+              if (count($parts) == 2) {
+                  // Days
+                  $preferred_days_selected = array_map('trim', explode(',', $parts[0]));
+                  // Times
+                  $times = trim($parts[1]);
+                  if (strpos($times, '-') !== false) {
+                      list($start_time, $end_time) = array_map('trim', explode('-', $times));
+                  }
+              }
+          }
+
             $address = $user->address ?? '';
             $facebook = $user->facebook ?? '';
             $twitter = $user->twitter ?? '';
@@ -82,16 +104,11 @@ if (isset($_GET['therapist_id'])) {
             $certifications  = $user->certifications ?? '';
             $suspend_reason = $user->suspend_reason ?? '';
             $logo = !empty($photo) ? $siteurl . "uploads/" . $photo : $siteurl . "images/default-avatar.png";
-      // Additional fields used in the form prefills
-      $session_format = $user->session_format ?? '';
-      $preferred_days_selected = !empty($user->preferred_days) ? explode(',', $user->preferred_days) : [];
-      $start_time = $user->start_time ?? '';
-      $end_time = $user->end_time ?? '';
-      $session_duration = $user->session_duration ?? '';
-      $rate = $user->rate ?? $user->proposed_rate ?? '';
-      $associations = $user->associations ?? '';
-      $other_work = $user->other_work ?? '';
-      $preferred_days = $user->preferred_days ?? '';
+            $session_duration = $user->session_duration ?? '';
+            $rate = $user->rate ?? $user->proposed_rate ?? '';
+            $associations = $user->associations ?? '';
+            $other_work = $user->other_work ?? '';
+            $preferred_days = $user->preferred_days ?? '';
         } else {
             echo "<div class='alert alert-warning'>No user found with this ID.</div>";
         }
@@ -113,7 +130,7 @@ if (isset($_GET['therapist_id'])) {
     <div class="row g-3">
    <!-- Site Name -->
               
-            <form class="enrollment-therapist" action="<?php echo $siteurl; ?>script/admin.php" method="POST" enctype="multipart/form-data">
+            <form class="editenrollment-therapist"  method="POST" enctype="multipart/form-data">
               <div id="messages" style="display:none;"></div>
 
               <!-- Section 1: Personal and Business Information -->
@@ -133,6 +150,7 @@ if (isset($_GET['therapist_id'])) {
         ?>
       </select>
                 </div>
+	
                     <div class="col-md-3">
                   <label class="form-label">First Name *</label>
                   <input type="text" name="first_name" class="form-control" value="<?php echo $first_name; ?>" required>
@@ -146,6 +164,7 @@ if (isset($_GET['therapist_id'])) {
                   <input type="text" name="last_name" class="form-control"  value="<?php echo $last_name; ?>" required>
                 </div>
               </div>
+			
 
               <div class="row mb-3">
                 <div class="col-md-12">
@@ -153,7 +172,7 @@ if (isset($_GET['therapist_id'])) {
       <?php if (!empty($logo)): ?>
         <div class="mb-2"><img src="<?= $logo ?>" width="100" class="rounded"></div>
       <?php endif; ?>
-      <input type="file" name="photo" class="form-control" accept="image/*">
+      <input type="file" name="photos" class="form-control" accept="image/*">
     </div>
                 <div class="col-md-6">
       <label class="form-label">Date of Birth</label>
@@ -170,6 +189,12 @@ if (isset($_GET['therapist_id'])) {
     </div>
   </div>
 
+  <div class="mb-3">
+    <label class="form-label">Brief Bio</label>
+    <textarea name="bio" class="form-control" rows="4"><?= $bio ?? '' ?></textarea>
+
+  </div>
+
   <div class="row mb-3">
     <div class="col-md-6">
       <label class="form-label">Nationality</label>
@@ -183,11 +208,19 @@ if (isset($_GET['therapist_id'])) {
               <!-- Business Details -->
 
   <div class="row mb-3">
-    <div class="col-md-6">
+    <div class="md-3">
+                <label class="form-label">Business Name</label>
+                <input type="text" name="business_name" class="form-control" value="<?= htmlspecialchars($business_name ?? '') ?>">
+              </div>
+      <div class="md-3">
+                <label class="form-label">Registered Business Name (if different)</label>
+                <input type="text" name="registered_business_name" class="form-control" value="<?= htmlspecialchars($registered_business_name ?? '') ?>">
+              </div>
+    <div class="col-md-3">
       <label class="form-label">Business Owner’s Full Name</label>
       <input type="text" name="owner_name" class="form-control" value="<?= htmlspecialchars($owner_name ?? '') ?>">
     </div>
-    <div class="col-md-6">
+    <div class="col-md-3">
       <label class="form-label">Business Logo</label>
       <?php if (!empty($business_logo)): ?>
         <div class="mb-2"><img src="<?= $business_logo ?>" width="100" class="rounded"></div>
@@ -196,17 +229,36 @@ if (isset($_GET['therapist_id'])) {
     </div>
   </div>
 
-  <div class="mb-3">
+<div class="mb-3">
     <label class="form-label">Portfolio (Photos & Videos)</label>
-    <?php if (!empty($portfolio)): ?>
-      <div class="mb-2">
-        <?php foreach (explode(',', $portfolio) as $file): ?>
-          <a href="<?= $file ?>" target="_blank" class="badge bg-info text-dark me-1">View</a>
-        <?php endforeach; ?>
-      </div>
+
+    <?php if (!empty($user->portfolio)): ?>
+        <div id="portfolio-list" class="mb-2">
+
+            <?php 
+            $files = explode(",", $user->portfolio);
+            foreach ($files as $file):
+
+                $clean = trim($file);
+                if ($clean == "") continue;
+
+                $fileUrl = $siteurl . $imagePath . $clean;
+            ?>
+
+            <span class="badge bg-info text-dark me-1 portfolio-item" 
+                  data-file="<?= $clean ?>">
+                <a href="<?= $fileUrl ?>" target="_blank" class="text-white">View</a>
+                <span class="remove-file text-danger ms-2" style="cursor:pointer;"><i class="fas fa-times"></i></span>
+            </span>
+
+            <?php endforeach; ?>
+
+        </div>
     <?php endif; ?>
+
     <input type="file" name="portfolio[]" class="form-control" multiple>
-  </div>
+</div>
+
 
   <div class="row mb-3">
     <div class="col-md-6">
@@ -230,7 +282,7 @@ if (isset($_GET['therapist_id'])) {
     <label class="form-label">Practice Full Address</label>
   <textarea name="address" class="editor" rows="2"><?= htmlspecialchars($address ?? '') ?></textarea>
   </div>
-              <div class="row mb-3">
+   <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label">State of Residence</label>
               <select id="state" name="state" class="form-control" >
@@ -247,13 +299,14 @@ if (isset($_GET['therapist_id'])) {
                 </div>
               </div>
          
-
+    <div class="row">
               <h5 class="mt-4">Social Media Handles</h5>
           <div class="col-md-3"><input type="url" name="facebook" class="form-control" placeholder="Facebook" value="<?= $facebook ?? '' ?>"></div>
     <div class="col-md-3"><input type="url" name="twitter" class="form-control" placeholder="Twitter" value="<?= $twitter ?? '' ?>"></div>
     <div class="col-md-3"><input type="url" name="instagram" class="form-control" placeholder="Instagram" value="<?= $instagram ?? '' ?>"></div>
     <div class="col-md-3"><input type="url" name="linkedin" class="form-control" placeholder="LinkedIn" value="<?= $linkedin ?? '' ?>"></div>
               </div>
+        
 
               <!-- Section 2: Professional Qualifications -->
               <h4 class="mt-5">Section 2: Professional Qualifications</h4>
@@ -365,8 +418,8 @@ if (isset($_GET['therapist_id'])) {
     <input type="number" name="experience" class="form-control" required value="<?= $experience_years ?>">
   </div>
 </div>
-    <input type="hidden" name="action" value="therapistadminedit">
-    <input type="hidden" name="therapist_id" value="<?= htmlspecialchars($userId ?? '') ?>">
+    <input type="hidden" name="action" value="updatetherapist">
+    <input type="hidden" name="user_id" id="user_id" value="<?= htmlspecialchars($userId ?? '') ?>">
      <div class="row mb-3">
   <div class="col-md-6">
     <label class="form-label">Specializations</label>
@@ -458,21 +511,21 @@ $is_other = !in_array($work_with, $options);
             <div class="row mb-3">
             <label class="form-label">Preferred Consultation Days & Hours (e.g. Monday - Friday, 9am - 5pm)</label>
       <div class="col-md-4">
-      <select name="preferred_days[]" id="preferred_days" class="form-select select-multiple" required multiple>
-      <?php
-      $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-      foreach ($days as $d) {
-        $sel = in_array($d, $preferred_days_selected) ? 'selected' : '';
-        echo "<option value='" . htmlspecialchars($d) . "' $sel>" . htmlspecialchars($d) . "</option>";
-      }
-      ?>
-    </select>
+        <select name="preferred_days[]" id="preferred_days" class="form-select select-multiple" required multiple>
+            <?php
+            $days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+            foreach ($days as $day) {
+                $selected = in_array($day, $preferred_days_selected) ? 'selected' : '';
+                echo "<option value='$day' $selected>$day</option>";
+            }
+            ?>
+        </select>
     </div>
     <div class="col-md-4">
-      <input type="time" name="start_time" class="form-control" placeholder="Start Time" required value="<?= htmlspecialchars($start_time ?? '') ?>">
+        <input type="time" name="start_time" class="form-control" placeholder="Start Time" value="<?= htmlspecialchars($start_time) ?>" required>
     </div>
     <div class="col-md-4">
-      <input type="time" name="end_time" class="form-control" placeholder="End Time" required value="<?= htmlspecialchars($end_time ?? '') ?>">
+        <input type="time" name="end_time" class="form-control" placeholder="End Time" value="<?= htmlspecialchars($end_time) ?>" required>
     </div>
       </div>
 
@@ -490,25 +543,49 @@ $is_other = !in_array($work_with, $options);
               <!-- Section 4: Profile & Uploads -->
               <h4 class="mt-5">Section 4: Profile & Uploads</h4>
               <div class="mb-3">
-                <label class="form-label">Professional Bio (100–200 words)</label>
-                <textarea name="bio" class="editor" rows="5"><?= htmlspecialchars($bio ?? '') ?></textarea>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Upload CV / Resume (PDF or Word)</label>
-                <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Upload Passport Photograph (JPEG or PNG)</label>
-                <input type="file" name="passport" class="form-control" accept=".jpg,.jpeg,.png">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Upload Proof of Certification / License (PDF or JPEG)</label>
-                <input type="file" name="license" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-              </div>
+    <?php if (!empty($cv)): ?>
+        <a href="<?= $siteurl . $imagePath . $cv ?>" target="_blank" class="btn btn-sm btn-primary mb-2">View CV / Resume</a>
+    <?php endif; ?>
+    <label class="form-label">Upload CV / Resume (PDF or Word)</label>
+    <input type="file" name="cv" class="form-control" accept=".pdf,.doc,.docx">
+</div>
+
+<!-- Passport Photograph -->
+<div class="mb-3">
+    <?php if (!empty($passport)): ?>
+        <a href="<?= $siteurl . $imagePath . $passport ?>" target="_blank" class="btn btn-sm btn-primary mb-2">View Passport</a>
+    <?php endif; ?>
+    <label class="form-label">Upload Passport Photograph (JPEG or PNG)</label>
+    <input type="file" name="passport" class="form-control" accept=".jpg,.jpeg,.png">
+</div>
+
+<!-- Proof of Certification / License -->
+<div class="mb-3">
+    <?php if (!empty($license)): ?>
+        <a href="<?= $siteurl . $imagePath . $license ?>" target="_blank" class="btn btn-sm btn-primary mb-2">View License / Certificate</a>
+    <?php endif; ?>
+    <label class="form-label">Upload Proof of Certification / License (PDF or JPEG)</label>
+    <input type="file" name="license" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+</div>
+
+<div class="mb-3">
+  <label class="form-label">Status</label>
+  <select name="status" id="statusSelect" class="form-select" required>
+    <option value="pending" <?= ($status == 'pending') ? 'selected' : ''; ?>>Pending</option>
+    <option value="active" <?= ($status == 'active') ? 'selected' : ''; ?>>Active</option>
+    <option value="in_progress" <?= ($status == 'in_progress') ? 'selected' : ''; ?>>In Progress</option>
+    <option value="suspended" <?= ($status == 'suspended') ? 'selected' : ''; ?>>Suspended</option>
+  </select>
+</div>
+
+<div class="mb-3" id="suspendReasonBox" style="display: none;">
+  <label class="form-label">Reason for Suspension</label>
+  <textarea name="suspend_reason" class="form-control" rows="3"><?= $suspend_reason ?? '' ?></textarea>
+</div>
 
            
               <div class="text-center mt-4">
-                <button type="submit" class="btn btn-enroll w-100">
+                <button type="submit" class="btn btn-enroll btn-primary w-100">
                   <i class="bi bi-check-circle me-2"></i> Submit
                 </button>
               </div>
@@ -521,5 +598,5 @@ $is_other = !in_array($work_with, $options);
 </div>
 </div>
 </div>
-
+</div>
 <?php include "footer.php"; ?>

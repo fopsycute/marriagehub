@@ -236,7 +236,6 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
       <!-- Select2 -->
   <script src="assets/js/select2.min.js"></script>
-      <script src="assets/js/main.js"></script>
     <!-- Datatables -->
     <script src="assets/js/plugin/datatables/datatables.min.js"></script>
 

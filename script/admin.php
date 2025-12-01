@@ -219,7 +219,7 @@ function usereventsEndpoint($postData, $fileData)
     // 🧩 Sanitize inputs
     $title           = mysqli_real_escape_string($con, trim($postData['title'] ?? ''));
     $description     = mysqli_real_escape_string($con, trim($postData['description'] ?? ''));
-    $event_type      = mysqli_real_escape_string($con, trim($postData['event_type'] ?? ''));
+    $event_type      = mysqli_real_escape_string($con, trim($postData['eventType'] ?? ''));
     $category = isset($postData['category']) && is_array($postData['category']) ? implode(',', $postData['category']) : '';
     $subcategory = isset($postData['subcategory']) && is_array($postData['subcategory']) ? implode(',', $postData['subcategory']) : '';
     $delivery_format = mysqli_real_escape_string($con, trim($postData['delivery_format'] ?? ''));
@@ -342,7 +342,7 @@ $is_foreign = 0;
         $hybrid_foreign_address = mysqli_real_escape_string($con, $_POST['hybrid_foreign_address']);
     }
 }
-    $fileuploadDir = "../uploads/modules/";
+    $fileuploadDir = "../secure";
     if (!is_dir($fileuploadDir)) mkdir($fileuploadDir, 0755, true);
 
     // If delivery includes videos
@@ -365,7 +365,7 @@ $is_foreign = 0;
                     'error' => $fileData['video_file']['error'][$index],
                     'size' => $fileData['video_file']['size'][$index],
                 ];
-                $fileName = handleFileUpload($tmpKey, $fileuploadDir);
+                $fileName = handleMultipleFileUpload($tmpKey, $fileuploadDir);
                 if ($fileName && strpos($fileName, 'Failed') === false) $filePath = $fileName;
             }
 
@@ -398,7 +398,7 @@ $is_foreign = 0;
                     'error' => $fileData['text_file']['error'][$index],
                     'size' => $fileData['text_file']['size'][$index],
                 ];
-                $fileName = handleFileUpload($tmpKey, $fileuploadDir);
+                $fileName = handleMultipleFileUpload($tmpKey, $fileuploadDir);
                 if ($fileName && strpos($fileName, 'Failed') === false) $filePath = $fileName;
             }
 
@@ -413,7 +413,7 @@ $is_foreign = 0;
             $stmt->close();
         }
     }
-// ✅ Insert Event First
+// Insert Event First
 $stmt = $con->prepare("
     INSERT INTO {$siteprefix}events
     (
@@ -443,11 +443,12 @@ $stmt = $con->prepare("
         status,
         created_at
     ) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
 ");
 
+// 24 placeholders = 24 bind params (all strings)
 $stmt->bind_param(
-    "ssssssssssssssssssssss", // ✅ 22 's' characters
+    "ssssssssssssssssssssssss",  // 24 's'
     $event_id,
     $user_id,
     $title,
@@ -816,7 +817,7 @@ function addvendorForumEndpoint($postData, $fileData)
     $userType = strtolower($userData['user_type']);
 
     // ✅ Check article limit ONLY if status = active
-    if ($status === 'active') {
+
          $articleLimit = getFeatureLimit($con, $user, 'article_limit', $siteprefix);
         $existingArticles = mysqli_num_rows(mysqli_query($con, "SELECT id FROM {$siteprefix}forums WHERE user_id = '$user' AND status = 'active'"));
 
@@ -829,7 +830,7 @@ function addvendorForumEndpoint($postData, $fileData)
                 )
             ];
         }
-    }
+
 
     // ✅ Create unique slug
     $baseSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $title), '-'));
@@ -1232,6 +1233,25 @@ function getalladplacements($con)
     }
 }
 
+function getallsubscribers($con)
+{
+    global $siteprefix;
+
+    $query = "SELECT *
+            FROM {$siteprefix}newsletter ORDER BY subscribed_at DESC";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $subscriberData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subscriberData[] = $row;
+        }
+        return $subscriberData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
 
 function getallcategory($con)
 {
@@ -1343,6 +1363,32 @@ function getAllManualPayments($con)
 }
 
 
+function getDashboardStats($con) {
+    global $siteprefix;
+
+    $today = date('Y-m-d');
+
+    $userCount = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM {$siteprefix}users WHERE user_type='buyer'"))['total'] ?? 0;
+    $vendorCount = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM {$siteprefix}users WHERE user_type='vendor'"))['total'] ?? 0;
+    $therapistCount = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM {$siteprefix}users WHERE user_type='therapist'"))['total'] ?? 0;
+    $todayRegistrations = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM {$siteprefix}users WHERE DATE(created_at)='$today'"))['total'] ?? 0;
+    $totalBookings = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS total FROM {$siteprefix}service_bookings WHERE DATE(date)='$today'"))['total'] ?? 0;
+
+    $profitsSum = mysqli_fetch_assoc(mysqli_query($con, "SELECT COALESCE(SUM(amount),0) AS total FROM {$siteprefix}profits"))['total'];
+    $walletSum  = mysqli_fetch_assoc(mysqli_query($con, "SELECT COALESCE(SUM(amount),0) AS total FROM {$siteprefix}wallet_history"))['total'];
+
+    return [
+        'user_count' => intval($userCount),
+        'vendor_count' => intval($vendorCount),
+        'therapist_count' => intval($therapistCount),
+        'today_registrations' => intval($todayRegistrations),
+        'total_bookings_today' => intval($totalBookings),
+        'gross_revenue' => floatval($profitsSum + $walletSum),
+        'net_revenue' => floatval($profitsSum)
+    ];
+}
+
+
 //get questions
 
 function getallquestions($con)
@@ -1365,7 +1411,12 @@ function getallquestions($con)
                 SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
                 FROM {$siteprefix}categories AS sc
                 WHERE FIND_IN_SET(sc.id, q.subcategories)
-            ) AS subcategory_names
+            ) AS subcategory_names,
+             (
+                SELECT COUNT(*)
+                FROM {$siteprefix}answers AS a
+                WHERE a.question_id = q.id
+            ) AS total_answers
         FROM {$siteprefix}questions AS q
         LEFT JOIN {$siteprefix}users AS u 
             ON q.user_id = u.id
@@ -1579,6 +1630,71 @@ function deletevideoEndpoint($postData) {
 }
 
 
+function deleteeventtextEndpoint($postData) {
+    global $con, $siteprefix;
+
+    if (!isset($postData["file_name"])) return "Text file name is missing.";
+    $fileName = mysqli_real_escape_string($con, $postData["file_name"]);
+
+    // Update DB to clear the file_path only
+    $q = "
+        UPDATE {$siteprefix}event_text_modules
+        SET file_path = ''
+        WHERE file_path = '$fileName'
+        LIMIT 1
+    ";
+    $result = mysqli_query($con, $q);
+
+    // Delete the physical file
+    $filePath = "../secure/" . $fileName;
+    if (file_exists($filePath)) unlink($filePath);
+
+    return $result ? "Text file removed successfully." : "Failed to update text file: " . mysqli_error($con);
+}
+
+
+function deleteeventvideoEndpoint($postData) {
+    global $con, $siteprefix;
+
+    if (!isset($postData["file_name"])) return "Video file name is missing.";
+    $fileName = mysqli_real_escape_string($con, $postData["file_name"]);
+
+    // Update database: remove only the file path, keep the row
+    $q = "
+        UPDATE {$siteprefix}event_video_modules
+        SET file_path = ''
+        WHERE id = '$fileName'
+        LIMIT 1
+    ";
+
+    $result = mysqli_query($con, $q);
+
+    // Delete the physical file
+    $filePath = "../secure/" . $fileName;
+    if (file_exists($filePath)) unlink($filePath);
+
+    return $result ? "Video file removed successfully." : "Failed to update database: " . mysqli_error($con);
+}
+
+
+function deleteeventimageEndpoint($postData) {
+    global $con, $siteprefix;
+
+    if (!isset($postData["file_name"])) return "Image file name is missing.";
+    $fileName = mysqli_real_escape_string($con, $postData["file_name"]);
+
+    // Delete from database
+    $query = "DELETE FROM {$siteprefix}events_images WHERE image_path = '$fileName'";
+    $result = mysqli_query($con, $query);
+
+    // Delete from uploads folder
+    $filePath = "../uploads/" . $fileName;
+    if (file_exists($filePath)) unlink($filePath);
+
+    return $result ? "Image deleted successfully." : "Failed to delete image: " . mysqli_error($con);
+}
+
+
 function deleteimageEndpoint($postData) {
     global $con, $siteprefix;
 
@@ -1673,21 +1789,22 @@ function approvewithdrawal($postData) {
 function rejectManualPayment($postData) {
     global $con, $siteprefix, $siteName, $siteMail, $sitecurrency;
 
-    // ✅ Validate required fields
-    if (empty($postData["image_id"]) || empty($postData["reason"])) {
-        return "Missing payment ID or rejection reason.";
+    // Validate required fields
+    if (empty($postData["image_id"]) || empty($postData["reason"]) || empty($postData["statusbar"])) {
+        return ['status' => 'error', 'message' => "Missing payment ID, reason, or action."];
     }
 
     $id     = mysqli_real_escape_string($con, $postData["image_id"]);
     $reason = mysqli_real_escape_string($con, $postData["reason"]);
+    $action = strtolower($postData["statusbar"]); // 'resend' or 'cancel'
     $date   = date('Y-m-d H:i:s');
 
-    // ✅ Fetch payment record
+    // Fetch payment record
     $paymentQuery = mysqli_query($con, "SELECT * FROM {$siteprefix}manual_payments WHERE id = '$id' LIMIT 1");
     $payment = mysqli_fetch_assoc($paymentQuery);
 
     if (!$payment) {
-        return "Manual payment record not found.";
+        return ['status' => 'error', 'message' => "Manual payment record not found."];
     }
 
     $order_id = $payment['order_id'];
@@ -1696,55 +1813,144 @@ function rejectManualPayment($postData) {
     $proof    = $payment['proof'];
     $paymentDate = date("l, F j, Y g:i A", strtotime($payment['date_created']));
 
-    // ✅ Fetch user info
+    // Fetch user info
     $userQuery = mysqli_query($con, "SELECT first_name, email FROM {$siteprefix}users WHERE id = '$user_id' LIMIT 1");
     $user = mysqli_fetch_assoc($userQuery);
 
     if (!$user) {
-        return "User record not found.";
+        return ['status' => 'error', 'message' => "User record not found."];
     }
 
     $user_name  = $user['first_name'];
     $user_email = $user['email'];
 
-    // ✅ Update payment status
+    // Update payment status
+    $new_status = ($action === 'resend') ? 'payment resend' : 'cancelled';
     $update = mysqli_query($con, "
         UPDATE {$siteprefix}manual_payments 
-        SET status = 'payment resend', rejection_reason = '$reason'
+        SET status = '$new_status', rejection_reason = '$reason'
         WHERE id = '$id'
     ");
 
     if (!$update) {
-        return "Failed to update payment status: " . mysqli_error($con);
+        return ['status' => 'error', 'message' => "Failed to update payment status: " . mysqli_error($con)];
     }
 
-    // ✅ Email content
-    $emailSubject = "Payment Rejected for Order ID {$order_id}";
-    $emailMessage = "
-        <p>Your manual payment made on <strong>{$paymentDate}</strong> for 
-        <strong>{$sitecurrency}{$amount}</strong> has been <strong>rejected</strong>.</p>
-        <p><strong>Reason:</strong> <em>{$reason}</em></p>
-        <p>Please resubmit a valid proof of payment to continue your order processing.</p>
-        <p>Thank you for using {$siteName}.</p>
-    ";
+    // ✅ If action is cancel, restore slots and seats
+    if ($action === 'cancel') {
+        $detailsQuery = "SELECT listing_id, event_id, item_id AS ticket_id, quantity 
+                         FROM {$siteprefix}order_items 
+                         WHERE order_id = '$order_id'";
+        $detailsResult = mysqli_query($con, $detailsQuery);
 
-    // ✅ Send email
+        while ($detail = mysqli_fetch_assoc($detailsResult)) {
+            $listing_id = $detail['listing_id'];
+            $quantity   = intval($detail['quantity']);
+            $event_id   = $detail['event_id'];
+            $ticket_id  = $detail['ticket_id'];
+
+            // Restore listing slots
+            if (!empty($listing_id) && $quantity > 0) {
+                mysqli_query($con, "
+                    UPDATE {$siteprefix}listings
+                    SET limited_slot = limited_slot + $quantity
+                    WHERE id = '$listing_id'
+                ");
+            }
+
+            // Restore event seats
+            if (!empty($event_id) && !empty($ticket_id) && $quantity > 0) {
+                for ($i = 0; $i < $quantity; $i++) {
+                    restoreEventSeat($con, $siteprefix, $event_id, $ticket_id);
+                }
+            }
+        }
+    }
+
+    // Prepare email content
+    $emailSubject = "Payment Update for Order ID {$order_id}";
+    if ($action === 'resend') {
+        $emailMessage = "
+            <p>Your manual payment made on <strong>{$paymentDate}</strong> for 
+            <strong>{$sitecurrency}{$amount}</strong> has been <strong>rejected</strong>.</p>
+            <p><strong>Reason:</strong> <em>{$reason}</em></p>
+            <p>Please resubmit a valid proof of payment to continue your order processing.</p>
+            <p>Thank you for using {$siteName}.</p>
+        ";
+    } else { // cancel
+        $emailMessage = "
+            <p>Your manual payment made on <strong>{$paymentDate}</strong> for 
+            <strong>{$sitecurrency}{$amount}</strong> has been <strong>cancelled</strong>.</p>
+            <p><strong>Reason:</strong> <em>{$reason}</em></p>
+            <p>The reserved slots and tickets have been released back to the system.</p>
+            <p>Thank you for using {$siteName}.</p>
+        ";
+    }
+
     sendEmail($user_email, $siteName, $siteMail, $user_name, $emailMessage, $emailSubject);
 
-    // ✅ Insert alert
-    $alertMessage = "Your manual payment for Order ID {$order_id} was rejected. Reason: {$reason}";
+    // Insert alert
+    $alertMessage = ($action === 'resend') 
+        ? "Your manual payment for Order ID {$order_id} was rejected. Reason: {$reason}. Please resubmit."
+        : "Your manual payment for Order ID {$order_id} was cancelled. Reason: {$reason}. Slots have been restored.";
     insertAlert($con, $user_id, $alertMessage, $date, 0);
 
-    // ✅ Return structured response
     return [
         'status'  => 'success',
-        'message' => "Payment for Order ID {$order_id} has been rejected successfully and user notified."
+        'message' => "Payment for Order ID {$order_id} has been processed as '{$new_status}' and user notified."
     ];
 }
 
 
+function getRegisteredEvents($con, $user_id) {
+    global $siteprefix;
+
+    $user_id = intval($user_id);
+
+    $query = "
+        SELECT 
+            oi.order_id,
+            oi.event_id,
+            oi.quantity,
+            o.date,
+            e.title AS event_title,
+            e.slug AS event_slug,
+            e.delivery_format,
+            
+            -- ALL EVENT DATES
+            (
+                SELECT GROUP_CONCAT(
+                    CONCAT(d.event_date, '|', d.start_time, '|', d.end_time)
+                    ORDER BY d.event_date ASC SEPARATOR ','
+                )
+                FROM {$siteprefix}event_dates AS d
+                WHERE d.event_id = e.event_id
+            ) AS all_event_dates_times
+
+        FROM {$siteprefix}order_items oi
+        INNER JOIN {$siteprefix}orders o ON oi.order_id = o.order_id
+        INNER JOIN {$siteprefix}events e ON oi.event_id = e.event_id
+        WHERE 
+            o.user = '$user_id'
+            AND o.status = 'paid'
+            AND oi.type = 'event'
+            AND oi.event_id IS NOT NULL
+        ORDER BY o.date DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        return ['error' => mysqli_error($con) ?: 'No orders found'];
+    }
+}
+
+
+
 function approveManualPayment($postData) {
-    global $con, $siteprefix, $sitename, $sitemail, $sitecurrency, $escrowfee;
+    global $con, $siteprefix, $sitename, $sitemail, $sitecurrency, $documentPath, $escrowfee;
 
     // ✅ Validate required fields
     if (empty($postData["image_id"])) {
@@ -1817,11 +2023,12 @@ function approveManualPayment($postData) {
     }
 
     /* ========================================================
-       ✅ Fetch Order Items + Sellers
+       ✅ Fetch Order Items + Sellers (include item_id for tickets)
     ========================================================= */
     $itemQuery = mysqli_query($con, "
         SELECT 
             i.listing_id,
+            i.item_id,
             i.variation,
             i.price,
             i.type AS product_type,
@@ -1842,57 +2049,151 @@ function approveManualPayment($postData) {
     $currency = $sitecurrency ?? '₦';
     $commissionRate = $escrowfee ?? 0; // Default commission %
 
+    // Collect attachments and delivery details for buyer email
+    $buyer_attachments = [];
+    $buyer_event_details_html = [];
+
     /* ========================================================
-       ✅ Process Each Item
+       ✅ Process Each Item (Products, Events, Services)
     ========================================================= */
     foreach ($items as $item) {
+        // sanitize local vars
         $listing_id   = $item['listing_id'];
-        $listing      = $item['listing_title'];
-        $variation    = $item['variation'];
-        $quantity     = $item['quantity'];
-        $total_price  = $item['total_price'];
-        $seller_id    = $item['seller_id'];
-        $seller_name  = $item['seller_name'];
-        $seller_email = $item['seller_email'];
-        $user_type    = $item['seller_type'];
-        $product_type = strtolower($item['product_type']);
+        $ticket_item_id = $item['item_id'] ?? null; // ticket id for events
+        $listing      = $item['listing_title'] ?? 'Item';
+        $variation    = $item['variation'] ?? '';
+        $quantity     = (int)($item['quantity'] ?? 1);
+        $total_price  = (float)($item['total_price'] ?? 0.0);
+        $seller_id    = $item['seller_id'] ?? 0;
+        $seller_name  = $item['seller_name'] ?? 'Seller';
+        $seller_email = $item['seller_email'] ?? '';
+        $user_type    = $item['seller_type'] ?? '';
+        $product_type = strtolower($item['product_type'] ?? 'product');
 
-        // ✅ Calculate commission
+        // Calculate commission
         $admin_commission = $total_price * ($commissionRate / 100);
         $seller_amount    = $total_price - $admin_commission;
 
-        // ✅ Update stock (limited slot)
-        mysqli_query($con, "
-            UPDATE {$siteprefix}listings 
-            SET limited_slot = GREATEST(limited_slot - $quantity, 0)
-            WHERE listing_id = '$listing_id'
-        ");
-
-        // ✅ Admin vs Seller listing
-        if ($user_type === 'admin') {
-            // Admin receives full amount
-            mysqli_query($con, "
-                INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
-                VALUES ('$total_price', '$listing_id', '$order_id', 'Admin Direct Sale', '$currentdatetime')
+        /* ---------------------------
+           EVENT HANDLING
+           ---------------------------
+           - We support event items here.
+           - We DO NOT call reduceEventSeat() (per your note).
+           - We gather delivery details & attachments via getEventDeliveryDetails()
+        */
+        if ($product_type === 'event') {
+            // Try to fetch event & seller details (if listings join didn't provide them).
+            $safeEventId = mysqli_real_escape_string($con, $listing_id);
+            $eventQuery = mysqli_query($con, "
+                SELECT e.title, e.slug, e.delivery_format, e.user_id, s.first_name AS seller_name, s.email AS seller_email, s.user_type AS seller_type
+                FROM {$siteprefix}events e
+                LEFT JOIN {$siteprefix}users s ON e.user_id = s.id
+                WHERE e.event_id = '$safeEventId' LIMIT 1
             ");
+            $eventData = mysqli_fetch_assoc($eventQuery);
+
+            if ($eventData) {
+                $listing = $eventData['title'] ?? $listing;
+                // override seller details if available
+                if (!empty($eventData['seller_name'])) $seller_name = $eventData['seller_name'];
+                if (!empty($eventData['seller_email'])) $seller_email = $eventData['seller_email'];
+                if (!empty($eventData['seller_type'])) $user_type = $eventData['seller_type'];
+                $delivery_format = $eventData['delivery_format'] ?? '';
+            } else {
+                $delivery_format = $item['delivery_format'] ?? '';
+            }
+
+            // Ticket details (if item has a numeric ticket id)
+            if (is_numeric($ticket_item_id)) {
+                $safeTicketId = mysqli_real_escape_string($con, $ticket_item_id);
+                $ticketQuery = mysqli_query($con, "SELECT ticket_name, price, benefits FROM {$siteprefix}event_tickets WHERE id = '$safeTicketId' LIMIT 1");
+                $ticketData = mysqli_fetch_assoc($ticketQuery);
+                if ($ticketData) {
+                    $variation = $ticketData['ticket_name'] ?? $variation;
+                    // if price was 0 or missing, use ticket price
+                    if (empty($item['price']) || $item['price'] == 0) {
+                        $total_price = (float)$ticketData['price'] * $quantity;
+                    }
+                    $benefits = $ticketData['benefits'] ?? '';
+                } else {
+                    $benefits = '';
+                }
+            } else {
+                $benefits = $item['benefits'] ?? '';
+            }
+
+            // Insert profits (admin commission) for events or admin direct sale
+            if ($user_type === 'admin') {
+                mysqli_query($con, "
+                    INSERT INTO {$siteprefix}profits (amount, event_id, order_id, type, date)
+                    VALUES ('$total_price', '$listing_id', '$order_id', 'Admin Direct Event Sale', '$currentdatetime')
+                ");
+            } else {
+                mysqli_query($con, "
+                    INSERT INTO {$siteprefix}profits (amount, event_id, order_id, type, date)
+                    VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Event Ticket', '$currentdatetime')
+                ");
+
+                // Credit seller wallet
+                mysqli_query($con, "
+                    UPDATE {$siteprefix}users 
+                    SET wallet = wallet + $seller_amount 
+                    WHERE id = '$seller_id'
+                ");
+                insertWallet($con, $seller_id, $seller_amount, "credit", "Earnings from Order #$order_id", $currentdatetime);
+                insertAlert($con, $seller_id, "You received {$currency}{$seller_amount} for Order #{$order_id}", $currentdatetime, 0);
+            }
+
+            // Prepare event delivery details and collect attachments using existing function
+            // Note: getEventDeliveryDetails should accept ($con, $siteprefix, $event_id, $delivery_format, &$documentPath) per your paysuccess usage.
+            // We will call it and merge its results into our buyer email collection.
+           // placeholder if function expects it by reference
+            if (function_exists('getEventDeliveryDetails')) {
+                $evResult = getEventDeliveryDetails($con, $siteprefix, $listing_id, $delivery_format ?? '', $documentPath);
+                if (!empty($evResult['details'])) {
+                    $buyer_event_details_html[] = "<strong>" . htmlspecialchars($listing) . " Delivery Details:</strong><ul>" . $evResult['details'] . "</ul>";
+                }
+                if (!empty($evResult['attachments']) && is_array($evResult['attachments'])) {
+                    $buyer_attachments = array_merge($buyer_attachments, $evResult['attachments']);
+                }
+            }
+
         } else {
-            // Seller receives balance after commission
-            mysqli_query($con, "
-                INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
-                VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Sale', '$currentdatetime')
-            ");
+            /* ---------------------------
+               PRODUCT / LISTING HANDLING
+               --------------------------- */
+            if ($user_type === 'admin') {
+                // Admin direct sale
+                mysqli_query($con, "
+                    INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
+                    VALUES ('$total_price', '$listing_id', '$order_id', 'Admin Direct Sale', '$currentdatetime')
+                ");
+            } else {
+                // Commission for product sale
+                mysqli_query($con, "
+                    INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
+                    VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Sale', '$currentdatetime')
+                ");
 
-            mysqli_query($con, "
-                UPDATE {$siteprefix}users 
-                SET wallet = wallet + $seller_amount 
-                WHERE id = '$seller_id'
-            ");
+                // Credit seller wallet
+                mysqli_query($con, "
+                    UPDATE {$siteprefix}users 
+                    SET wallet = wallet + $seller_amount 
+                    WHERE id = '$seller_id'
+                ");
+                insertWallet($con, $seller_id, $seller_amount, "credit", "Earnings from Order #$order_id", $currentdatetime);
+                insertAlert($con, $seller_id, "You received {$currency}{$seller_amount} for Order #{$order_id}", $currentdatetime, 0);
+            }
 
-            insertWallet($con, $seller_id, $seller_amount, "credit", "Earnings from Order #$order_id", $currentdatetime);
-            insertAlert($con, $seller_id, "You received {$currency}{$seller_amount} for Order #{$order_id}", $currentdatetime, 0);
+            // Optional: decrease listing limited_slot if you want (was commented in your code)
+            // mysqli_query($con, "
+            //     UPDATE {$siteprefix}listings 
+            //     SET limited_slot = GREATEST(limited_slot - $quantity, 0)
+            //     WHERE listing_id = '$listing_id'
+            // ");
         }
 
-        // ✅ Handle service items
+        // Service bookings handling (same as before)
         if ($product_type === 'service') {
             mysqli_query($con, "
                 UPDATE {$siteprefix}service_bookings
@@ -1900,19 +2201,63 @@ function approveManualPayment($postData) {
                 WHERE order_id = '$order_id'
             ");
         }
-    }
+    } // end foreach items
 
     /* ========================================================
-       ✅ Buyer Confirmation Email
+       ✅ Build & Send Buyer Confirmation Email (with attachments if any)
     ========================================================= */
-    $emailSubject = "Payment Approved - Order #{$order_id}";
-    $emailMessage = "
-        <p>Your payment for <strong>Order #{$order_id}</strong> has been confirmed successfully.</p>
-        <p><strong>Total Amount:</strong> {$currency}{$amount}</p>
-        <p>Thank you for shopping with {$sitename}!</p>
-    ";
+    // Build table rows for items
+    $emailBody = "
+    <html><body>
+    <h2>Order Confirmation</h2>
+    <p>Thank you for your purchase! Your payment was successful.</p>
+    <p><strong>Order Reference:</strong> {$order_id}</p>
+    <table border='1' cellpadding='6' cellspacing='0' width='100%'>
+    <thead><tr>
+    <th>Name</th><th>Variation</th><th>Benefits</th><th>Seller</th><th>Quantity</th><th>Total</th>
+    </tr></thead><tbody>";
 
-    sendEmail($buyer_email, $sitename, $sitemail, $buyer_name, $emailMessage, $emailSubject);
+    foreach ($items as $item) {
+        $name = htmlspecialchars($item['listing_title'] ?? 'Item');
+        $var  = htmlspecialchars($item['variation'] ?? '');
+        $ben  = htmlspecialchars($item['benefits'] ?? '');
+        $sell = htmlspecialchars($item['seller_name'] ?? '');
+        $qty  = (int)($item['quantity'] ?? 1);
+        $ttl  = $currency . htmlspecialchars($item['total_price'] ?? '0');
+
+        $emailBody .= "<tr>
+            <td>{$name}</td>
+            <td>{$var}</td>
+            <td>{$ben}</td>
+            <td>{$sell}</td>
+            <td>{$qty}</td>
+            <td>{$ttl}</td>
+        </tr>";
+    }
+
+    $emailBody .= "</tbody></table>";
+
+    // Append event delivery details if any
+    if (!empty($buyer_event_details_html)) {
+        foreach ($buyer_event_details_html as $evHtml) {
+            // evHtml already contains markup list
+            $emailBody .= "<div style='margin-top:12px;'>{$evHtml}</div>";
+        }
+    }
+
+    $emailBody .= "<p>Thank you for shopping with {$sitename}!</p></body></html>";
+
+    // Send buyer email (with attachments if present)
+    if (!empty($buyer_attachments)) {
+        if (function_exists('sendEmailWithAttachments')) {
+            sendEmailWithAttachments($buyer_email, $sitename, $sitemail, $buyer_name, $emailBody, "Order Confirmation - {$sitename}", $buyer_attachments);
+        } else {
+            // Fallback: send normal email if attachments function doesn't exist
+            sendEmail($buyer_email, $sitename, $sitemail, $buyer_name, $emailBody, "Order Confirmation - {$sitename}");
+        }
+    } else {
+        sendEmail($buyer_email, $sitename, $sitemail, $buyer_name, $emailBody, "Order Confirmation - {$sitename}");
+    }
 
     /* ========================================================
        ✅ Buyer Alert
@@ -1925,7 +2270,7 @@ function approveManualPayment($postData) {
     ========================================================= */
     return [
         'status'  => 'success',
-        'message' => "Manual payment approved, order marked as paid, and notifications sent successfully."
+        'message' => "Manual payment approved, order marked as paid, seller(s) credited, notifications sent successfully."
     ];
 }
 
@@ -1996,6 +2341,145 @@ function approvebookings($postData) {
     return [
         'status' => 'success',
         'message' => "Booking approved and payment link sent successfully."
+    ];
+}
+
+
+function rejectAdvert($postData) {
+    global $con, $siteprefix, $siteurl, $siteName, $siteMail;
+
+    // Validate advert ID and reason
+    if (empty($postData["advert_id"])) {
+        return [
+            'status' => 'error',
+            'message' => 'Advert ID is missing.'
+        ];
+    }
+
+    if (empty($postData["reject_reason"])) {
+        return [
+            'status' => 'error',
+            'message' => 'Rejection reason is required.'
+        ];
+    }
+
+    $advertId = mysqli_real_escape_string($con, $postData["advert_id"]);
+    $reason   = mysqli_real_escape_string($con, $postData["reject_reason"]);
+
+    // Fetch advert details along with placement name
+    $result = mysqli_query($con, "
+        SELECT a.*, p.placement_name
+        FROM {$siteprefix}active_adverts a
+        LEFT JOIN {$siteprefix}ad_placements p ON a.advert_id = p.id
+        WHERE a.id = '$advertId'
+        LIMIT 1
+    ");
+    $advert = mysqli_fetch_assoc($result);
+
+    if (!$advert) {
+        return [
+            'status' => 'error',
+            'message' => 'Advert not found.'
+        ];
+    }
+
+    // Fetch user info
+    $userId = $advert['user_id'];
+    $query = mysqli_query($con, "SELECT * FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
+    $user = mysqli_fetch_assoc($query);
+
+    if (!$user) {
+        return [
+            'status' => 'error',
+            'message' => 'User not found.'
+        ];
+    }
+
+    $full_name = $user['first_name'] . ' ' . $user['last_name'];
+    $email     = $user['email'];
+    $advertTitle = $advert['placement_name'];
+
+    // Update advert status to 'rejected' and save reason
+    mysqli_query($con, "
+        UPDATE {$siteprefix}active_adverts 
+        SET status = 'rejected', reject_reason = '$reason' 
+        WHERE id = '$advertId'
+    ");
+
+    // Prepare rejection email
+    $emailSubject = "Your Advert Has Been Rejected";
+    $emailMessage = "
+        <p>We regret to inform you that your advert <strong>'{$advertTitle}'</strong> has been <strong>rejected</strong>.</p>
+        <p><strong>Reason for rejection:</strong> {$reason}</p>
+        <p>If you wish, you can edit your advert and submit again for approval.</p>
+        <p>Thank you for using <strong>{$siteName}</strong>.</p>
+    ";
+
+    // Send email
+    sendEmail($email, $siteName, $siteMail, $full_name, $emailMessage, $emailSubject);
+
+    return [
+        'status' => 'success',
+        'message' => 'Advert rejected and user notified successfully.'
+    ];
+}
+
+
+
+
+function approveAdverts($postData) {
+    global $con, $siteprefix, $siteurl, $siteName, $siteMail;
+
+    // Validate advert ID
+    if (empty($postData["image_id"])) {
+        return "Advert ID is missing.";
+    }
+
+    $id = mysqli_real_escape_string($con, $postData["image_id"]);
+
+    // Fetch advert details along with placement name
+    $result = mysqli_query($con, "
+        SELECT a.*, p.placement_name
+        FROM {$siteprefix}active_adverts a
+        LEFT JOIN {$siteprefix}ad_placements p ON a.advert_id = p.id
+        WHERE a.id = '$id'
+        LIMIT 1
+    ");
+    $advert = mysqli_fetch_assoc($result);
+
+    if (!$advert) {
+        return "Advert not found.";
+    }
+
+    // Extract advert details
+    $user_id      = $advert['user_id'];
+    $advert_title = $advert['placement_name']; // from ad_placements table
+    $start_date   = $advert['start_date'];
+    $end_date     = $advert['end_date'];
+
+    // Fetch user info
+    $query = mysqli_query($con, "SELECT * FROM {$siteprefix}users WHERE id = '$user_id' LIMIT 1");
+    $user = mysqli_fetch_assoc($query);
+    $email = $user['email'];
+    $full_name = $user['first_name'] . ' ' . $user['last_name'];
+
+    // Update advert status
+    mysqli_query($con, "UPDATE {$siteprefix}active_adverts SET status = 'active' WHERE id = '$id'");
+
+    // Prepare advert approval email
+    $emailSubject = "Your Advert Has Been Approved!";
+    $emailMessage = "
+        <p>Your advert <strong>'{$advert_title}'</strong> has been <strong>approved</strong> and is now active on our platform.</p>
+        <p><strong>Advert Duration:</strong> {$start_date} to {$end_date}</p>
+        <p>Thank you for advertising with <strong>{$siteName}</strong>!</p>
+    ";
+
+    // Send email
+    sendEmail($email, $siteName, $siteMail, $full_name, $emailMessage, $emailSubject);
+
+    return [
+        'status' => 'success',
+        'message' => "Advert approved and notification email sent successfully."
     ];
 }
 
@@ -2413,6 +2897,60 @@ function fetchTherapistReviews($userId) {
     return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
 }
 
+
+// newsletter
+function subscribeNewsletter($postData) {
+    global $con, $siteprefix;
+
+    // Validate email
+    if (empty($postData['email'])) {
+        return [
+            'status' => 'error',
+            'messages' => '<div class="alert alert-danger">Email address is required.</div>'
+        ];
+    }
+
+    $email = mysqli_real_escape_string($con, $postData['email']);
+    $date = date('Y-m-d H:i:s');
+
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return [
+            'status' => 'error',
+            'messages' => '<div class="alert alert-danger">Invalid email address format.</div>'
+        ];
+    }
+
+    // Check if already subscribed
+    $check = mysqli_query($con, "SELECT id FROM {$siteprefix}newsletter WHERE email='$email'");
+    if (mysqli_num_rows($check) > 0) {
+        return [
+            'status' => 'error',
+            'messages' => '<div class="alert alert-warning">You are already subscribed.</div>'
+        ];
+    }
+
+    // Insert subscriber
+    $sql = "INSERT INTO {$siteprefix}newsletter (email, subscribed_at) VALUES ('$email', '$date')";
+    
+    if (!mysqli_query($con, $sql)) {
+        return [
+            'status' => 'error',
+            'messages' => '<div class="alert alert-danger">Database error: ' . mysqli_error($con) . '</div>'
+        ];
+    }
+
+    // Insert admin alert
+    $adminMessage = "New newsletter subscriber: $email";
+    $link = "newsletter_list.php";
+    insertadminAlert($con, $adminMessage, $link, $date, 'Newsletter', 0);
+
+    return [
+        'status' => 'success',
+        'messages' => '<div class="alert alert-success">Thank you for subscribing to our newsletter!</div>'
+    ];
+}
+
 //read notifications
 function markAllNotificationsRead($postData) {
     global $con, $siteprefix;
@@ -2559,6 +3097,179 @@ function editAdPlacementEndpoint($postData) {
 }
 
 
+function reportItem($postData) {
+    global $con, $siteprefix, $siteurl, $siteMail, $siteName;
+
+    $reporter_id = intval($postData['reporter_id'] ?? 0);
+    $item_id = intval($postData['reported_item_id'] ?? 0);
+    $item_type = trim($postData['reported_item_type'] ?? '');
+    $reason = trim($postData['reason'] ?? '');
+    $custom_reason = trim($postData['custom_reason'] ?? '');
+
+    if (!$reporter_id || !$item_id || !$item_type || !$reason) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Missing required fields.", "red")
+        ];
+    }
+
+
+       // Fetch user info
+    $userQuery = mysqli_query($con, "SELECT first_name, last_name, email FROM {$siteprefix}users WHERE id = '$reporter_id' LIMIT 1");
+    $user = mysqli_fetch_assoc($userQuery);
+
+    if (!$user) {
+        return ['status' => 'error', 'message' => "User record not found."];
+    }
+
+    $user_name  = $user['first_name'] . ' ' . $user['last_name'];
+    $user_email = $user['email'];
+    // Insert record into ma_reports
+    $stmt = $con->prepare("
+        INSERT INTO {$siteprefix}reports (user_id, item_id, item_type, reason, custom_reason)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("iisss", $reporter_id, $item_id, $item_type, $reason, $custom_reason);
+
+    if ($stmt->execute()) {
+
+        // ----------------------------
+        // Fetch Item Title Based on Type
+        // ----------------------------
+        $item_title = "";
+
+        if ($item_type === "blog") {
+            $q = mysqli_query($con, "SELECT title FROM {$siteprefix}forums WHERE id = $item_id");
+            if ($q && $row = mysqli_fetch_assoc($q)) {
+                $item_title = $row['title'];
+            }
+        } elseif ($item_type === "question") {
+            $q = mysqli_query($con, "SELECT title FROM {$siteprefix}questions WHERE id = $item_id");
+            if ($q && $row = mysqli_fetch_assoc($q)) {
+                $item_title = $row['title'];
+            }
+        }
+            elseif ($item_type === "group") {
+            $q = mysqli_query($con, "SELECT group_name FROM {$siteprefix}groups WHERE id = $item_id");
+            if ($q && $row = mysqli_fetch_assoc($q)) {
+                $item_title = $row['group_name'];
+            }
+        } else {
+            $item_title = "Unknown Item";
+        }
+
+        // ----------------------------
+        // Email admin
+        // ----------------------------
+        $emailSubject = "New {$item_type} Report Submitted";
+
+        $emailMessage = "
+            <p>A new {$item_type} has been reported.</p>
+            <p><strong>Type:</strong> {$item_type}</p>
+            <p><strong>Title:</strong> {$item_title}</p>
+            <p><strong>Reporter Name:</strong> {$user_name}</p>
+            <p><strong>Reason:</strong> {$reason}</p>"
+            . ($custom_reason ? "<p><strong>Details:</strong> {$custom_reason}</p>" : "") .
+            "<p><a href='{$siteurl}admin/reported_items.php' 
+                style='background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;'>View Reports</a></p>
+        ";
+
+        sendEmail($siteMail, $siteName, $siteMail, $siteName, $emailMessage, $emailSubject);
+
+        // ----------------------------
+        // Admin alert
+        // ----------------------------
+        $alertMessage = "A {$item_type} was reported: {$item_title}";
+        $link = $siteurl . "report.php";
+        $date = date('Y-m-d H:i:s');
+        insertadminAlert($con, $alertMessage, $link, $date, "Item Report", 0);
+
+        $stmt->close();
+        return [
+            'status' => 'success',
+            'messages' => generateMessage("Report submitted successfully!", "green")
+        ];
+    }
+
+    $stmt->close();
+    return [
+        'status' => 'error',
+        'messages' => generateMessage("Something went wrong, please try again.", "red")
+    ];
+}
+
+
+function reportUser($postData) {
+    global $con, $siteprefix, $siteurl, $siteMail, $siteName;
+
+    // Validate required fields
+    $reporter_id = intval($postData['reporter_id'] ?? 0);
+    $reported_user_id = intval($postData['reported_user_id'] ?? 0);
+    $reason = trim($postData['reason'] ?? '');
+    $custom_reason = trim($postData['custom_reason'] ?? '');
+
+    if (!$reporter_id || !$reported_user_id || !$reason) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Missing required fields.", "red")
+        ];
+    }
+
+    if ($reporter_id === $reported_user_id) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("You cannot report yourself.", "red")
+        ];
+    }
+
+    // Insert report into DB
+    $stmt = $con->prepare("INSERT INTO {$siteprefix}user_reports (reporter_id, reported_user_id, reason, custom_reason) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("iiss", $reporter_id, $reported_user_id, $reason, $custom_reason);
+
+    if ($stmt->execute()) {
+        // Fetch reporter and reported user info
+        $userQuery = mysqli_query($con, "SELECT id, first_name, last_name, email FROM {$siteprefix}users WHERE id IN ($reporter_id, $reported_user_id)");
+        $users = [];
+        while ($row = mysqli_fetch_assoc($userQuery)) {
+            $users[$row['id']] = $row;
+        }
+
+        $reporter_name = htmlspecialchars($users[$reporter_id]['first_name'] . ' ' . $users[$reporter_id]['last_name']);
+        $reported_name = htmlspecialchars($users[$reported_user_id]['first_name'] . ' ' . $users[$reported_user_id]['last_name']);
+
+        // Prepare admin email
+        $emailSubject = "New User Report Submitted";
+        $emailMessage = "
+            <p>A new user report has been submitted.</p>
+            <p><strong>Reporter:</strong> {$reporter_name}</p>
+            <p><strong>Reported User:</strong> {$reported_name}</p>
+            <p><strong>Reason:</strong> {$reason}</p>
+            " . ($custom_reason ? "<p><strong>Details:</strong> {$custom_reason}</p>" : "") . "
+            <p><a href='{$siteurl}admin/user_reports.php' style='background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;'>View Reports</a></p>
+        ";
+
+        // Send email to admin
+        sendEmail($siteMail, $siteName, $siteMail, $siteName, $emailMessage, $emailSubject);
+
+        // Optional: insert admin alert
+        $alertMessage = "A new report has been submitted by {$reporter_name} against {$reported_name}.";
+        $link = $siteurl . "admin/user_reports.php";
+        $date = date('Y-m-d H:i:s');
+        insertadminAlert($con, $alertMessage, $link, $date, 'User Report', 0);
+
+        return [
+            'status' => 'success',
+            'messages' => generateMessage("Report submitted successfully. Our team will review it shortly.", "green")
+        ];
+    } else {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Failed to submit report. Please try again later.", "red")
+        ];
+    }
+
+    $stmt->close();
+}
 
 function deletelistingEndpoint($postData) {
     global $con,$siteprefix;
@@ -2566,6 +3277,44 @@ function deletelistingEndpoint($postData) {
     $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
     return mysqli_query($con, "DELETE FROM  {$siteprefix}listings WHERE id= '$imageId'") ? 'Deleted Successfully.' : 'Failed to delete blog: ' . mysqli_error($con);
 }
+
+function deleteeventEndpoint($postData) {
+    global $con,$siteprefix;
+    if (!isset($postData["image_id"])) return "Event ID is missing.";
+    $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
+    return mysqli_query($con, "DELETE FROM  {$siteprefix}events WHERE event_id= '$imageId'") ? 'Deleted Successfully.' : 'Failed to delete event: ' . mysqli_error($con);
+}
+
+function acceptAnswerEndpoint($postData) {
+    global $con,$siteprefix;
+    if (!isset($postData["image_id"])) return "Answer ID is missing.";
+    $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
+
+    return mysqli_query(
+        $con,
+        "UPDATE {$siteprefix}answers SET is_accepted = 1 WHERE id = '$imageId'"
+    )
+    ? 'Answer Accepted Successfully.'
+    : 'Failed to accept answer: ' . mysqli_error($con);
+}
+
+
+function acceptBestAnswerEndpoint($postData) {
+    global $con, $siteprefix;
+
+    if (!isset($postData["image_id"])) return "Answer ID is missing.";
+
+    $imageId = mysqli_real_escape_string($con, $postData["image_id"]);
+
+    // Set is_best = 1
+    $query = "UPDATE {$siteprefix}answers SET is_best = 1 WHERE id = '$imageId'";
+
+    return mysqli_query($con, $query)
+        ? 'Best Answer Marked Successfully.'
+        : 'Failed to mark best answer: ' . mysqli_error($con);
+}
+
+
 
 function deleteadvertEndpoint($postData) {
     global $con,$siteprefix;
@@ -2632,6 +3381,28 @@ function deletequestionEndpoint($postData) {
     $questionId = mysqli_real_escape_string($con, $postData["question_id"]);
     return mysqli_query($con, "DELETE FROM  {$siteprefix}questions WHERE id= '$questionId'") ? 'Deleted Successfully.' : 'Failed to delete question: ' . mysqli_error($con);
 }
+
+// download users data
+function downloadSubscribersCSVEndpoint($postData) {
+    global $con, $siteprefix;
+
+    header("Content-Type: text/csv");
+    header("Content-Disposition: attachment; filename=subscribers.csv");
+
+    $output = fopen("php://output", "w");
+    fputcsv($output, ["S/N", "Email", "Subscribed Date"]);
+
+    $result = mysqli_query($con, "SELECT * FROM {$siteprefix}newsletter ORDER BY id DESC");
+    $sn = 1;
+    while ($row = mysqli_fetch_assoc($result)) {
+        fputcsv($output, [$sn, $row['email'], $row['subscribed_at']]);
+        $sn++;
+    }
+
+    fclose($output);
+    exit; // important
+}
+
 
 function deleteusersEndpoint($postData) {
     global $con,$siteprefix;
@@ -2730,6 +3501,105 @@ function request_join_groupEndpoint($postData) {
     }
 }
 
+function handleFollow($postData) {
+    global $con, $siteprefix;
+
+    $userId   = intval($postData['user_id'] ?? 0);     // follower (logged-in)
+    $authorId = intval($postData['author_id'] ?? 0);   // user being followed
+
+    // Validate
+    if (!$userId || !$authorId || $userId === $authorId) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("Invalid follow action.", "red")
+        ];
+    }
+
+    // Check if author exists
+    $userQuery = mysqli_query($con, "
+        SELECT id, first_name, last_name, user_type
+        FROM {$siteprefix}users
+        WHERE id = $authorId LIMIT 1
+    ");
+    $authorData = mysqli_fetch_assoc($userQuery);
+
+    if (!$authorData) {
+        return [
+            'status' => 'error',
+            'messages' => generateMessage("User not found.", "red")
+        ];
+    }
+
+    // FOLLOW
+    if ($postData['action'] === 'follow') {
+
+        $stmt = $con->prepare("
+            INSERT IGNORE INTO {$siteprefix}user_follows (follower_id, following_id)
+            VALUES (?, ?)
+        ");
+        $stmt->bind_param("ii", $userId, $authorId);
+        $stmt->execute();
+        $stmt->close();
+
+        return [
+            'status' => 'success',
+            'messages' => generateMessage("You are now following this user.", "green")
+        ];
+    }
+
+    // UNFOLLOW
+    else {
+        $stmt = $con->prepare("
+            DELETE FROM {$siteprefix}user_follows
+            WHERE follower_id = ? AND following_id = ?
+        ");
+        $stmt->bind_param("ii", $userId, $authorId);
+        $stmt->execute();
+        $stmt->close();
+
+        return [
+            'status' => 'success',
+            'messages' => generateMessage("You unfollowed this user.", "green")
+        ];
+    }
+}
+
+
+function handleBookmark($postData) {
+    global $con, $siteprefix;
+
+    $user_id = intval($postData['user_id'] ?? 0);
+    $item_id = intval($postData['item_id'] ?? 0);
+    $item_type = trim($postData['item_type'] ?? '');
+
+    if (!$user_id || !$item_id || !$item_type) {
+        return ['status'=>'error','messages'=>generateMessage("Missing data.", "red")];
+    }
+
+    // Toggle bookmark
+    $check = mysqli_query($con, 
+        "SELECT id FROM {$siteprefix}bookmarks 
+         WHERE user_id=$user_id AND item_id=$item_id AND item_type='$item_type' LIMIT 1"
+    );
+
+    if (mysqli_num_rows($check) > 0) {
+        mysqli_query($con,
+            "DELETE FROM {$siteprefix}bookmarks 
+             WHERE user_id=$user_id AND item_id=$item_id AND item_type='$item_type'"
+        );
+        return ['status'=>'removed','messages'=>"Bookmark removed"];
+    }
+
+    mysqli_query($con,
+        "INSERT INTO {$siteprefix}bookmarks (user_id,item_id,item_type) 
+         VALUES ($user_id,$item_id,'$item_type')"
+    );
+
+    return ['status'=>'added','messages'=>"Bookmarked successfully"];
+}
+
+
+
 
 function withdrawWalletEndpoint($postData) {
     global $con,$siteprefix, $currentdatetime, $sitecurrency, $siteName, $siteMail;
@@ -2772,7 +3642,7 @@ function withdrawWalletEndpoint($postData) {
     $adminMessage = "New Withdrawal Request - $sitecurrency$amount";
     $link = "withdrawals.php";
     $msgType = "New Withdrawal";
-    $messageStatus = 1;
+    $messageStatus = 0;
     insertadminAlert($con, $adminMessage, $link, $date, $msgType, $messageStatus);
 
     return ['status' => 'success', 'messages' => generateMessage("Withdrawal request of ₦$amount submitted successfully!", "green")];
@@ -2867,7 +3737,7 @@ function bookTherapySessionEndpoint($postData) {
             'status' => 'success',
             'message' => "Your booking request has been sent successfully.",
             'booking_ref' => $reference,
-            'redirect_url' => "{$siteurl}confirm-booking.php?ref=$reference"
+            'redirect_url' => "{$siteurl}my-bookings.php"
         ];
     } else {
         return [
@@ -2929,6 +3799,78 @@ function joingroupEndpoint($postData) {
         return "Error: " . mysqli_error($con);
     }
 }
+
+function getAllEventsbyslug($con, $slug) 
+{
+    global $siteprefix;
+
+    $slug = mysqli_real_escape_string($con, $slug);
+
+    $query = "
+        SELECT 
+            t.*,
+            u.first_name,
+            u.last_name,
+            u.photo,
+            et.name AS event_type_name,
+
+            -- ALL TICKETS
+            (
+                SELECT GROUP_CONCAT(
+                    CONCAT(tt.ticket_name, '|', tt.price, '|', tt.seatremain, '|', tt.benefits, '|', tt.id)
+                    ORDER BY tt.price ASC SEPARATOR ','
+                )
+                FROM {$siteprefix}event_tickets AS tt
+                WHERE tt.event_id = t.event_id
+            ) AS tickets,
+
+            -- ALL IMAGES
+            (
+                SELECT GROUP_CONCAT(image_path ORDER BY id ASC SEPARATOR ',')
+                FROM {$siteprefix}events_images
+                WHERE event_id = t.event_id
+            ) AS all_images,
+
+            -- ALL EVENT DATES
+            (
+                SELECT GROUP_CONCAT(
+                    CONCAT(d.event_date, '|', d.start_time, '|', d.end_time)
+                    ORDER BY d.event_date ASC SEPARATOR ','
+                )
+                FROM {$siteprefix}event_dates AS d
+                WHERE d.event_id = t.event_id
+            ) AS all_event_dates_times,
+
+            -- CATEGORIES
+            (
+                SELECT GROUP_CONCAT(category_name ORDER BY id ASC)
+                FROM {$siteprefix}event_categories
+                WHERE FIND_IN_SET(id, t.categories)
+            ) AS category_names,
+            -- SUBCATEGORIES
+            (
+                SELECT GROUP_CONCAT(category_name ORDER BY id ASC)
+                FROM {$siteprefix}event_categories
+                WHERE FIND_IN_SET(id, t.subcategories)
+            ) AS subcategory_names
+
+        FROM {$siteprefix}events t
+        LEFT JOIN {$siteprefix}users u ON t.user_id = u.id
+        LEFT JOIN {$siteprefix}event_types et ON t.event_type = et.name
+        WHERE t.slug = '$slug'
+        LIMIT 1
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        return mysqli_fetch_assoc($result);
+    }
+
+    return ['error' => mysqli_error($con)];
+}
+
+
 
 function getAllListingBySlug($con, $slug)
 {
@@ -3312,6 +4254,25 @@ function addSubscriptionEndpoint($postData) {
     }
 }
 
+function getmultipleblogID($con, $blog_id) {
+    global $siteprefix;
+
+    // Sanitize input
+    $blog_id = intval($blog_id);
+
+    $query = "SELECT * FROM {$siteprefix}forums WHERE id = '$blog_id' LIMIT 1";
+    $result = mysqli_query($con, $query);
+
+    if (!$result) {
+        return ['error' => mysqli_error($con)];
+    }
+
+    $blog = mysqli_fetch_assoc($result);
+
+    return $blog ? $blog : ['error' => 'Blog not found'];
+}
+
+
 
 function getblogID($con, $blog_id) {
     global $con,$siteprefix;
@@ -3450,25 +4411,11 @@ function getOrderdetailsID($con, $order_id)
 
     $order = mysqli_fetch_assoc($orderResult);
 
-    // --- Fetch order items + seller info ---
+    // --- Fetch order items ---
     $itemQuery = "
-        SELECT 
-            i.listing_id,
-            i.variation,
-            i.price,
-            i.type AS product_type,
-            i.quantity,
-            i.total_price,
-            i.type,
-            l.title AS listing_title,
-            s.id AS seller_id,
-            s.first_name AS seller_name,
-            s.email AS seller_email,
-            s.user_type AS seller_type
-        FROM {$siteprefix}order_items i
-        LEFT JOIN {$siteprefix}listings l ON i.listing_id = l.listing_id
-        LEFT JOIN {$siteprefix}users s ON l.user_id = s.id
-        WHERE i.order_id = '$order_id'
+        SELECT *
+        FROM {$siteprefix}order_items
+        WHERE order_id = '$order_id'
     ";
 
     $itemResult = mysqli_query($con, $itemQuery);
@@ -3476,15 +4423,90 @@ function getOrderdetailsID($con, $order_id)
 
     if ($itemResult && mysqli_num_rows($itemResult) > 0) {
         while ($row = mysqli_fetch_assoc($itemResult)) {
+            $type = $row['type'];
+
+            if ($type === 'product' && !empty($row['listing_id'])) {
+                // --- Product details ---
+                $listingQuery = "
+                    SELECT l.title, l.slug, s.id AS seller_id, s.first_name AS seller_name, s.email AS seller_email, s.user_type AS seller_type
+                    FROM {$siteprefix}listings l
+                    LEFT JOIN {$siteprefix}users s ON l.user_id = s.id
+                    WHERE l.listing_id='{$row['listing_id']}' LIMIT 1
+                ";
+                $listingRes = mysqli_query($con, $listingQuery);
+                $listingData = mysqli_fetch_assoc($listingRes);
+                $row['listing_title'] = $listingData['title'] ?? 'Product';
+                $row['listing_slug'] = $listingData['slug'] ?? '#';
+                $row['seller_id'] = $listingData['seller_id'] ?? 0;
+                $row['seller_name'] = $listingData['seller_name'] ?? 'Seller';
+                $row['seller_email'] = $listingData['seller_email'] ?? '';
+                $row['seller_type'] = $listingData['seller_type'] ?? '';
+
+            } elseif ($type === 'event' && !empty($row['event_id'])) {
+                // --- Event details ---
+                $eventId = $row['event_id'];
+                $ticketId = $row['item_id'];
+
+                // Event title & slug
+                $eventQuery = "
+                    SELECT e.title, e.slug,e.delivery_format, s.id AS seller_id, s.first_name AS seller_name, s.email AS seller_email, s.user_type AS seller_type
+                    FROM {$siteprefix}events e
+                    LEFT JOIN {$siteprefix}users s ON e.user_id = s.id
+                    WHERE e.event_id='$eventId' LIMIT 1
+                ";
+                $eventRes = mysqli_query($con, $eventQuery);
+                $eventData = mysqli_fetch_assoc($eventRes);
+
+                // Keep a consistent field name so callers can treat listing_id
+                // as the primary reference for both products and events.
+                $row['listing_title'] = $eventData['title'] ?? 'Event';
+                $row['listing_slug'] = $eventData['slug'] ?? '#';
+                // mirror event_id into listing_id for compatibility with code paths
+                // that expect listing_id (eg. pay_success.php)
+                $row['listing_id'] = $eventId;
+                 $row['delivery_format'] = $eventData['delivery_format'] ?? '';
+                $row['seller_id'] = $eventData['seller_id'] ?? 0;
+                $row['seller_name'] = $eventData['seller_name'] ?? 'Seller';
+                $row['seller_email'] = $eventData['seller_email'] ?? '';
+                $row['seller_type'] = $eventData['seller_type'] ?? '';
+
+                // Event image
+                $imgQuery = "SELECT image_path FROM {$siteprefix}events_images WHERE event_id='$eventId' ORDER BY id ASC LIMIT 1";
+                $imgRes = mysqli_query($con, $imgQuery);
+                $imgData = mysqli_fetch_assoc($imgRes);
+                $row['main_image'] = $imgData['image_path'] ?? '';
+
+                // Ticket details
+                if (is_numeric($ticketId)) {
+                    $ticketQuery = "SELECT ticket_name, price, benefits FROM {$siteprefix}event_tickets WHERE id='$ticketId' LIMIT 1";
+                    $ticketRes = mysqli_query($con, $ticketQuery);
+                    $ticketData = mysqli_fetch_assoc($ticketRes);
+                    if ($ticketData) {
+                        $row['variation'] = $ticketData['ticket_name'];
+                        $row['price'] = $ticketData['price'];
+                        $row['benefits'] = $ticketData['benefits'];
+                    } else {
+                        $row['variation'] = 'Ticket';
+                        $row['price'] = 0;
+                        $row['benefits'] = '';
+                    }
+                } else {
+                    $row['variation'] = 'Free';
+                    $row['price'] = 0;
+                    $row['benefits'] = '';
+                }
+
+                $row['quantity'] = $row['quantity'] ?? 1;
+            }
+
             $items[] = $row;
         }
     }
 
-    // --- Combine ---
     $order['items'] = $items;
-
     return [$order];
 }
+
 
 
 /*----------------------------------------------------------
@@ -3617,6 +4639,31 @@ function gettherapistByslug($con, $slug) {
             WHERE FIND_IN_SET(p.id, u.professional_field)
         ) AS professional_field_names,
 
+          (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}forums AS fa
+            WHERE fa.user_id = u.id
+        ) AS total_articles,
+
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}questions AS q
+            WHERE q.user_id = u.id
+        ) AS total_questions,
+
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}answers AS an
+            WHERE an.user_id = u.id
+        ) AS total_answers,
+
+        (
+            SELECT COUNT(*)
+            FROM {$siteprefix}answers AS an2
+            WHERE an2.user_id = u.id
+            AND an2.is_best = 1
+        ) AS best_answers,
+
         (
             SELECT GROUP_CONCAT(name SEPARATOR ', ')
             FROM {$siteprefix}profession AS p
@@ -3727,7 +4774,26 @@ function getgroupByslug($con, $slug) {
                 SELECT COUNT(*)
                 FROM {$siteprefix}reviews AS r2
                 WHERE r2.group_id = g.id
-            ) AS review_count
+            ) AS review_count ,
+
+             (
+                SELECT COUNT(*)
+                FROM {$siteprefix}forums AS f
+                WHERE f.group_id = g.id
+            ) AS forum_count ,
+ (
+                SELECT COUNT(*)
+                FROM {$siteprefix}questions AS q
+                WHERE q.group_id = g.id
+            ) AS question_count ,
+
+
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}group_likes AS gl
+            WHERE gl.group_id = g.id
+        ) AS like_count
+
 
         FROM {$siteprefix}groups AS g
         LEFT JOIN {$siteprefix}users AS u 
@@ -4113,50 +5179,72 @@ function getallblogbyslug($con, $slug)
     global $siteprefix;
 
      $query = "
-        SELECT 
-            f.*, 
-            u.first_name, 
-            u.last_name,
-            u.bio,
-            u.photo,
-            u.facebook,
-            u.instagram,
-            u.twitter,
-            u.linkedin,
+    SELECT 
+        f.*, 
+        u.first_name, 
+        u.last_name,
+        u.bio,
+        u.photo,
+        u.facebook,
+        u.instagram,
+        u.twitter,
+        u.linkedin,
 
-            -- ✅ Category names
-            (
-                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
-                FROM {$siteprefix}categories AS c
-                WHERE FIND_IN_SET(c.id, f.categories)
-            ) AS category_names,
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}forums AS fa
+            WHERE fa.user_id = f.user_id
+        ) AS total_articles,
 
-            -- ✅ Subcategory names
-            (
-                SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
-                FROM {$siteprefix}categories AS sc
-                WHERE FIND_IN_SET(sc.id, f.subcategories)
-            ) AS subcategory_names,
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}questions AS q
+            WHERE q.user_id = f.user_id
+        ) AS total_questions,
 
-            -- ✅ Comment count
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}comments AS cm
-                WHERE cm.blog_id = f.id
-            ) AS comment_count,
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}answers AS an
+            WHERE an.user_id = f.user_id
+        ) AS total_answers,
 
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}blog_likes AS bl
-                WHERE bl.blog_id = f.id
-            ) AS like_count
+        (
+            SELECT COUNT(*)
+            FROM {$siteprefix}answers AS an2
+            WHERE an2.user_id = f.user_id
+            AND an2.is_best = 1
+        ) AS best_answers,
 
-        FROM {$siteprefix}forums AS f
-        LEFT JOIN {$siteprefix}users AS u 
-            ON f.user_id = u.id
-        WHERE f.slug = '" . mysqli_real_escape_string($con, $slug) . "'
-        LIMIT 1
-    ";
+        (
+            SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+            FROM {$siteprefix}categories AS c
+            WHERE FIND_IN_SET(c.id, f.categories)
+        ) AS category_names,
+
+        (
+            SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
+            FROM {$siteprefix}categories AS sc
+            WHERE FIND_IN_SET(sc.id, f.subcategories)
+        ) AS subcategory_names,
+
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}comments AS cm
+            WHERE cm.blog_id = f.id
+        ) AS comment_count,
+
+        (
+            SELECT COUNT(*) 
+            FROM {$siteprefix}blog_likes AS bl
+            WHERE bl.blog_id = f.id
+        ) AS like_count
+
+    FROM {$siteprefix}forums AS f
+    LEFT JOIN {$siteprefix}users AS u 
+        ON f.user_id = u.id
+    WHERE f.slug = '" . mysqli_real_escape_string($con, $slug) . "'
+    LIMIT 1
+";
 
     $result = mysqli_query($con, $query);
 
@@ -4171,22 +5259,50 @@ function getallblogbyslug($con, $slug)
     }
 }
 
+function validateImageSize($file, $requiredSize) {
+    if (empty($file['name'])) {
+        return ["status" => false, "message" => "No file uploaded."];
+    }
+
+    if (!file_exists($file['tmp_name'])) {
+        return ["status" => false, "message" => "Invalid file uploaded."];
+    }
+
+    if (!str_contains($requiredSize, 'x')) {
+        return ["status" => false, "message" => "Invalid required size format."];
+    }
+
+    list($reqWidth, $reqHeight) = array_map('trim', explode('x', strtolower($requiredSize)));
+    $reqWidth  = (int)$reqWidth;
+    $reqHeight = (int)$reqHeight;
+
+    $imgInfo = getimagesize($file['tmp_name']);
+    if (!$imgInfo) {
+        return ["status" => false, "message" => "Uploaded file is not a valid image."];
+    }
+
+    $imgWidth  = $imgInfo[0];
+    $imgHeight = $imgInfo[1];
+
+    if ($imgWidth != $reqWidth || $imgHeight != $reqHeight) {
+        return [
+            "status" => false,
+            "message" => "Invalid image size. Required: {$reqWidth}×{$reqHeight}px. Uploaded: {$imgWidth}×{$imgHeight}px."
+        ];
+    }
+
+    return ["status" => true, "message" => "Image size is valid."];
+}
+
 function createAdvertOrder($postData, $fileData) {
     global $con, $siteprefix, $siteurl;
 
-    // ✅ VALIDATE
-    if (empty($postData["advert_id"])) {
-        return ["status" => "error", "message" => "Advert ID missing"];
-    }
+    // ===== BASIC VALIDATION =====
+    if (empty($postData["advert_id"])) return ["status" => "error", "message" => "Advert ID missing"];
+    if (empty($postData["reference"])) return ["status" => "error", "message" => "Missing payment reference"];
+    if (empty($postData["user_id"])) return ["status" => "error", "message" => "User not logged in"];
 
-    if (empty($postData["reference"])) {
-        return ["status" => "error", "message" => "Missing payment reference"];
-    }
-
-    if (empty($postData["user_id"])) {
-        return ["status" => "error", "message" => "User not logged in"];
-    }
-
+    // Escape inputs
     $advert_id    = mysqli_real_escape_string($con, $postData["advert_id"]);
     $reference    = mysqli_real_escape_string($con, $postData["reference"]);
     $start_date   = mysqli_real_escape_string($con, $postData["start_date"]);
@@ -4195,34 +5311,38 @@ function createAdvertOrder($postData, $fileData) {
     $amount       = mysqli_real_escape_string($con, $postData["total_amount"]);
     $user_id      = mysqli_real_escape_string($con, $postData["user_id"]);
 
-    // ✅ CHECK IF REFERENCE EXISTS
-    $check = mysqli_query($con,
-        "SELECT id FROM {$siteprefix}advert_orders WHERE reference='$reference' LIMIT 1"
-    );
+    // ===== CHECK DUPLICATE REFERENCE =====
+    $check = mysqli_query($con, "SELECT id FROM {$siteprefix}advert_orders WHERE reference='$reference' LIMIT 1");
+    if (mysqli_num_rows($check) > 0) return ["status" => "error", "message" => "Duplicate reference"];
 
-    if (mysqli_num_rows($check) > 0) {
-        return ["status" => "error", "message" => "Duplicate reference"];
+    // ===== GET REQUIRED IMAGE SIZE FROM DB =====
+    $sizeQuery = mysqli_query($con, "SELECT size FROM {$siteprefix}ad_placements WHERE id='$advert_id' LIMIT 1");
+    $sizeRow   = mysqli_fetch_assoc($sizeQuery);
+    if (!$sizeRow) return ["status" => "error", "message" => "Advert size not found in database."];
+
+    $expectedSize = $sizeRow['size']; // e.g., "728x90"
+
+    // ===== VALIDATE IMAGE SIZE USING SEPARATE FUNCTION =====
+    $sizeCheck = validateImageSize($fileData["bannerimage"], $expectedSize);
+    if (!$sizeCheck['status']) return ["status" => "error", "message" => $sizeCheck['message']];
+
+    // ===== UPLOAD FILE =====
+    $imageName = uniqid() . "_" . basename($fileData["bannerimage"]["name"]);
+    $uploadPath = "../uploads/" . $imageName;
+    if (!move_uploaded_file($fileData["bannerimage"]["tmp_name"], $uploadPath)) {
+        return ["status" => "error", "message" => "Failed to upload banner image."];
     }
 
-    // ✅ FILE UPLOAD
-    $imageName = "";
-    if (!empty($fileData["bannerimage"]["name"])) {
-        $imageName = uniqid() . "_" . basename($fileData["bannerimage"]["name"]);
-        move_uploaded_file($fileData["bannerimage"]["tmp_name"], "../uploads/" . $imageName);
-    }
-
-    // ✅ INSERT ORDER WITH USER_ID
+    // ===== INSERT ORDER =====
     mysqli_query($con,
         "INSERT INTO {$siteprefix}advert_orders 
         (advert_id, user_id, reference, start_date, end_date, redirect_url, banner, amount, status, date)
         VALUES ('$advert_id', '$user_id', '$reference', '$start_date', '$end_date', '$redirect_url', '$imageName', '$amount', 'pending', NOW())"
     );
 
-    return [
-        "status" => "success",
-        "message" => "Order created successfully. Proceed to payment."
-    ];
+    return ["status" => "success", "message" => "Order created successfully. Proceed to payment."];
 }
+
 
 
 
@@ -4235,7 +5355,13 @@ function getallquestionbyslug($con, $slug)
         SELECT 
             q.*, 
             u.first_name, 
+            u.photo,
             u.last_name,
+            u.facebook,
+            u.instagram,
+            u.twitter,
+            u.linkedin,
+            u.bio,
             (
                 SELECT GROUP_CONCAT(category_name SEPARATOR ', ')
                 FROM {$siteprefix}categories AS c
@@ -4250,7 +5376,28 @@ function getallquestionbyslug($con, $slug)
                 SELECT COUNT(*) 
                 FROM {$siteprefix}answers AS cm
                 WHERE cm.question_id = q.id
-            ) AS comment_count
+            ) AS comment_count,
+            (
+                SELECT COUNT(*) 
+                FROM {$siteprefix}forums AS fa
+                WHERE fa.user_id = u.id
+            ) AS total_articles,
+            (
+                SELECT COUNT(*) 
+                FROM {$siteprefix}questions AS qa
+                WHERE qa.user_id = u.id
+            ) AS total_questions,
+            (
+                SELECT COUNT(*) 
+                FROM {$siteprefix}answers AS an
+                WHERE an.user_id = u.id
+            ) AS total_answers,
+            (
+                SELECT COUNT(*)
+                FROM {$siteprefix}answers AS an2
+                WHERE an2.user_id = u.id
+                AND an2.is_best = 1
+            ) AS best_answers
         FROM {$siteprefix}questions AS q
         LEFT JOIN {$siteprefix}users AS u 
             ON q.user_id = u.id
@@ -4572,7 +5719,9 @@ function getEarningsBreakdown($con)
 
     $query = "
         SELECT 
-            p.s AS id,
+            p.s,
+            p.event_id,
+            p.advert_id,
             p.amount,
             p.group_id,
             p.listing_id,
@@ -4593,41 +5742,38 @@ function getEarningsBreakdown($con)
             b.therapist_id AS booking_therapist_id,
             b.reference AS booking_reference,
             t.first_name AS therapist_first_name,
-            t.last_name AS therapist_last_name
+            t.last_name AS therapist_last_name,
+            -- Advert info
+            ao.advert_id AS advert_order_id,
+            ap.placement_name AS advert_title,
+            -- Event info
+            e.title AS event_title
         FROM {$siteprefix}profits AS p
-        LEFT JOIN {$siteprefix}groups AS g 
-            ON p.group_id = g.id
-        LEFT JOIN {$siteprefix}listings AS l 
-            ON p.listing_id = l.listing_id
-        LEFT JOIN {$siteprefix}subscriptions AS s 
-            ON p.plan_id = s.id
-        LEFT JOIN {$siteprefix}group_payments AS gp 
-            ON p.group_id = gp.group_id
-        LEFT JOIN {$siteprefix}subscriptions AS sub 
-            ON p.plan_id = sub.id
-        LEFT JOIN {$siteprefix}order_items AS oi 
-            ON p.order_id = oi.order_id AND p.listing_id = oi.listing_id
-        /* Join bookings: profits.booking_id stores booking reference or id */
-        LEFT JOIN {$siteprefix}bookings AS b
-            ON b.reference = p.booking_id 
-        /* Fetch therapist/user info for bookings */
-        LEFT JOIN {$siteprefix}users AS t
-            ON t.id = b.therapist_id
-        GROUP BY p.order_id, p.booking_id, p.listing_id, oi.variation
+        LEFT JOIN {$siteprefix}groups AS g ON p.group_id = g.id
+        LEFT JOIN {$siteprefix}listings AS l ON p.listing_id = l.listing_id
+        LEFT JOIN {$siteprefix}subscriptions AS s ON p.plan_id = s.id
+        LEFT JOIN {$siteprefix}group_payments AS gp ON p.group_id = gp.group_id
+        LEFT JOIN {$siteprefix}subscriptions AS sub ON p.plan_id = sub.id
+        LEFT JOIN {$siteprefix}order_items AS oi ON p.order_id = oi.order_id AND p.listing_id = oi.listing_id
+        LEFT JOIN {$siteprefix}bookings AS b ON b.reference = p.booking_id
+        LEFT JOIN {$siteprefix}users AS t ON t.id = b.therapist_id
+        -- Join adverts table
+        LEFT JOIN {$siteprefix}advert_orders AS ao ON p.advert_id = ao.advert_id
+        LEFT JOIN {$siteprefix}ad_placements AS ap ON ao.advert_id = ap.id
+        -- Join events table (assuming {$siteprefix}events)
+        LEFT JOIN {$siteprefix}events AS e ON p.event_id = e.event_id
+        GROUP BY p.order_id, p.booking_id, p.listing_id, oi.variation, p.advert_id, p.event_id
         ORDER BY p.date DESC
     ";
 
     $result = mysqli_query($con, $query);
-
     if (!$result) {
         return ['error' => mysqli_error($con)];
     }
 
     $profits = [];
     while ($row = mysqli_fetch_assoc($result)) {
-        $source = '';
-        $source_amount = 0;
-        $source_name = 'N/A';
+        $source = $source_amount = $source_name = null;
 
         if (!empty($row['group_id'])) {
             $source = 'Group Payment';
@@ -4641,33 +5787,39 @@ function getEarningsBreakdown($con)
                 $source_name .= ' - ' . $row['listing_variation'];
             }
         } elseif (!empty($row['booking_amount'])) {
-            // Profits that are tied to bookings (bookings.amount) — order_id stored as booking reference or id
             $source = 'Therapist Booking';
             $source_amount = $row['booking_amount'] ?? $row['amount'];
-            // prefer therapist name for source_name when available
-            if (!empty($row['therapist_first_name']) || !empty($row['therapist_last_name'])) {
-                $source_name = trim(($row['therapist_first_name'] ?? '') . ' ' . ($row['therapist_last_name'] ?? '')) ?: 'Booking';
-            } else {
-                $source_name = 'Booking';
-            }
+            $source_name = trim(($row['therapist_first_name'] ?? '') . ' ' . ($row['therapist_last_name'] ?? '')) ?: 'Booking';
         } elseif (!empty($row['plan_id'])) {
             $source = 'Subscription Plan';
             $source_amount = $row['subscription_price'] ?? 0;
             $source_name = $row['plan_name'] ?? 'N/A';
+        } elseif (!empty($row['advert_id'])) {
+            $source = 'Advert Purchase';
+            $source_amount = $row['amount'];
+            $source_name = $row['advert_title'] ?? 'Advert #' . $row['advert_id'];
+        } elseif (!empty($row['event_id'])) {
+            $source = 'Event Booking';
+            $source_amount = $row['amount'];
+            $source_name = $row['event_title'] ?? 'Event #' . $row['event_id'];
         } else {
             $source = 'Other';
             $source_amount = $row['amount'];
+            $source_name = 'N/A';
         }
 
         $profits[] = [
-            'id' => $row['id'],
+            'id' => $row['s'],
+            'event_id' => $row['event_id'] ?? null,
+            'event_name' => $row['event_title'] ?? null,
+            'advert_id' => $row['advert_id'] ?? null,
+            'advert_title' => $row['advert_title'] ?? null,
             'source' => $source,
             'source_name' => $source_name,
             'source_amount' => number_format($source_amount, 2),
             'earned_amount' => number_format($row['amount'], 2),
             'type' => ucfirst($row['type']),
             'date' => $row['date'],
-            // booking-specific fields (if present)
             'booking_reference' => $row['booking_reference'] ?? null,
             'booking_client_name' => $row['booking_client_name'] ?? null,
             'booking_therapist_id' => $row['booking_therapist_id'] ?? null,
@@ -4983,6 +6135,26 @@ function checkGroupMember($con, $group_id, $user_id) {
 
 
 // Fetch all user orders
+function getAllOrders($con) {
+    global $siteprefix;
+
+    $query = "
+        SELECT o.*, u.first_name, u.last_name
+        FROM {$siteprefix}orders AS o
+        LEFT JOIN {$siteprefix}users AS u ON o.user = u.id
+        ORDER BY o.date DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        return ['error' => mysqli_error($con) ?: 'No orders found'];
+    }
+}
+
+// Fetch all user orders
 function getAllOrdersuser($con, $user_id) {
     global $siteprefix;
     $query = "SELECT * FROM ".$siteprefix."orders WHERE user = '$user_id' ORDER BY date DESC";
@@ -4993,29 +6165,173 @@ function getAllOrdersuser($con, $user_id) {
         return ['error' => mysqli_error($con) ?: 'No orders found'];
     }
 }
+
+function getAlladverts($con) {
+    global $siteprefix;
+
+    $query = "
+        SELECT a.*, p.placement_name, p.size, p.slug, u.first_name, u.last_name
+        FROM ".$siteprefix."active_adverts a
+        LEFT JOIN ".$siteprefix."ad_placements p ON p.id = a.advert_id
+        LEFT JOIN ".$siteprefix."users u ON a.user_id = u.id
+        ORDER BY a.created_at DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        if (mysqli_num_rows($result) > 0) {
+            return mysqli_fetch_all($result, MYSQLI_ASSOC);
+        } else {
+            return []; // No adverts found
+        }
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
+
+function getAlladversuser($con, $user_id) {
+    global $siteprefix;
+        $query = "
+        SELECT a.*, p.placement_name, p.size ,p.slug
+        FROM ".$siteprefix."active_adverts a
+        LEFT JOIN ".$siteprefix."ad_placements p ON p.id = a.advert_id
+        WHERE a.user_id = '$user_id'
+        ORDER BY a.created_at DESC
+    ";
+    $result = mysqli_query($con, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        return ['error' => mysqli_error($con) ?: 'No orders found'];
+    }
+}
+
+
+function getAllusermanualPayment($con, $user_id) {
+    global $siteprefix;
+    $query = "
+    SELECT *
+    FROM ".$siteprefix."manual_payments a
+    WHERE user_id = '$user_id'
+    ORDER BY date_created DESC";
+
+    $result = mysqli_query($con, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        return ['error' => mysqli_error($con) ?: 'No orders found'];
+    }
+}
+
+function getAlluserbookmarks($con, $user_id) {
+    global $siteprefix;
+    $query = "
+    SELECT *
+    FROM ".$siteprefix."bookmarks a
+    WHERE user_id = '$user_id'
+    ORDER BY created_at DESC";
+
+    $result = mysqli_query($con, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        return ['error' => mysqli_error($con) ?: 'No orders found'];
+    }
+}
+
+
 // Fetch order items for a given order
 function getOrderItems($con, $order_id) {
     global $siteprefix;
+
     $query = "
-        SELECT 
-            i.listing_id,
-            i.variation,
-            i.type,
-            l.title AS listing_title,
-            s.id AS seller_id,
-            s.first_name AS seller_name
-        FROM {$siteprefix}order_items i
-        LEFT JOIN {$siteprefix}listings l ON i.listing_id = l.listing_id
-        LEFT JOIN {$siteprefix}users s ON l.user_id = s.id
-        WHERE i.order_id = '$order_id'
+        SELECT *
+        FROM {$siteprefix}order_items
+        WHERE order_id = '$order_id'
     ";
+
     $result = mysqli_query($con, $query);
-    if($result && mysqli_num_rows($result) > 0){
-        return mysqli_fetch_all($result, MYSQLI_ASSOC);
-    } else {
-        return ['error' => mysqli_error($con) ?: 'No items found'];
+
+    if (!$result || mysqli_num_rows($result) === 0) {
+        return ['error' => 'No items found'];
     }
+
+    $items = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $type = $row['type'];
+
+        /* ----------------------------------------------------
+           PRODUCT ITEM
+        ----------------------------------------------------- */
+        if ($type === 'product' && !empty($row['listing_id'])) {
+
+            $listingQuery = "
+                SELECT l.title, l.slug, s.id AS seller_id, s.first_name AS seller_name
+                FROM {$siteprefix}listings l
+                LEFT JOIN {$siteprefix}users s ON l.user_id = s.id
+                WHERE l.listing_id = '{$row['listing_id']}'
+                LIMIT 1
+            ";
+
+            $res2 = mysqli_query($con, $listingQuery);
+            $data2 = mysqli_fetch_assoc($res2);
+
+            $items[] = [
+                'seller_id'     => $data2['seller_id'] ?? 0,
+                'seller_name'   => $data2['seller_name'] ?? 'Seller',
+                'listing_title' => $data2['title'] ?? 'Product',
+                'variation'     => $row['variation'] ?? '',
+                'type'          => 'Product'
+            ];
+        }
+
+        /* ----------------------------------------------------
+           EVENT ITEM
+        ----------------------------------------------------- */
+        elseif ($type === 'event' && !empty($row['event_id'])) {
+
+            $eventQuery = "
+                SELECT e.title, e.slug, e.delivery_format,
+                       u.id AS seller_id, u.first_name AS seller_name
+                FROM {$siteprefix}events e
+                LEFT JOIN {$siteprefix}users u ON e.user_id = u.id
+                WHERE e.event_id = '{$row['event_id']}'
+                LIMIT 1
+            ";
+
+            $res3  = mysqli_query($con, $eventQuery);
+            $data3 = mysqli_fetch_assoc($res3);
+
+            // Ticket name (variation)
+            $variation = "Ticket";
+            if (!empty($row['item_id'])) {
+                $ticketQ = "
+                    SELECT ticket_name
+                    FROM {$siteprefix}event_tickets
+                    WHERE id = '{$row['item_id']}'
+                    LIMIT 1
+                ";
+                $ticketRes = mysqli_query($con, $ticketQ);
+                $ticketRow = mysqli_fetch_assoc($ticketRes);
+                $variation = $ticketRow['ticket_name'] ?? "Ticket";
+            }
+
+            $items[] = [
+                'seller_id'      => $data3['seller_id'] ?? 0,
+                'seller_name'    => $data3['seller_name'] ?? 'Organizer',
+                'listing_title'  => $data3['title'] ?? 'Event',
+                'variation'      => $variation,
+                'type'           => 'Event'
+            ];
+        }
+    }
+
+    return $items;
 }
+
 
 
 function getTicketDetails($con, $ticket_number)
@@ -5166,7 +6482,28 @@ function checkuservendor($con, $slug) {
         SELECT GROUP_CONCAT(sc.category_name SEPARATOR ', ')
         FROM {$siteprefix}categories AS sc
         WHERE FIND_IN_SET(sc.id, u.subcategory_id)
-        ) AS subcategory_names
+    ) AS subcategory_names,
+    (
+        SELECT COUNT(*) 
+        FROM {$siteprefix}forums AS fa
+        WHERE fa.user_id = u.id
+    ) AS total_articles,
+    (
+        SELECT COUNT(*) 
+        FROM {$siteprefix}questions AS q
+        WHERE q.user_id = u.id
+    ) AS total_questions,
+    (
+        SELECT COUNT(*) 
+        FROM {$siteprefix}answers AS an
+        WHERE an.user_id = u.id
+    ) AS total_answers,
+    (
+        SELECT COUNT(*)
+        FROM {$siteprefix}answers AS an2
+        WHERE an2.user_id = u.id
+        AND an2.is_best = 1
+    ) AS best_answers
     FROM {$siteprefix}users AS u
     WHERE u.slug = '$slug'
     LIMIT 1";
@@ -5442,6 +6779,409 @@ function updateUserEndpoint($postData, $filesData)
     }
 }
 
+function updateTherapistEndpoint($postData, $filesData) {
+    global $con, $siteprefix, $siteurl, $siteName, $siteMail;
+
+    $userId = intval($postData['user_id']);
+
+    // FETCH OLD DATA
+    $oldQ = mysqli_query($con, "SELECT * FROM {$siteprefix}users WHERE id='$userId' LIMIT 1");
+    $old = mysqli_fetch_assoc($oldQ);
+
+    if (!$old) {
+        return ['status' => 'error', 'messages' => 'Invalid user'];
+    }
+
+    // Save old values
+    $oldStatus = $old['status'];
+    $oldEmail  = $old['email'];
+
+    $userEmail = $oldEmail;
+
+    // SANITIZE INPUT
+    $title        = mysqli_real_escape_string($con, $postData['title']);
+    $bio          = mysqli_real_escape_string($con, $postData['bio']);
+    $firstName    = mysqli_real_escape_string($con, $postData['first_name']);
+    $middleName   = mysqli_real_escape_string($con, $postData['middle_name']);
+    $lastName     = mysqli_real_escape_string($con, $postData['last_name']);
+    $dob          = mysqli_real_escape_string($con, $postData['dob']);
+    $gender       = mysqli_real_escape_string($con, $postData['gender']);
+    $nationality  = mysqli_real_escape_string($con, $postData['nationality']);
+    $languages    = mysqli_real_escape_string($con, $postData['languages']);
+
+    // CONTACT
+    $businessName       = mysqli_real_escape_string($con, $postData['business_name']);
+    $registeredBusiness = mysqli_real_escape_string($con, $postData['registered_business_name']);
+    $ownerName          = mysqli_real_escape_string($con, $postData['owner_name']);
+    $phone              = mysqli_real_escape_string($con, $postData['phone']);
+    $website            = mysqli_real_escape_string($con, $postData['website']);
+    $email              = mysqli_real_escape_string($con, $postData['email']);
+    $state              = mysqli_real_escape_string($con, $postData['state']);
+    $lga                = mysqli_real_escape_string($con, $postData['lga']);
+    $address            = mysqli_real_escape_string($con, $postData['address']);
+
+    // SOCIALS
+    $facebook  = mysqli_real_escape_string($con, $postData['facebook']);
+    $twitter   = mysqli_real_escape_string($con, $postData['twitter']);
+    $instagram = mysqli_real_escape_string($con, $postData['instagram']);
+    $linkedin  = mysqli_real_escape_string($con, $postData['linkedin']);
+
+    // PROFESSIONAL
+    $professionalTitle = is_array($postData['professional_title']) ? implode(',', $postData['professional_title']) : '';
+
+    $qualification = mysqli_real_escape_string($con, $postData['highest_qualification']);
+    if ($qualification === 'Other' && !empty($postData['other_qualification'])) {
+        $qualification = mysqli_real_escape_string($con, $postData['other_qualification']);
+    }
+
+    $institution      = mysqli_real_escape_string($con, $postData['institution']);
+    $graduationYear   = mysqli_real_escape_string($con, $postData['graduation_year']);
+    $certifications   = mysqli_real_escape_string($con, $postData['certifications']);
+    $associations     = mysqli_real_escape_string($con, $postData['associations']);
+    $experience       = mysqli_real_escape_string($con, $postData['experience']);
+    $sessionFormat    = mysqli_real_escape_string($con, $postData['session_format']);
+
+    // SCHEDULE
+    $preferred_days = isset($postData['preferred_days']) ? implode(', ', $postData['preferred_days']) : '';
+    $start_time = $postData['start_time'] ?? '';
+    $end_time   = $postData['end_time'] ?? '';
+    $consultation_info = "$preferred_days | $start_time - $end_time";
+
+    $sessionDuration = mysqli_real_escape_string($con, $postData['session_duration']);
+    $rate            = mysqli_real_escape_string($con, $postData['rate']);
+
+    $professional_field = is_array($postData['professional_field']) ? implode(',', $postData['professional_field']) : '';
+    $specializations    = is_array($postData['specializations']) ? implode(',', $postData['specializations']) : '';
+    $sub_specialization = is_array($postData['sub_specialization']) ? implode(',', $postData['sub_specialization']) : '';
+
+    // WORK WITH
+    $workWith = '';
+    if (!empty($postData['work_with'])) {
+        if ($postData['work_with'] === 'Other' && !empty($postData['other_work'])) {
+            $workWith = mysqli_real_escape_string($con, $postData['other_work']);
+        } else {
+            $workWith = mysqli_real_escape_string($con, $postData['work_with']);
+        }
+    }
+
+    // STATUS & SUSPENSION
+    $newStatus = mysqli_real_escape_string($con, $postData['status']);
+    $suspendReason = mysqli_real_escape_string($con, trim($postData['suspend_reason'] ?? ''));
+
+    if ($email !== $oldEmail) {
+        $emailCheck = mysqli_query($con, "SELECT id FROM {$siteprefix}users WHERE email='$email' AND id!='$userId'");
+        if (mysqli_num_rows($emailCheck) > 0) {
+            return ['status' => 'error', 'messages' => 'Email already exists for another user'];
+        }
+        $userEmail = $email;
+    }
+
+    // FILE UPLOADS
+    $targetDir = "../uploads/";
+
+    // Initialize as null so they won't update DB unless new file uploaded
+    $businessLogo = null;
+    $photopictures = null;
+
+    // Business logo
+    if (!empty($filesData["business_logo"]["name"])) {
+        $businessLogo = uniqid() . '_' . basename($filesData["business_logo"]["name"]);
+        move_uploaded_file($filesData["business_logo"]["tmp_name"], $targetDir . $businessLogo);
+    }
+
+    // Photo
+    if (!empty($filesData["photos"]["name"])) {
+        $photopictures = uniqid() . '_' . basename($filesData["photos"]["name"]);
+        move_uploaded_file($filesData["photos"]["tmp_name"], $targetDir . $photopictures);
+    }
+
+    // Passport, CV, License
+    $photoFile   = uploadFile($filesData['passport'], $targetDir) ?: $old['passport'];
+    $cvFile      = uploadFile($filesData['cv'], $targetDir) ?: $old['cv'];
+    $licenseFile = uploadFile($filesData['license'], $targetDir) ?: $old['license'];
+
+    // Portfolio
+    $oldPortfolio = !empty($old['portfolio']) ? explode(",", $old['portfolio']) : [];
+
+    if (!empty($postData['remove_files'])) {
+        $removeFiles = explode(",", $postData['remove_files']);
+        foreach ($removeFiles as $rf) {
+            $rf = trim($rf);
+            $filePath = $targetDir . $rf;
+            if (file_exists($filePath)) unlink($filePath);
+
+            $oldPortfolio = array_diff($oldPortfolio, [$rf]);
+        }
+    }
+
+    if (!empty($filesData['portfolio']['name'][0])) {
+        foreach ($filesData['portfolio']['name'] as $key => $fileName) {
+            $newName = uniqid() . "_" . basename($fileName);
+            $dest = $targetDir . $newName;
+
+            if (move_uploaded_file($filesData['portfolio']['tmp_name'][$key], $dest)) {
+                $oldPortfolio[] = $newName;
+            }
+        }
+    }
+
+    $portfolioCSV = implode(",", $oldPortfolio);
+
+    // BUILD UPDATE QUERY
+    $sql = "
+        UPDATE {$siteprefix}users SET
+            title='$title', first_name='$firstName', middle_name='$middleName', last_name='$lastName',
+            dob='$dob', gender='$gender', nationality='$nationality', languages='$languages',
+            business_name='$businessName', registered_business_name='$registeredBusiness', owner_name='$ownerName',
+            phone='$phone', bio='$bio', website='$website', email='$email',
+            state_residence='$state', lga='$lga', address='$address', facebook='$facebook', twitter='$twitter',
+            instagram='$instagram', linkedin='$linkedin',
+            professional_title='$professionalTitle', professional_field='$professional_field', qualification='$qualification',
+            institution='$institution', graduation_year='$graduationYear', certifications='$certifications',
+            associations='$associations', experience_years='$experience', specializations='$specializations',
+            sub_specialization='$sub_specialization', work_with='$workWith', session_format='$sessionFormat',
+            consultation_days='$consultation_info', session_duration='$sessionDuration', rate='$rate',
+            cv='$cvFile', license='$licenseFile', passport='$photoFile', portfolio='$portfolioCSV',
+            status='$newStatus',
+            suspend_reason='$suspendReason'
+    ";
+
+    // Append FILE updates ONLY if new file uploaded
+    if ($businessLogo !== null) {
+        $sql .= ", business_logo='$businessLogo'";
+    }
+
+    if ($photopictures !== null) {
+        $sql .= ", photo='$photopictures'";
+    }
+
+    $sql .= " WHERE id='$userId'";
+
+    // SEND EMAIL ON STATUS CHANGE
+    if ($oldStatus !== $newStatus) {
+
+        if ($newStatus === 'active') {
+            $emailSubject = "Your $siteName Account is Now Active!";
+            $emailMessage = "
+                <p>Your account has been activated.</p>
+                <p>You can now log in:</p>
+                <p><a href='{$siteurl}login.php'>Login</a></p>
+            ";
+            sendEmail($userEmail, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject);
+        }
+
+        if ($newStatus === 'suspended') {
+            $emailSubject = "Your $siteName Account Has Been Suspended";
+            $emailMessage = "
+                <p>Your account has been <strong>suspended</strong>.</p>
+                <p><strong>Reason:</strong> $suspendReason</p>
+                <p>If this is a mistake, contact: $siteMail</p>
+            ";
+            sendEmail($userEmail, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject);
+        }
+    }
+
+    // RUN UPDATE
+    if (mysqli_query($con, $sql)) {
+        return ['status' => 'success', 'messages' => 'Therapist updated successfully!'];
+    } else {
+        return ['status' => 'error', 'messages' => 'Database error: ' . mysqli_error($con)];
+    }
+}
+
+
+
+
+
+function updateMainTherapistEndpoint($postData, $filesData) {
+    global $con, $siteprefix, $siteurl, $siteName, $siteMail;
+
+    $userId = intval($postData['user_id']);
+
+    // FETCH OLD DATA
+    $oldQ = mysqli_query($con, "SELECT * FROM {$siteprefix}users WHERE id='$userId' LIMIT 1");
+    $old = mysqli_fetch_assoc($oldQ);
+
+    if (!$old) {
+        return ['status' => 'error', 'messages' => 'Invalid user'];
+    }
+
+    // Save old values
+    $oldStatus = $old['status'];
+    $oldEmail  = $old['email'];
+
+    $userEmail = $oldEmail;
+
+    // SANITIZE INPUT
+    $title        = mysqli_real_escape_string($con, $postData['title']);
+    $bank_name = mysqli_real_escape_string($con, $postData['bank_name']);
+    $bank_accname = mysqli_real_escape_string($con, $postData['bank_accname']);
+    $bank_number = mysqli_real_escape_string($con, $postData['bank_number']);
+    $bio          = mysqli_real_escape_string($con, $postData['bio']);
+    $firstName    = mysqli_real_escape_string($con, $postData['first_name']);
+    $middleName   = mysqli_real_escape_string($con, $postData['middle_name']);
+    $lastName     = mysqli_real_escape_string($con, $postData['last_name']);
+    $dob          = mysqli_real_escape_string($con, $postData['dob']);
+    $gender       = mysqli_real_escape_string($con, $postData['gender']);
+    $nationality  = mysqli_real_escape_string($con, $postData['nationality']);
+    $languages    = mysqli_real_escape_string($con, $postData['languages']);
+
+    // CONTACT
+    $businessName       = mysqli_real_escape_string($con, $postData['business_name']);
+    $registeredBusiness = mysqli_real_escape_string($con, $postData['registered_business_name']);
+    $ownerName          = mysqli_real_escape_string($con, $postData['owner_name']);
+    $phone              = mysqli_real_escape_string($con, $postData['phone']);
+    $website            = mysqli_real_escape_string($con, $postData['website']);
+    $email              = mysqli_real_escape_string($con, $postData['email']);
+    $state              = mysqli_real_escape_string($con, $postData['state']);
+    $lga                = mysqli_real_escape_string($con, $postData['lga']);
+    $address            = mysqli_real_escape_string($con, $postData['address']);
+
+    // SOCIALS
+    $facebook  = mysqli_real_escape_string($con, $postData['facebook']);
+    $twitter   = mysqli_real_escape_string($con, $postData['twitter']);
+    $instagram = mysqli_real_escape_string($con, $postData['instagram']);
+    $linkedin  = mysqli_real_escape_string($con, $postData['linkedin']);
+
+    // PROFESSIONAL
+    $professionalTitle = is_array($postData['professional_title']) ? implode(',', $postData['professional_title']) : '';
+
+    $qualification = mysqli_real_escape_string($con, $postData['highest_qualification']);
+    if ($qualification === 'Other' && !empty($postData['other_qualification'])) {
+        $qualification = mysqli_real_escape_string($con, $postData['other_qualification']);
+    }
+
+    $institution      = mysqli_real_escape_string($con, $postData['institution']);
+    $graduationYear   = mysqli_real_escape_string($con, $postData['graduation_year']);
+    $certifications   = mysqli_real_escape_string($con, $postData['certifications']);
+    $associations     = mysqli_real_escape_string($con, $postData['associations']);
+    $experience       = mysqli_real_escape_string($con, $postData['experience']);
+    $sessionFormat    = mysqli_real_escape_string($con, $postData['session_format']);
+
+    // SCHEDULE
+    $preferred_days = isset($postData['preferred_days']) ? implode(', ', $postData['preferred_days']) : '';
+    $start_time = $postData['start_time'] ?? '';
+    $end_time   = $postData['end_time'] ?? '';
+    $consultation_info = "$preferred_days | $start_time - $end_time";
+
+    $sessionDuration = mysqli_real_escape_string($con, $postData['session_duration']);
+    $rate            = mysqli_real_escape_string($con, $postData['rate']);
+
+    $professional_field = is_array($postData['professional_field']) ? implode(',', $postData['professional_field']) : '';
+    $specializations    = is_array($postData['specializations']) ? implode(',', $postData['specializations']) : '';
+    $sub_specialization = is_array($postData['sub_specialization']) ? implode(',', $postData['sub_specialization']) : '';
+
+    // WORK WITH
+    $workWith = '';
+    if (!empty($postData['work_with'])) {
+        if ($postData['work_with'] === 'Other' && !empty($postData['other_work'])) {
+            $workWith = mysqli_real_escape_string($con, $postData['other_work']);
+        } else {
+            $workWith = mysqli_real_escape_string($con, $postData['work_with']);
+        }
+    }
+
+ 
+
+    if ($email !== $oldEmail) {
+        $emailCheck = mysqli_query($con, "SELECT id FROM {$siteprefix}users WHERE email='$email' AND id!='$userId'");
+        if (mysqli_num_rows($emailCheck) > 0) {
+            return ['status' => 'error', 'messages' => 'Email already exists for another user'];
+        }
+        $userEmail = $email;
+    }
+
+    // FILE UPLOADS
+    $targetDir = "../uploads/";
+
+    // Initialize as null so they won't update DB unless new file uploaded
+    $businessLogo = null;
+    $photopictures = null;
+
+    // Business logo
+    if (!empty($filesData["business_logo"]["name"])) {
+        $businessLogo = uniqid() . '_' . basename($filesData["business_logo"]["name"]);
+        move_uploaded_file($filesData["business_logo"]["tmp_name"], $targetDir . $businessLogo);
+    }
+
+    // Photo
+    if (!empty($filesData["photos"]["name"])) {
+        $photopictures = uniqid() . '_' . basename($filesData["photos"]["name"]);
+        move_uploaded_file($filesData["photos"]["tmp_name"], $targetDir . $photopictures);
+    }
+
+    // Passport, CV, License
+    $photoFile   = uploadFile($filesData['passport'], $targetDir) ?: $old['passport'];
+    $cvFile      = uploadFile($filesData['cv'], $targetDir) ?: $old['cv'];
+    $licenseFile = uploadFile($filesData['license'], $targetDir) ?: $old['license'];
+
+    // Portfolio
+    $oldPortfolio = !empty($old['portfolio']) ? explode(",", $old['portfolio']) : [];
+
+    if (!empty($postData['remove_files'])) {
+        $removeFiles = explode(",", $postData['remove_files']);
+        foreach ($removeFiles as $rf) {
+            $rf = trim($rf);
+            $filePath = $targetDir . $rf;
+            if (file_exists($filePath)) unlink($filePath);
+
+            $oldPortfolio = array_diff($oldPortfolio, [$rf]);
+        }
+    }
+
+    if (!empty($filesData['portfolio']['name'][0])) {
+        foreach ($filesData['portfolio']['name'] as $key => $fileName) {
+            $newName = uniqid() . "_" . basename($fileName);
+            $dest = $targetDir . $newName;
+
+            if (move_uploaded_file($filesData['portfolio']['tmp_name'][$key], $dest)) {
+                $oldPortfolio[] = $newName;
+            }
+        }
+    }
+
+    $portfolioCSV = implode(",", $oldPortfolio);
+
+    // BUILD UPDATE QUERY
+    $sql = "
+        UPDATE {$siteprefix}users SET
+            title='$title', first_name='$firstName', middle_name='$middleName', last_name='$lastName',
+            dob='$dob', gender='$gender', nationality='$nationality', languages='$languages',
+            business_name='$businessName', registered_business_name='$registeredBusiness', owner_name='$ownerName',
+            phone='$phone', bio='$bio', website='$website', email='$email',
+            state_residence='$state', lga='$lga', address='$address', facebook='$facebook', twitter='$twitter',
+            instagram='$instagram', linkedin='$linkedin',
+            professional_title='$professionalTitle', professional_field='$professional_field', qualification='$qualification',
+            institution='$institution', graduation_year='$graduationYear', certifications='$certifications',
+            associations='$associations', experience_years='$experience', specializations='$specializations',
+            sub_specialization='$sub_specialization', work_with='$workWith', session_format='$sessionFormat', bank_name = '$bank_name',
+            bank_accname = '$bank_accname',
+            bank_number = '$bank_number',
+            consultation_days='$consultation_info', session_duration='$sessionDuration', rate='$rate',
+            cv='$cvFile', license='$licenseFile', passport='$photoFile', portfolio='$portfolioCSV'
+    ";
+
+    // Append FILE updates ONLY if new file uploaded
+    if ($businessLogo !== null) {
+        $sql .= ", business_logo='$businessLogo'";
+    }
+
+    if ($photopictures !== null) {
+        $sql .= ", photo='$photopictures'";
+    }
+
+    $sql .= " WHERE id='$userId'";
+
+   
+
+    // RUN UPDATE
+    if (mysqli_query($con, $sql)) {
+        return ['status' => 'success', 'messages' => 'Profile updated successfully!'];
+    } else {
+        return ['status' => 'error', 'messages' => 'Database error: ' . mysqli_error($con)];
+    }
+}
+
 function updateVendorEndpoint($postData, $filesData) {
     global $con, $siteprefix, $siteurl, $siteName, $siteMail;
 
@@ -5471,6 +7211,7 @@ function updateVendorEndpoint($postData, $filesData) {
     $website            = mysqli_real_escape_string($con, $postData['website']);
     $email              = mysqli_real_escape_string($con, $postData['email']);
     $stateResidence     = mysqli_real_escape_string($con, $postData['state_residence']);
+    $lga = mysqli_real_escape_string($con, $postData['lga']);
     $address            = mysqli_real_escape_string($con, $postData['address']);
     $facebook           = mysqli_real_escape_string($con, $postData['facebook']);
     $twitter            = mysqli_real_escape_string($con, $postData['twitter']);
@@ -5483,7 +7224,10 @@ function updateVendorEndpoint($postData, $filesData) {
     $experience         = mysqli_real_escape_string($con, $postData['experience_years']);
     $coverage           = isset($postData['coverage']) ? mysqli_real_escape_string($con, implode(",", $postData['coverage'])) : '';
     $onsite             = mysqli_real_escape_string($con, $postData['onsite']);
-    $availability       = mysqli_real_escape_string($con, $postData['availability']);
+     $preferred_days = isset($_POST['preferred_days']) ? implode(', ', $_POST['preferred_days']) : '';
+    $start_time = $_POST['start_time'] ?? '';
+    $end_time = $_POST['end_time'] ?? '';
+    $availability = "$preferred_days | $start_time - $end_time ";
     $newStatus          = mysqli_real_escape_string($con, trim($postData['status'] ?? $oldData['status']));
     $suspendReason      = mysqli_real_escape_string($con, $postData['suspend_reason'] ?? '');
 
@@ -5532,7 +7276,7 @@ function updateVendorEndpoint($postData, $filesData) {
         business_logo='$logoFile', portfolio='$portfolioCSV', phone='$phone', website='$website', email='$email',
         state_residence='$stateResidence', address='$address', facebook='$facebook', twitter='$twitter',
         instagram='$instagram', linkedin='$linkedin', category_id='$categoryId', subcategory_id='$subcategoryId',
-        services='$services', experience_years='$experience', coverage='$coverage', onsite='$onsite',
+        services='$services', experience_years='$experience', coverage='$coverage', onsite='$onsite',lga = '$lga',
         availability='$availability', consent='$consent', status='$newStatus'
         WHERE id = $vendorId";
 
@@ -5584,6 +7328,7 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
     $minimum_withdrawal = mysqli_real_escape_string($con, trim($postData['minimum_withdrawal'] ?? ''));
     $paystack_key = mysqli_real_escape_string($con, trim($postData['paystack_key'] ?? ''));
     $google_map = mysqli_real_escape_string($con, trim($postData['google_map'] ?? ''));
+    $site_address = mysqli_real_escape_string($con, trim($postData['address'] ?? ''));
     $com_fee = floatval($postData['com_fee'] ?? 0);
     $affiliate_percentage = floatval($postData['affiliate_percentage'] ?? 0);
     $tinymce = mysqli_real_escape_string($con, trim($postData['tinymce'] ?? ''));
@@ -5631,6 +7376,7 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
         paystack_key = '$paystack_key',
         account_name='$account_name',
         account_number='$account_number',
+        site_address='$site_address',
         terms_policy = '$terms',
         privacy_policy = '$privacy',
         minimum_withdrawal='$minimum_withdrawal',
@@ -5711,6 +7457,50 @@ function getWalletTotals($con, $user_id) {
         'total_dispute_amount' => $total_dispute_amount
     ];
 }
+
+
+//delete portfollio
+function deletePortfolioEndpoint($postData) {
+    global $con, $siteprefix, $imagePath;
+
+    if (!isset($postData["file"]) || !isset($postData["user_id"])) {
+        return "Missing file or user ID.";
+    }
+
+    $file = mysqli_real_escape_string($con, $postData["file"]);
+    $userId = intval($postData["user_id"]);
+
+    // Fetch portfolio list
+    $q = mysqli_query($con, "SELECT portfolio FROM {$siteprefix}users WHERE id='$userId'");
+    $row = mysqli_fetch_assoc($q);
+
+    if (!$row) return "User not found.";
+
+    $portfolio = $row['portfolio'];
+    $files = array_filter(array_map('trim', explode(",", $portfolio)));
+
+    // remove selected file
+    $newList = [];
+    foreach ($files as $f) {
+        if ($f !== $file) {
+            $newList[] = $f;
+        }
+    }
+
+    $updated = implode(",", $newList);
+
+    // update DB
+    mysqli_query($con, "UPDATE {$siteprefix}users SET portfolio='$updated' WHERE id='$userId'");
+
+    // delete physical file
+    $fullPath = $_SERVER['DOCUMENT_ROOT'] . $imagePath . $file;
+    if (file_exists($fullPath)) {
+        unlink($fullPath);
+    }
+
+    return "File deleted successfully.";
+}
+
 
 //edit group
 function updateAdminGroupEndpoint($postData, $fileData) {
@@ -5805,6 +7595,86 @@ function updateAdminGroupEndpoint($postData, $fileData) {
         return ['status' => 'error', 'messages' => $messages];
     }
 }
+
+
+// get events
+function getSingleEventEndpoint($event_id) {
+    global $con, $siteprefix;
+
+$event_id = mysqli_real_escape_string($con, $event_id);
+
+    // MAIN EVENT
+    $main = mysqli_query($con,
+        "SELECT * FROM {$siteprefix}events WHERE event_id='$event_id' LIMIT 1"
+    );
+
+    if (!mysqli_num_rows($main)) {
+        return ['status' => 'error', 'message' => 'Event not found'];
+    }
+
+    $event = mysqli_fetch_assoc($main);
+
+    // IMAGES
+    $images = [];
+    $imgQ = mysqli_query($con,
+        "SELECT image_path FROM {$siteprefix}events_images WHERE event_id='$event_id'"
+    );
+    while ($row = mysqli_fetch_assoc($imgQ)) {
+        $images[] = $row['image_path'];
+    }
+
+    // DATES
+    $dates = [];
+    $dateQ = mysqli_query($con,
+        "SELECT event_date, start_time, end_time 
+         FROM {$siteprefix}event_dates WHERE event_id='$event_id'"
+    );
+    while ($row = mysqli_fetch_assoc($dateQ)) {
+        $dates[] = $row;
+    }
+
+    // TICKETS
+    $tickets = [];
+    $ticketQ = mysqli_query($con,
+        "SELECT ticket_name, benefits, price, seats 
+         FROM {$siteprefix}event_tickets WHERE event_id='$event_id'"
+    );
+    while ($row = mysqli_fetch_assoc($ticketQ)) {
+        $tickets[] = $row;
+    }
+
+    // VIDEO MODULES
+    $videos = [];
+    $vQ = mysqli_query($con,
+        "SELECT * FROM {$siteprefix}event_video_modules 
+         WHERE event_id='$event_id'"
+    );
+    while ($row = mysqli_fetch_assoc($vQ)) {
+        $videos[] = $row;
+    }
+
+    // TEXT MODULES
+    $texts = [];
+    $tQ = mysqli_query($con,
+        "SELECT * FROM {$siteprefix}event_text_modules 
+         WHERE event_id='$event_id'"
+    );
+    while ($row = mysqli_fetch_assoc($tQ)) {
+        $texts[] = $row;
+    }
+
+    return [
+        'status' => 'success',
+        'event' => $event,
+        'images' => $images,
+        'dates' => $dates,
+        'tickets' => $tickets,
+        'videos' => $videos,
+        'texts' => $texts
+    ];
+}
+
+
 
 
 // get listings
@@ -5991,6 +7861,151 @@ function updatenewAdminGroupEndpoint($postData, $fileData) {
 
     return ['status' => 'success', 'messages' => generateMessage("Group updated successfully.", "green")];
 }
+
+function getAllEventsfiltering($con)
+{
+    global $siteprefix;
+
+    $query = "
+        SELECT 
+            t.*,
+            u.first_name,
+            u.last_name,
+            u.photo,
+
+            -- ALL PRICES
+            (
+                SELECT GROUP_CONCAT(price ORDER BY price ASC)
+                FROM {$siteprefix}event_tickets AS tt
+                WHERE tt.event_id = t.event_id
+            ) AS prices,
+
+            et.name AS event_type_name,
+
+            -- Featured Image
+            (
+                SELECT image_path
+                FROM {$siteprefix}events_images AS ti
+                WHERE ti.event_id = t.event_id
+                ORDER BY ti.id ASC
+                LIMIT 1
+            ) AS featured_image,
+
+            -- Next upcoming date + start time + end time
+            (
+                SELECT CONCAT(d.event_date, '|', d.start_time, '|', d.end_time)
+                FROM {$siteprefix}event_dates AS d
+                WHERE d.event_id = t.event_id
+                  AND d.event_date >= CURDATE()
+                ORDER BY d.event_date ASC
+                LIMIT 1
+            ) AS next_event_date_time,
+
+            -- Category names
+            (
+                SELECT GROUP_CONCAT(category_name ORDER BY id ASC)
+                FROM {$siteprefix}event_categories
+                WHERE FIND_IN_SET(id, t.categories)
+            ) AS category_names,
+
+            -- Subcategory names
+            (
+                SELECT GROUP_CONCAT(subcategory_name ORDER BY id ASC)
+                FROM {$siteprefix}event_subcategories
+                WHERE FIND_IN_SET(id, t.subcategories)
+            ) AS subcategory_names
+
+        FROM {$siteprefix}events t
+        LEFT JOIN {$siteprefix}users u ON t.user_id = u.id
+        LEFT JOIN {$siteprefix}event_types et ON t.event_type = et.name
+        GROUP BY t.event_id
+        ORDER BY t.created_at DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $rows = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    return ['error' => mysqli_error($con)];
+}
+
+
+function getAllEvents($con)
+{
+    global $siteprefix;
+
+    $query = "
+        SELECT 
+            t.*,
+            u.first_name,
+            u.last_name,
+            u.photo,
+
+            -- ALL PRICES
+            (
+                SELECT GROUP_CONCAT(price ORDER BY price ASC)
+                FROM {$siteprefix}event_tickets AS tt
+                WHERE tt.event_id = t.event_id
+            ) AS prices,
+
+            et.name AS event_type_name,
+
+            -- Featured Image
+            (
+                SELECT image_path
+                FROM {$siteprefix}events_images AS ti
+                WHERE ti.event_id = t.event_id
+                ORDER BY ti.id ASC
+                LIMIT 1
+            ) AS featured_image,
+
+            -- Next upcoming date + start time + end time (paired)
+            (
+                SELECT CONCAT(d.event_date, '|', d.start_time, '|', d.end_time)
+                FROM {$siteprefix}event_dates AS d
+                WHERE d.event_id = t.event_id
+                  AND d.event_date >= CURDATE()
+                ORDER BY d.event_date ASC
+                LIMIT 1
+            ) AS next_event_date_time,
+
+            -- All category names
+            (
+                SELECT GROUP_CONCAT(category_name ORDER BY id ASC)
+                FROM {$siteprefix}event_categories
+                WHERE FIND_IN_SET(id, t.categories)
+            ) AS category_names
+
+        FROM {$siteprefix}events t
+        LEFT JOIN {$siteprefix}users u ON t.user_id = u.id
+        LEFT JOIN {$siteprefix}event_types et ON t.event_type = et.name
+        GROUP BY t.event_id
+        ORDER BY t.created_at DESC
+    ";
+
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $rows = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    return ['error' => mysqli_error($con)];
+}
+
+
+
+
+
 
 function addListingEndpoint($postData, $fileData) {
     global $con, $siteprefix;
@@ -6594,6 +8609,45 @@ function updateCategoryEndpoint($postData) {
 }
 
 
+function saveArticleFeedback($post)
+{
+    global $con, $siteprefix;
+
+    if (!isset($post['content_id'], $post['vote'], $post['content_type'])) {
+        return "Invalid request.";
+    }
+
+    $content_id = intval($post['content_id']);
+    $content_type = mysqli_real_escape_string($con, $post['content_type']);
+    $vote = ($post['vote'] == "yes") ? "yes" : "no";
+
+    $user_id = $post['user_id'] ?? null; 
+    $user_ip = $_SERVER['REMOTE_ADDR'];
+
+    // Prevent duplicate vote
+    $check = mysqli_query($con, "
+        SELECT id FROM {$siteprefix}feedback
+        WHERE content_id = '$content_id'
+        AND content_type = '$content_type'
+        AND (user_id = '$user_id' OR user_ip = '$user_ip')
+    ");
+
+    if (mysqli_num_rows($check) > 0) {
+        return "Thank you. You already voted.";
+    }
+
+    // Insert new vote
+    $insert = mysqli_query($con, "
+        INSERT INTO {$siteprefix}feedback 
+        (content_id, content_type, user_id, user_ip, vote)
+        VALUES ('$content_id', '$content_type', " . ($user_id ? "'$user_id'" : "NULL") . ", '$user_ip', '$vote')
+    ");
+
+    return $insert ? "Thank you for your feedback!" : "Error saving feedback.";
+}
+
+
+
 function updateListingEndpoint($postData, $fileData) {
     global $con, $siteprefix;
 
@@ -6842,7 +8896,7 @@ function updatevendorBlogEndpoint($postData, $fileData)
     $oldTitle = $blog['title'];
 
     // ✅ If trying to set active, enforce article limit
-    if ($status === 'active') {
+
         // Get user's allowed active post limit (if applicable)
         $limitQuery = mysqli_query($con, "SELECT article_limit FROM {$siteprefix}users WHERE id = '$authorId' LIMIT 1");
         $limitData = mysqli_fetch_assoc($limitQuery);
@@ -6861,7 +8915,7 @@ function updatevendorBlogEndpoint($postData, $fileData)
                 return ['status' => 'error', 'messages' => generateMessage("You’ve reached your active article limit ({$articleLimit}). Please deactivate another before activating this one.", "red")];
             }
         }
-    }
+    
 
     // ✅ Handle image upload if new file is provided
     $featuredImageSql = '';
@@ -7005,6 +9059,19 @@ function addViews($con, $slug) {
     }
 }
 
+function adduserViews($con, $slug) {  
+    global $siteprefix;
+
+    // Increment view count
+    $updateQuery = "UPDATE {$siteprefix}users SET views = views + 1 WHERE slug = '$slug'";
+
+    if (mysqli_query($con, $updateQuery)) {
+        return ['status' => 'success'];
+    } else {
+        return ['status' => 'error', 'message' => mysqli_error($con)];
+    }
+}
+
 
 function addViewsquestion($con, $slug) {  
     global $siteprefix;
@@ -7034,6 +9101,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'addviewsquest') {
     } 
 }
 
+if (isset($_GET['action']) && $_GET['action'] == 'adduserviews') {
+
+
+    if (!empty($_GET['slug'])) {
+        $response = adduserViews($con, $_GET['slug']);
+    } 
+}
 
 if (isset($_GET['action']) && $_GET['action'] == 'getlistingsbyuser') {
     if (!empty($_GET['user_id'])) {
@@ -7071,11 +9145,31 @@ if (isset($_GET['action']) && $_GET['action'] == 'getuserorders') {
     }
 }
 
+if (isset($_GET['action']) && $_GET['action'] == 'getuseradverts') {
+    if (!empty($_GET['user_id'])) {
+$response= getAlladversuser($con, $_GET['user_id']);
+}
+}
+
 if (isset($_GET['action']) && $_GET['action'] == 'getorderitems') {
     if (!empty($_GET['order_id'])) {
         $response = getOrderItems($con, $_GET['order_id']);
     }
 }
+
+if (isset($_GET['action']) && $_GET['action'] == 'getusermanualpayments') {
+    if (!empty($_GET['user_id'])) {
+        $response = getAllusermanualPayment($con, $_GET['user_id']);
+    }
+}
+
+
+if (isset($_GET['action']) && $_GET['action'] == 'getuserbookmarks') {
+    if (!empty($_GET['user_id'])) {
+        $response = getAlluserbookmarks($con, $_GET['user_id']);
+    }
+}
+
 
 
 if (isset($_GET['action']) && $_GET['action'] == 'groupuserstatus') {
@@ -7085,6 +9179,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'groupuserstatus') {
 }
 
 
+if (isset($_GET['action']) && $_GET['action'] === 'dashboardstats') {
+    $response = getDashboardStats($con);
+}
+
+if ($_GET['action'] == 'useradvertlists') {
+              $response = getAlladverts($con);}
+
 
 if ($_GET['action'] == 'questionlists') {
               $response = getallquestions($con);} 
@@ -7093,9 +9194,21 @@ if ($_GET['action'] == 'advertlists') {
               $response = getalladplacements($con);} 
               
 
+          if ($_GET['action'] == 'subscriberlists') {
+              $response = getallsubscribers($con);
+          }
+
     if ($_GET['action'] == 'subscriptionlists') {
     $response = getallsubscriptions($con);
 }
+
+
+
+    if ($_GET['action'] == 'Allorderlists') {
+    $response = getAllOrders($con);
+}
+
+
 
 
 if ($_GET['action'] == 'fetchlistingslug') {
@@ -7104,6 +9217,12 @@ if ($_GET['action'] == 'fetchlistingslug') {
         : ['error' => 'Slug is required'];
 }
 
+
+if ($_GET['action'] == 'fetcheventslug') {
+    $response = isset($_GET['slug']) 
+        ? getAllEventsbyslug($con, $_GET['slug']) 
+        : ['error' => 'Slug is required'];
+}
 
 if ($_GET['action'] == 'listinglists') {
     // Read filter params (from marketplace GET form)
@@ -7118,6 +9237,11 @@ if ($_GET['action'] == 'listinglists') {
         'ajax' => isset($_GET['ajax']) && $_GET['ajax'] == '1',
     ];
     $response = getAllListingsFiltered($con, $filters);
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'registered_events') {
+    $user_id = $_GET['user_id'];
+    $response = getRegisteredEvents($con, $user_id);
 }
 
 if ($_GET['action'] == 'listing_price_bounds') {
@@ -7169,6 +9293,12 @@ if ($_GET['action'] == 'subcategory_list' && (isset($_GET['category_id']) || iss
             : ['status' => 'error', 'message' => 'Listing ID is required'];
     } 
 
+     if ($_GET['action'] === 'editevent') {
+        $response = isset($_GET['event_id'])
+            ? getSingleEventEndpoint($_GET['event_id'])
+            : ['status' => 'error', 'message' => 'Event ID is required'];
+    } 
+
 if (isset($_GET['action']) && $_GET['action'] === 'all_seller_product_reviews') {
     if (isset($_GET['seller_id'])) {
         $response = fetchSellerProductReviews($_GET['seller_id']);
@@ -7199,12 +9329,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_review_by_id') {
 }
 
  if ($_GET['action'] == 'mylists') {
-              $response = getAllListings($con);}
+$response = getAllListings($con);}
 
-      if ($_GET['action'] == 'bloglists') {
-              $response = getallblog($con);}
+if ($_GET['action'] == 'eventlists') {
+$response = getAllEvents($con);}
 
-    if ($_GET['action'] == 'disputeslists') {     
+if ($_GET['action'] == 'eventfiltering') {
+$response = getAllEventsfiltering($con);
+}
+
+if ($_GET['action'] == 'bloglists') {
+$response = getallblog($con);}
+
+if ($_GET['action'] == 'disputeslists') {     
     $response = getalldisputestickets($con);
  }
 
@@ -7272,7 +9409,8 @@ $response = isset($_GET['booking_id']) ? getbookingsID($con, $_GET['booking_id']
      if ($_GET['action'] == 'editblog') {  
         $response = isset($_GET['blog_id']) ? getblogID($con, $_GET['blog_id']) : ['error' => 'Blog ID is required'];}
 
-
+if ($_GET['action'] == 'blogmultiple') {  
+        $response = isset($_GET['blog_id']) ? getmultipleblogID($con, $_GET['blog_id']) : ['error' => 'Blog ID is required'];}
 
         if ($_GET['action'] == 'editadverts') {  
         $response = isset($_GET['advert_id']) ? getadvertsID($con, $_GET['advert_id']) : ['error' => 'Advert ID is required'];}
@@ -7421,7 +9559,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
        $response =  updateBlogEndpoint($_POST, $_FILES);
         }
 
- if ($_POST['action'] == 'updatebooking') {
+        if ($_POST['action'] == 'updatetherapist') {
+       $response =  updateTherapistEndpoint($_POST, $_FILES);
+        }
+
+        if ($_POST['action'] == 'edittherapist') {
+         $response =  updateMainTherapistEndpoint($_POST, $_FILES);
+          }
+
+      if ($_POST['action'] == 'updatebooking') {
        $response =  updateBookingEndpoint($_POST, $_FILES);
         }
 
@@ -7440,10 +9586,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
       if ($_POST['action'] == 'addvendorforum') {
         $response = addvendorForumEndpoint($_POST, $_FILES);
     }
-    
+
+    if ($_POST['action'] == 'download_subscribers_csv') {
+        downloadSubscribersCSVEndpoint($_POST);
+    }
 
     if($_POST['action'] == 'deleteblog'){
     $response = deleteblogEndpoint($_POST);}
+
+     if($_POST['action'] == 'report_item'){
+    $response = reportItem($_POST);}
 
         if($_POST['action'] == 'deletereviews'){
     $response = deletereviewEndpoint($_POST);}
@@ -7452,12 +9604,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
       if($_POST['action'] == 'deletelistings'){
     $response = deletelistingEndpoint($_POST);}
 
+     if($_POST['action'] == 'deleteevents'){
+    $response = deleteeventEndpoint($_POST);}
+
+      if($_POST['action'] == 'acceptanswer'){
+     $response = acceptAnswerEndpoint($_POST);}
+
+     if ($_POST['action'] == 'acceptbest') {
+    $response = acceptBestAnswerEndpoint($_POST);
+}
+
         if($_POST['action'] == 'editplacement'){
     $response = editAdPlacementEndpoint($_POST);
         }
 
         if($_POST['action'] == 'deleteadvert'){
     $response = deleteadvertEndpoint($_POST);}
+
+    if($_POST['action'] == 'report_user'){
+    $response = reportUser($_POST);
+}
 
     
 
@@ -7486,7 +9652,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
     
     if($_POST['action'] == 'deletegroupmembers'){
-    $response =  deletegroupmembersEndpoint($_POST);} 
+    $response =  deletegroupmembersEndpoint($_POST);}
+    
+    
+if ($_POST['action'] == 'deletePortfolio') {
+   $response = deletePortfolioEndpoint($_POST);
+}
 
     
      if($_POST['action'] == 'join-group'){
@@ -7499,6 +9670,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
   if($_POST['action'] == 'approve-booking'){
     $response = approvebookings($_POST);
+}
+
+
+  if($_POST['action'] == 'approve-advert'){
+    $response = approveAdverts($_POST);
+}
+
+if($_POST['action'] == 'reject-advert'){
+    $response = rejectAdvert($_POST);
 }
 
 if($_POST['action'] == 'updatewallet'){
@@ -7514,6 +9694,10 @@ if($_POST['action'] == 'updatewallet'){
 }
   if($_POST['action'] == 'approvewallet'){
     $response = approvewithdrawal($_POST);
+}
+
+if(isset($_POST['action']) && ($_POST['action'] === 'follow' || $_POST['action'] === 'unfollow')) {
+    $response = handleFollow($_POST);
 }
 
 if ($_POST["action"] == "create-advert-order") {
@@ -7564,6 +9748,10 @@ if($_POST['action'] == 'editcategoryadmin'){
     if($_POST['action'] == 'withdraw'){
     $response = withdrawWalletEndpoint($_POST);}
 
+if($_POST['action'] == 'bookmark'){
+    $response = handleBookmark($_POST);
+}
+
      if($_POST['action'] == 'updategroupmember'){
     $response = updatememberEndpoint($_POST);}
 
@@ -7585,6 +9773,21 @@ if($_POST['action'] == 'edit_newadmingroup'){
         $response = deleteimageEndpoint($_POST);
     }
 
+
+  if ($_POST['action'] == 'deletemedia') {
+        $response = deleteeventimageEndpoint($_POST);
+    }
+    
+  if ($_POST['action'] == 'deleteeventvideo') {
+    $response = deleteeventvideoEndpoint($_POST);
+    }
+
+    
+  if ($_POST['action'] == 'deleteeventtext') {
+    $response = deleteeventtextEndpoint($_POST);
+    }
+
+
     if($_POST['action'] == 'rejectmanual'){
         $response = rejectManualPayment($_POST);
     }
@@ -7602,8 +9805,12 @@ if($_POST['action'] == 'edit_newadmingroup'){
     if($_POST['action'] == 'editsubcategoryadmin'){
     $response = updateSubCategoryEndpoint($_POST);} 
 
-   
 
+    if($_POST['action'] == 'articlefeedback'){
+    $response = saveArticleFeedback($_POST);
+}
+
+   
      if($_POST['action'] == 'edit_adminvendor'){
     $response = updateVendorEndpoint($_POST, $_FILES);}  
 
@@ -7633,8 +9840,12 @@ if($_POST['action'] == 'edit_newadmingroup'){
     if ($_POST['action'] == 'markAllNotificationsRead') {
         $response = markAllNotificationsRead($_POST);
     }
-   
 
+
+    if ($_POST['action'] == 'subscribeNewsletter') {
+        $response = subscribeNewsletter($_POST);
+    }
+   
     if ($_POST['action'] == 'markuserNotificationsRead') {
           $response = markAlluserNotificationsRead($_POST);
      }

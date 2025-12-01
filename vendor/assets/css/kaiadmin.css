@@ -172,6 +172,12 @@ b, .b, strong, .strong {
   line-height: 1.8;
   margin-bottom: 25px; }
 
+  .small-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
 .text-primary, .text-primary a {
   color: #1572E8 !important; }
   .text-primary:hover, .text-primary a:hover {

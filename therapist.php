@@ -30,6 +30,10 @@ if (isset($_GET['slug'])) {
             $instagram = $userdetail->instagram ?? '';
             $linkedin = $userdetail->linkedin ?? '';
             $phone = $userdetail->phone ?? '';
+            $total_articles = intval($userdetail->total_articles ?? 0);
+            $total_questions = intval($userdetail->total_questions ?? 0);
+            $total_answers = intval($userdetail->total_answers ?? 0);
+            $best_answers = intval($userdetail->best_answers ?? 0);
             $avgRating = floatval($userdetail->avg_rating ?? 0);
             $reviewCount = intval($userdetail->review_count ?? 0);
             $address = $userdetail->address ?? '';
@@ -71,6 +75,15 @@ $fullStars = (int) floor($rounded);
 $halfStar = ($rounded - $fullStars) == 0.5 ? 1 : 0;
 $emptyStars = 5 - $fullStars - $halfStar;
 ?>
+
+<?php
+// Check if logged-in user follows the profile
+$followed = isFollowing($buyerId, $user_id);
+
+// Get follower/following count
+$followerCount = getFollowerCount($user_id);
+$followingCount = getFollowingCount($user_id);
+?>
     <!-- Instructor Profile Section -->
     <section id="instructor-profile" class="instructor-profile section">
 
@@ -100,6 +113,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
                   <div class="credentials">
                     <span class="credential"><?php echo $qualification; ?></span>
                     <span class="credential">Since <?php echo $experience_years; ?></span>
+                    <span class="credential"><?php echo $followerCount; ?> Followers | <?php echo $followingCount; ?> Following</span>
                   </div>
                               <div class="rating-overview mt-3">
               <div class="stars" aria-hidden="true">
@@ -124,12 +138,32 @@ $emptyStars = 5 - $fullStars - $halfStar;
                   }
                 ?>
               </span>
+        
             </div>
+        <div class="profile-stats d-flex gap-3 mt-2">
+        <p><strong>Articles:</strong> <?=$total_articles?></p>
+        <p><strong>Questions Asked:</strong> <?=$total_questions?></p>
+        <p><strong>Answers Given:</strong> <?=$total_answers?></p>
+        <p><strong>Best Answers:</strong> <?=$best_answers?></p>
+    </div>
                   <div class="contact-actions">
 
                    <a href="<?php echo $siteurl; ?>book-appointment/<?php echo $slug; ?>" class="btn-contact">
                                 <i class="bi bi-hand-index"></i> Book Me
                             </a>
+                            
+             <button id="followBtn" 
+        data-author-id="<?php echo $user_id; ?>" 
+        class="btn <?php echo $followed ? 'btn-secondary' : 'btn-primary'; ?>">
+            <?php echo $followed ? 'Unfollow' : 'Follow'; ?>
+        </button>
+
+         <?php if ($activeLog == 1): ?>
+                      <a type="button" class="btn btn-danger m-1" data-bs-toggle="modal" data-bs-target="#reportuserModal">
+                        <i class="bi bi-flag"></i> Report
+                      </a>
+                    
+                    <?php endif; ?>
                      <a href="mailto:<?php echo $email; ?>" class="btn-contact">
                                 <i class="bi bi-envelope"></i> Contact
                             </a>
@@ -162,6 +196,7 @@ $emptyStars = 5 - $fullStars - $halfStar;
                 <i class="bi bi-facebook"></i>
                 </a>
             <?php endif; ?>
+
 
             </div>
 
@@ -605,4 +640,56 @@ if ($data !== false) {
       </div>
 
     </section><!-- /Instructor Profile Section -->
+
+    <!-- Report Product Modal -->
+<div class="modal fade" id="reportuserModal" tabindex="-1" aria-labelledby="reportuserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="reportblogForm" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reportuserModalLabel">
+            Report Therapist: <?php echo htmlspecialchars($fullName); ?>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="report_message" class="text-center mb-2"></div>
+
+          <input type="hidden" name="action" value="report_user">
+          <!-- Reporter (logged in user) -->
+          <input type="hidden" name="reporter_id" value="<?php echo htmlspecialchars($buyerId); ?>">
+
+          <!-- User being reported (author) -->
+          <input type="hidden" name="reported_user_id" value="<?php echo htmlspecialchars($user_id); ?>">
+
+
+          <div class="mb-2">
+            <label for="reason" class="form-label">Reason for Reporting</label>
+            <select class="form-select" name="reason"  id="reason" required onchange="toggleCustomReason(this.value)">
+              <option value="">Select Reason</option>
+              <option value="Harassment or Abusive Behavior">Harassment or Abusive Behavior</option>
+              <option value="Spam or Misleading Information">Spam or Misleading Information</option>
+              <option value="Inappropriate or Offensive Profile">Inappropriate or Offensive Profile</option>
+              <option value="Impersonation or Fake Account">Impersonation or Fake Account</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="mb-2" id="customReasonContainer" style="display:none;">
+            <label for="custom_reason" class="form-label">Provide Details</label>
+            <textarea class="form-control" name="custom_reason" id="custom_reason" rows="3" placeholder="Describe the issue..."></textarea>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="submit_report" id="submitReport" class="btn btn-danger">Submit Report</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
 <?php include 'footer.php'; ?>

@@ -47,7 +47,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Site Description</label>
-                        <textarea name="site_description" class="form-control"><?php echo $sitedescription; ?></textarea>
+                        <textarea name="site_description" class="editor"><?php echo $sitedescription; ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Site Logo</label>
@@ -91,6 +91,11 @@
                        <div class="mb-3">
                       <label class="form-label">Seller's Minimum Withdrawal</label>
                       <input type="text" name="minimum_withdrawal" class="form-control" value="<?php echo $minimum_withdrawal; ?>">
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">Site Address</label>
+                      <textarea name="address" class="editor"><?= $site_address; ?></textarea>
                     </div>
 
                     <div class="mb-3">

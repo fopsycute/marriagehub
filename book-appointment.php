@@ -136,7 +136,7 @@ if (strpos($consultation_info, '|') !== false) {
                 <!-- Message -->
                 <div class="mb-3">
                     <label class="form-label">Brief Message (optional)</label>
-                    <teorm-controlxtarea name="message" class="f" rows="4" placeholder="Describe what you’d like to discuss..."></textarea>
+                    <textarea name="message" class="editor"  placeholder="Describe what you’d like to discuss..."></textarea>
                 </div>
 
                 <!-- Submit Button -->

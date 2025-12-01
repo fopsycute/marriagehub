@@ -32,6 +32,7 @@ if (isset($_GET['slug'])) {
             $groupdetail = $groupdetails[0]; 
             $group_id  = $groupdetail->id ?? '';
             $group_slug = $groupdetail-> slug;
+            $likeCount = $groupdetail->like_count ?? 0;
             $member_count = $groupdetail->member_count ?? 0;
             $avgRating = floatval($groupdetail->avg_rating ?? 0);
             $reviewCount = intval($groupdetail->review_count ?? 0);
@@ -44,6 +45,8 @@ if (isset($_GET['slug'])) {
             $fee_1m = $groupdetail->fee_1m ?? '';
             $fee_3m = $groupdetail->fee_3m ?? '';
             $fee_6m = $groupdetail->fee_6m ?? '';
+            $forum_count = $groupdetail->forum_count ?? '';
+            $question_count = $groupdetail->question_count ?? '';
             $fee_12m = $groupdetail->fee_12m ?? '';
             $group_rules = $groupdetail->group_rules ?? '';
             $groupCreatorId = $groupdetail->user_id ?? '';
@@ -128,6 +131,8 @@ $emptyStars = 5 - $fullStars - $halfStar;
                     <span class="credential"><?php echo $category; ?></span>
                     <span class="credential"><?php echo $subcategory; ?></span>
                     <span class="credential"><?php echo $member_count; ?> members</span>
+                    <span class="credential"><?php echo $forum_count; ?> forums</span>
+                    <span class="credential"><?php echo $question_count; ?> questions</span>
                   </div>
                   <div class="rating-overview mt-3">
               <div class="stars" aria-hidden="true">
@@ -154,10 +159,50 @@ $emptyStars = 5 - $fullStars - $halfStar;
               </span>
             </div>
 
-                 <div class="status-badge">
+                 <div class="status-badge d-inline-flex align-items-center gap-2">
                     <i class="bi bi-patch-check-fill"></i>
                     <span><?php echo $accessRole; ?></span>
                   </div>
+                  <!-- Share actions -->
+				  <div class="d-lg-flex gap-3">
+                  <div class="contact-actions ms-3">
+                    <?php
+                    $groupUrl = htmlspecialchars($siteurl . "group/" . urlencode($group_slug));
+                    $groupTitle = htmlspecialchars($group_name ?: 'Group');
+                    ?>
+                    <div class="btn-group share-group">
+                      <button type="button" class="btn btn-outline-primary btn-lg dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-share-fill"></i> Share
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end p-2">
+                        <li><a class="dropdown-item share-action" href="#" data-provider="native" data-url="<?php echo $groupUrl; ?>" data-title="<?php echo $groupTitle; ?>">Share (device)</a></li>
+                        <li><a class="dropdown-item share-action" href="#" data-provider="facebook" data-url="<?php echo $groupUrl; ?>" data-title="<?php echo $groupTitle; ?>">Facebook</a></li>
+                        <li><a class="dropdown-item share-action" href="#" data-provider="twitter" data-url="<?php echo $groupUrl; ?>" data-title="<?php echo $groupTitle; ?>">Twitter</a></li>
+                        <li><a class="dropdown-item share-action" href="#" data-provider="whatsapp" data-url="<?php echo $groupUrl; ?>" data-title="<?php echo $groupTitle; ?>">WhatsApp</a></li>
+                        <li><a class="dropdown-item share-action" href="#" data-provider="linkedin" data-url="<?php echo $groupUrl; ?>" data-title="<?php echo $groupTitle; ?>">LinkedIn</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item copy-link" href="#" data-url="<?php echo $groupUrl; ?>">Copy group link</a></li>
+                      </ul>
+                    </div>
+
+                            <button class="btn btn-outline-danger" id="likesBtn"
+                data-group-id="<?php echo $group_id; ?>"
+                data-likes-url="<?php echo $sitelink; ?>user.php">
+            <i class="bi bi-hand-thumbs-up"></i>
+            <span id="likeCounts"><?php echo $likeCount ?? 0; ?></span> Likes
+        </button>
+
+                  </div>
+
+                     <?php if ($activeLog == 1): ?>
+                      <a type="button" class="btn btn-danger m-1" data-bs-toggle="modal" data-bs-target="#reportitemModal">
+                        <i class="bi bi-flag"></i> Report
+                      </a>
+
+                    <?php endif; ?>
+
+    
+
 <?php
 if (!$canAccess) {
     if ($group_access == "free") {
@@ -214,6 +259,7 @@ if (!$canAccess) {
                   </div>
                   <?php } ?>
                 </div>
+				</div>
               </div>
             </div>
           </div>
@@ -222,7 +268,7 @@ if (!$canAccess) {
 
         <div class="row gy-5 mt-4">
 
-          <div class="col-lg-8">
+          <div class="col-lg-12">
             <div class="content-tabs" data-aos="fade-right" data-aos-delay="300">
 
               <ul class="nav nav-tabs custom-tabs" role="tablist">
@@ -309,7 +355,7 @@ if (!$canAccess) {
           </a>
             <?php } ?>
         <?php if ($accessRole === 'creator' || $accessRole === 'admin' || $accessRole === 'member' || $accessRole === 'subadmin') { ?>
-          <a href="<?php echo $siteurl; ?>create-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
+          <a href="<?php echo $siteurl; ?>add-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> Create Blog
           </a>   <a href="<?php echo $siteurl; ?>all-group-blog/<?php echo $slug; ?>" class="btn btn-primary btn-sm me-2">
             <i class="bi bi-pencil-square"></i> All Blog
@@ -358,7 +404,7 @@ if (!$canAccess) {
                       $blogimage = !empty($blog->featured_image)
                           ? $siteurl . $imagePath . $blog->featured_image
                           : $siteurl . "assets/img/default-blog.jpg";
-                      $blogUrl = $siteurl . "single-blog/" . $slug . "&group_id=" . $group_id;
+                      $blogUrl = $siteurl . "single-blog/" . $slug . "/" . $group_slug;
                       ?>
                       <div class="col-lg-4 col-md-6">
                         <article class="position-relative h-100 shadow-sm rounded-4 overflow-hidden">
@@ -493,7 +539,7 @@ if (!$canAccess) {
             </div>
 
             <h5 class="fw-semibold mb-2">
-              <a href="single-questions/<?php echo $q['slug']; ?>" class="text-dark text-decoration-none">
+              <a href="<?php echo $siteurl; ?>single-questions/<?php echo $q['slug']; ?>" class="text-dark text-decoration-none">
                 <?php echo $q['title']; ?>
               </a>
             </h5>
@@ -506,7 +552,7 @@ if (!$canAccess) {
               <span class="small text-secondary">
                 <i class="bi bi-person me-1"></i> <?php echo $q['author']; ?>
               </span>
-              <a href="group-single-questions/<?php echo $q['slug']; ?>&group_id=<?php echo $group_id; ?>" class="text-primary fw-semibold small">
+              <a href="<?php echo $siteurl; ?>group-single-questions/<?php echo $q['slug']; ?>/$group_slug; ?>" class="text-primary fw-semibold small">
                 Read More <i class="bi bi-arrow-right"></i>
               </a>
             </div>
@@ -920,5 +966,59 @@ if ($data !== false) {
 
 
 
+                    
+<div class="modal fade" id="reportitemModal" tabindex="-1" aria-labelledby="reportitemModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="reportblogForm" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reportitemModalLabel">
+            Report Group : <?php echo $group_name; ?>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="report_message" class="text-center mb-2"></div>
+
+          <input type="hidden" name="action" value="report_item">
+          <!-- Reporter (logged in user) -->
+          <input type="hidden" name="reporter_id" value="<?php echo $buyerId; ?>">
+
+          <!-- User being reported (author) -->
+          <input type="hidden" name="reported_item_id" value="<?php echo $group_id; ?>">
+
+           <input type="hidden" name="reported_item_type" value="group">
+          <div class="mb-2">
+            <label for="reason" class="form-label">Reason for Reporting</label>
+            <select class="form-select" name="reason"  id="reason" required onchange="toggleCustomReason(this.value)">
+              <option value="">Select Reason</option>
+              <option value="Harassment or Abusive Behavior">Harassment or Abusive Behavior</option>
+              <option value="Spam or Misleading Information">Spam or Misleading Information</option>
+              <option value="Inappropriate or Offensive Profile">Inappropriate or Offensive Profile</option>
+              <option value="Impersonation or Fake Account">Impersonation or Fake Account</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="mb-2" id="customReasonContainer" style="display:none;">
+            <label for="custom_reason" class="form-label">Provide Details</label>
+            <textarea class="form-control" name="custom_reason" id="custom_reason" rows="3" placeholder="Describe the issue..."></textarea>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="submit_report" id="submitReport" class="btn btn-danger">Submit Report</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <?php include "footer.php"; ?>
+
+<!-- Share helpers -->

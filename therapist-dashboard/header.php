@@ -18,9 +18,87 @@ if ($authentication) {
         $buyerData = json_decode($data);
         if ($buyerData && empty($buyerData->error)) {
             $buyerId = $buyerData->id ?? '';
-            $buyerfirstName = $buyerData->first_name;
+            $buyerfirstName = $buyerData->first_name; 
+            $buyermiddleName = $buyerData->middle_name;
+            $buyerlastName = $buyerData->last_name;
             $email = $buyerData->email;
             $logo = $buyerData->photo;
+            $address = $buyerData->address ?? '';
+            $views = $buyerData->views ?? 0;
+            $bank_accname = $buyerData->bank_accname ?? '';
+            $total_questions = $buyerData->total_questions ?? 0;
+            $total_articles = $buyerData->total_articles ?? 0;
+            $total_answers = $buyerData->total_answers ?? 0;
+            $total_earnings = $buyerData->total_earnings ?? 0;
+            $bank_number = $buyerData->bank_number ?? '';
+            $bank_name = $buyerData->bank_name ?? '';
+            $facebook = $buyerData->facebook ?? '';
+            $twitter = $buyerData->twitter ?? '';
+            $instagram = $buyerData->instagram ?? '';
+            $linkedin = $buyerData->linkedin ?? '';
+            $bio = $buyerData->bio ?? '';
+            $photo = $buyerData->photo ?? '';
+            $certifications  = $buyerData->certifications ?? '';
+            $suspend_reason = $buyerData->suspend_reason ?? '';
+             $session_duration = $buyerData->session_duration ?? '';
+            $rate = $buyerData->rate ?? $buyerData->proposed_rate ?? '';
+            $associations = $buyerData->associations ?? '';
+            $other_work = $buyerData->other_work ?? '';
+            $preferred_days = $buyerData->preferred_days ?? '';
+            $institution = $buyerData->institution  ?? '';
+            $highest_qualification = $buyerData->qualification  ?? '';
+            $graduation_year = $buyerData->graduation_year  ?? '';
+            $cv = $buyerData->cv  ?? '';
+            $passport = $buyerData->passport  ?? '';
+            $license = $buyerData->license  ?? '';
+            $status = $buyerData->status ?? '';
+            $dob = $buyerData->dob ?? '';
+            $gender = $buyerData->gender ?? '';
+             $services = $buyerData->services ?? '';
+             $other_qualification = $buyerData->qualification ?? '';
+            $business_name = $buyerData->business_name;
+            $registered_business_name = $buyerData->registered_business_name;
+            $owner_name = $buyerData->owner_name;
+            $session_format = $buyerData->session_format ?? '';
+            $nationality = $buyerData->nationality ?? '';
+            $languages = $buyerData->languages ?? '';
+            $phone = $buyerData->phone ?? '';
+            $website = $buyerData->website ?? '';
+            $email = $buyerData->email ?? '';
+            $work_with = $buyerData->work_with ?? '';
+            $specialization_selected  = !empty($buyerData->specializations) ? explode(',', $buyerData->specializations) : [];
+            $subspec_selected = !empty($buyerData->sub_specialization) ? explode(',', $buyerData->sub_specialization) : [];
+            $categories_selected = !empty($buyerData->category_id) ? explode(',', $buyerData->category_id) : [];
+            $subcategories_selected = !empty($buyerData->subcategory_id) ? explode(',', $buyerData->subcategory_id) : [];
+            $profession_selected  = !empty($buyerData->professional_field) ? explode(',', $buyerData->professional_field) : [];
+            $subprofession_selected  = !empty($buyerData->professional_title) ? explode(',', $buyerData->professional_title) : [];
+            $state_residence = $buyerData->state_residence ?? '';
+            $lga = $buyerData->lga ?? '';
+            $experience_years = $buyerData->experience_years;
+            $business_logo = $siteurl.$imagePath.$buyerData->business_logo;
+            $portfolio = $buyerData->portfolio;
+            $coverage = $buyerData->coverage;
+            $onsite = $buyerData->onsite;
+            $consultation_days = $buyerData->consultation_days ?? '';
+            $preferred_days_selected = [];
+            $start_time = '';
+            $end_time = '';
+
+          if (!empty($consultation_days)) {
+              // Split the days from times
+              $parts = explode('|', $consultation_days);
+              if (count($parts) == 2) {
+                  // Days
+                  $preferred_days_selected = array_map('trim', explode(',', $parts[0]));
+                  // Times
+                  $times = trim($parts[1]);
+                  if (strpos($times, '-') !== false) {
+                      list($start_time, $end_time) = array_map('trim', explode('-', $times));
+                  }
+              }
+          }
+            
+            $mylogo = $siteurl.$imagePath.$buyerData->photo;
             $buyerName = $buyerData->first_name . " " . $buyerData->last_name;
             $buyerEmail = $buyerData->email ?? '';
             $buyerStatus = $buyerData->status ?? 'inactive';
@@ -67,7 +145,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
     />
     <link
       rel="icon"
-      href="assets/img/kaiadmin/favicon.ico"
+      href="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
       type="image/x-icon"
     />
 
@@ -112,7 +190,12 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
             <a href="index.php" class="logo">
-            Marriage Hub Ng
+            <img
+                  src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
+                  alt="navbar brand"
+                  class="small-logo"
+                 
+                />
             </a>
             <div class="nav-toggle">
               <button class="btn btn-toggle toggle-sidebar">
@@ -409,9 +492,9 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <div class="main-header-logo">
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="dark">
-              <a href="index.html" class="logo">
+              <a href="index.php" class="logo">
                 <img
-                  src="assets/img/kaiadmin/logo_light.svg"
+                  src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
                   alt="navbar brand"
                   class="navbar-brand"
                   height="20"

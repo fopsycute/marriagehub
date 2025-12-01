@@ -3,7 +3,7 @@ include "header.php"; // includes $con, $siteurl, $siteprefix, $sitecurrency, $s
 ?>
 
 <?php
-// Get ref and transaction ID from Paystack callback ---
+// Get ref and transaction ID from Paystack callback
 $ref = mysqli_real_escape_string($con, $_GET['ref'] ?? '');
 $transaction = mysqli_real_escape_string($con, $_GET['transaction'] ?? '');
 $currentdatetime = date('Y-m-d H:i:s');
@@ -12,12 +12,11 @@ if (empty($ref)) {
     die("<div class='container mt-5 mb-5'><div class='alert alert-danger'>Invalid order reference.</div></div>");
 }
 
-// --- Fetch order details from admin API ---
-$url = $siteurl . "script/admin.php?action=fetchorderdetails&ref=" .$ref;
+// Fetch order details from admin API
+$url = $siteurl . "script/admin.php?action=fetchorderdetails&ref=" . $ref;
 $data = curl_get_contents($url);
 $orders = json_decode($data, true);
 
-// --- Validate ---
 if (empty($orders) || isset($orders['error'])) {
     die("<div class='container mt-5 mb-5'><div class='alert alert-danger'>Order not found or invalid reference.</div></div>");
 }
@@ -27,7 +26,7 @@ if ($order['status'] !== 'unpaid') {
     die("<div class='container mt-5 mb-5'><div class='alert alert-warning'>Order already processed or invalid.</div></div>");
 }
 
-// --- Extract main info ---
+// Extract main info
 $order_id = $order['order_id'];
 $user_id = $order['user'];
 $buyer_name = $order['buyer_name'];
@@ -36,6 +35,8 @@ $items = $order['items'];
 $sitecurrency = $sitecurrency ?? '₦';
 $escrowfee = $escrowfee ?? ''; // Default commission %
 
+$attachments = []; // Collect all attachments for buyer email
+
 /* ========================================================
    PROCESS EACH ITEM
 ======================================================== */
@@ -43,36 +44,52 @@ foreach ($items as $item) {
     $listing_id = $item['listing_id'];
     $listing = $item['listing_title'];
     $variation = $item['variation'];
+    $benefits = $item['benefits'] ?? '';
     $price = $item['price'];
     $quantity = $item['quantity'];
     $total_price = $item['total_price'];
-    $type = $item['product_type'];
+    $type = $item['type'];
+    $ticket_id = $item['item_id'] ?? null;    
     $seller_id = $item['seller_id'];
     $seller_name = $item['seller_name'];
     $seller_email = $item['seller_email'];
     $user_type = $item['seller_type'];
 
-    // ✅ Commission calculations
+    // Commission calculations
     $admin_commission = $total_price * ($escrowfee / 100);
     $seller_amount = $total_price - $admin_commission;
 
-    // ✅ Update stock
+    // Reduce event seats if type is event
+    if ($type === 'event') {
+        $event_id  = $listing_id; // event_id = listing_id
+        reduceEventSeat($con, $siteprefix, $event_id, $ticket_id);
+    }
+
+    // Update stock
     mysqli_query($con, "
         UPDATE {$siteprefix}listings 
         SET limited_slot = GREATEST(limited_slot - $quantity, 0)
         WHERE listing_id = '$listing_id'
     ");
 
+    // Admin vs seller handling
     if ($user_type === 'admin') {
-        // ✅ Admin listing sale
-        mysqli_query($con, "
-            INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
-            VALUES ('$total_price', '$listing_id', '$order_id', 'Direct Sale (Admin Listing)', '$currentdatetime')
-        ");
+        // Admin listing sale
+        if ($type === 'event') {
+            mysqli_query($con, "
+                INSERT INTO {$siteprefix}profits (amount, event_id, order_id, type, date)
+                VALUES ('$total_price', '$listing_id', '$order_id', 'Direct Sale (Admin Event)', '$currentdatetime')
+            ");
+        } else {
+            mysqli_query($con, "
+                INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
+                VALUES ('$total_price', '$listing_id', '$order_id', 'Direct Sale (Admin Listing)', '$currentdatetime')
+            ");
+        }
 
         insertadminAlert($con, "Admin received {$sitecurrency}{$total_price} for Order #{$order_id}", "profits.php", $currentdatetime, "profits", 0);
 
-        // --- Email admin ---
+        // Email admin
         $adminSubject = "New Payment Received for Admin Listing";
         $adminMessage = "
             <html><body style='font-family:Arial,sans-serif;'>
@@ -85,12 +102,19 @@ foreach ($items as $item) {
         sendEmail($siteMail, $siteName, $siteMail, $siteName, $adminMessage, $adminSubject);
 
     } else {
-        // ✅ Normal seller sale
-        // Record commission
-        mysqli_query($con, "
-            INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
-            VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Listing Sale', '$currentdatetime')
-        ");
+        // Normal seller sale
+        if ($type === 'event') {
+            mysqli_query($con, "
+                INSERT INTO {$siteprefix}profits (amount, event_id, order_id, type, date)
+                VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Event Ticket', '$currentdatetime')
+            ");
+        } else {
+            mysqli_query($con, "
+                INSERT INTO {$siteprefix}profits (amount, listing_id, order_id, type, date)
+                VALUES ('$admin_commission', '$listing_id', '$order_id', 'Commission from Product Sale', '$currentdatetime')
+            ");
+        }
+
         insertadminAlert($con, "Commission of {$sitecurrency}{$admin_commission} earned from Order #{$order_id}", "profits.php", $currentdatetime, "profits", 0);
 
         // Credit seller wallet
@@ -102,7 +126,7 @@ foreach ($items as $item) {
         insertWallet($con, $seller_id, $seller_amount, "credit", "Earnings from Order #{$order_id}", $currentdatetime);
         insertAlert($con, $seller_id, "You received {$sitecurrency}{$seller_amount} for Order #{$order_id}", $currentdatetime, 0);
 
-        // --- Email seller ---
+        // Email seller
         $sellerSubject = "Payment received for your listing ({$listing})";
         $sellerMessage = "
             <p>You received <strong>{$sitecurrency}{$seller_amount}</strong> for your listing <strong>{$listing}</strong>.</p>
@@ -114,45 +138,41 @@ foreach ($items as $item) {
 }
 
 /* ========================================================
-   ✅ Update Order Status
+   Update Order Status
 ======================================================== */
 mysqli_query($con, "
     UPDATE {$siteprefix}orders 
-    SET status='paid',date='$currentdatetime' 
+    SET status='paid', date='$currentdatetime' 
     WHERE order_id='$ref'
 ");
 
-    // Ensure service bookings are updated when the order contains service items.
-    // The previous code checked a single $type value and compared against 'Service'
-    // which could miss matches (case mismatch or when multiple items exist).
-    $serviceFound = false;
-    foreach ($items as $it) {
-        $itType = strtolower($it['product_type'] ?? $it['type'] ?? '');
-        if ($itType === 'service') {
-            $serviceFound = true;
-            break;
-        }
+// Update service bookings if order has service items
+$serviceFound = false;
+foreach ($items as $it) {
+    if (strtolower($it['type'] ?? '') === 'service') {
+        $serviceFound = true;
+        break;
     }
-    if ($serviceFound) {
-        $safeRef = mysqli_real_escape_string($con, $ref);
-        mysqli_query($con, "
-            UPDATE {$siteprefix}service_bookings
-            SET status='approved', payment_status='paid' 
-            WHERE order_id='$safeRef'
-        ");
-    }
+}
+if ($serviceFound) {
+    $safeRef = mysqli_real_escape_string($con, $ref);
+    mysqli_query($con, "
+        UPDATE {$siteprefix}service_bookings
+        SET status='approved', payment_status='paid' 
+        WHERE order_id='$safeRef'
+    ");
+}
 
 /* ========================================================
-   ✅ Buyer confirmation email
+   Buyer confirmation email with event/delivery details & attachments
 ======================================================== */
 $emailBody = "
 <h2>Order Confirmation</h2>
-
 <p>Thank you for your purchase! Your payment was successful.</p>
 <p><strong>Order Reference:</strong> {$ref}</p>
 <table border='1' cellpadding='6' cellspacing='0' width='100%'>
 <thead><tr>
-<th>Listing</th><th>Variation</th><th>Seller</th><th>Quantity</th><th>Total</th>
+<th>Name</th><th>Variation</th><th>Benefits</th><th>Seller</th><th>Quantity</th><th>Total</th>
 </tr></thead><tbody>";
 
 foreach ($items as $item) {
@@ -160,18 +180,37 @@ foreach ($items as $item) {
     <tr>
         <td>{$item['listing_title']}</td>
         <td>{$item['variation']}</td>
+        <td>".(!empty($item['benefits']) ? $item['benefits'] : '')."</td>
         <td>{$item['seller_name']}</td>
         <td>{$item['quantity']}</td>
         <td>{$sitecurrency}{$item['total_price']}</td>
     </tr>";
+
+    // Event delivery details & attachments
+    if ($item['type'] === 'event') {
+        $result = getEventDeliveryDetails($con, $siteprefix, $item['listing_id'], $item['delivery_format'], $documentPath);
+        if (!empty($result['details'])) {
+            $emailBody .= "<tr><td colspan='6'><strong>Event / Delivery Details for {$item['listing_title']}:</strong><ul>{$result['details']}</ul></td></tr>";
+        }
+        if (!empty($result['attachments'])) {
+            $attachments = array_merge($attachments, $result['attachments']);
+        }
+    }
 }
 
 $emailBody .= "</tbody></table><p>Thank you for shopping with {$siteName}!</p></body></html>";
 
-sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $emailBody, "Order Confirmation - {$siteName}");
+// Send buyer email with or without attachments
+if (!empty($attachments)) {
+    // There are attachments, use the attachment function
+    sendEmailWithAttachments($buyer_email, $siteName, $siteMail, $buyer_name, $emailBody, "Order Confirmation - {$siteName}", $attachments);
+} else {
+    // No attachments, fallback to normal email
+    sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $emailBody, "Order Confirmation - {$siteName}");
+}
 
 /* ========================================================
-   ✅ Display confirmation to buyer
+   Display confirmation to buyer
 ======================================================== */
 ?>
 <div class="container mt-5 mb-5">
@@ -187,8 +226,9 @@ sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $emailBody, "Order Co
     <table class="table table-bordered mt-3">
         <thead>
             <tr>
-                <th>Listing</th>
+                <th>Name</th>
                 <th>Variation</th>
+                <th>Benefits</th>
                 <th>Seller</th>
                 <th>Quantity</th>
                 <th>Total</th>
@@ -199,6 +239,7 @@ sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $emailBody, "Order Co
                 <tr>
                     <td><?php echo htmlspecialchars($item['listing_title']); ?></td>
                     <td><?php echo htmlspecialchars($item['variation']); ?></td>
+                    <td><?php echo $item['benefits'] ?? ''; ?></td>
                     <td><?php echo htmlspecialchars($item['seller_name']); ?></td>
                     <td><?php echo htmlspecialchars($item['quantity']); ?></td>
                     <td><?php echo htmlspecialchars($sitecurrency . $item['total_price']); ?></td>

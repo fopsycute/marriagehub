@@ -152,6 +152,7 @@ if ($data !== false) {
   }
 
   if (!empty($listings)) {
+    $itemCounter = 0;
     foreach ($listings as $listing) {
             // ✅ Only active listings
             if (isset($listing->status) && strtolower($listing->status) === 'active' && $listing->type == 'Service') {
@@ -239,16 +240,22 @@ if ($data !== false) {
                                 <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
                                 <span class="small text-muted"><?php echo $sellerName; ?></span>
                             </div>
+                            </div>
+                          </div>
                         </div>
-                    </div>
-                </div>
 
-<?php
-            }
-        }
-    }
-}
-?>
+                <?php
+                        $itemCounter++;
+                        if ($itemCounter % 4 == 0) {
+                          echo '<div>';
+                          include 'listing-banner.php';
+                          echo '</div>';
+                        }
+                      }
+                    }
+                  }
+                }
+                ?>
 
 
 
@@ -275,6 +282,7 @@ const SITE_CURRENCY = '<?php echo $sitecurrency ?? ""; ?>';
 let currentPage = <?php echo isset($currentPage) ? intval($currentPage) : 1; ?>;
 let itemsPerPage = <?php echo isset($itemsPerPage) ? intval($itemsPerPage) : 2; ?>;
 let totalItems = <?php echo isset($totalItems) ? intval($totalItems) : 0; ?>;
+let LISTING_BANNER_HTML = '';
 
 function buildQuery(params) {
   return Object.keys(params).filter(k => params[k] !== undefined && params[k] !== '' && params[k] !== null).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
@@ -332,7 +340,24 @@ function renderListings(listings) {
       </div>
     `;
   });
-  container.innerHTML = html;
+  // If we have banner HTML, insert banners after every 4 items using DOM insertion for robustness
+  if (LISTING_BANNER_HTML) {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    container.innerHTML = '';
+    const cols = Array.from(temp.children);
+    cols.forEach((col, idx) => {
+      container.appendChild(col);
+      if ((idx + 1) % 4 === 0) {
+        const bw = document.createElement('div');
+        bw.className = 'col-12 mb-4';
+        bw.innerHTML = LISTING_BANNER_HTML;
+        container.appendChild(bw);
+      }
+    });
+  } else {
+    container.innerHTML = html;
+  }
 }
 
 let debounceTimer = null;
@@ -383,6 +408,13 @@ document.addEventListener('DOMContentLoaded', function(){
     searchInput.addEventListener('input', scheduleLiveFetch);
   }
   selects.forEach(s => s.addEventListener('change', function(){ scheduleLiveFetch(); }));
+  // Fetch listing banner HTML (absolute URL) for client-side insertion
+  try {
+    fetch(SITEURL + 'listing-banner.php')
+      .then(r => r.text())
+      .then(t => { LISTING_BANNER_HTML = t || ''; })
+      .catch(() => { LISTING_BANNER_HTML = ''; });
+  } catch (e) { LISTING_BANNER_HTML = ''; }
   
   // Pagination clicks (delegated)
   document.addEventListener('click', function(e){

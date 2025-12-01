@@ -42,6 +42,7 @@ if (isset($_GET['vendor_id'])) {
             $last_name = $user->last_name ?? '';
             $title = $user->title ?? '';
             $status = $user->status ?? '';
+            $lga = $user->lga ?? '';
             $dob = $user->dob ?? '';
             $gender = $user->gender ?? '';
              $services = $user->services ?? '';
@@ -56,12 +57,31 @@ if (isset($_GET['vendor_id'])) {
             $categories_selected = !empty($user->category_id) ? explode(',', $user->category_id) : [];
             $subcategories_selected = !empty($user->subcategory_id) ? explode(',', $user->subcategory_id) : [];
             $state_residence = $user->state_residence ?? '';
+            $lga = $user->lga ?? '';
             $experience_years = $user->experience_years;
             $business_logo = $siteurl.$imagePath.$user->business_logo;
             $portfolio = $siteurl.$imagePath.$user->portfolio;
             $coverage = $user->coverage;
             $onsite = $user->onsite;
             $availability = $user->availability;
+          $preferred_days_selected = [];
+          $start_time = '';
+          $end_time = '';
+
+          if (!empty($availability)) {
+              // Split the days from times
+              $parts = explode('|', $availability);
+              if (count($parts) == 2) {
+                  // Days
+                  $preferred_days_selected = array_map('trim', explode(',', $parts[0]));
+                  // Times
+                  $times = trim($parts[1]);
+                  if (strpos($times, '-') !== false) {
+                      list($start_time, $end_time) = array_map('trim', explode('-', $times));
+                  }
+              }
+          }
+
             $address = $user->address ?? '';
             $facebook = $user->facebook ?? '';
             $twitter = $user->twitter ?? '';
@@ -199,30 +219,44 @@ if (isset($_GET['vendor_id'])) {
   </div>
 
   <div class="row mb-3">
-    <div class="col-md-6">
+    <div class="col-md-"4>
       <label class="form-label">Phone Numbers</label>
       <input type="number" name="phone" class="form-control" value="<?= $phone ?>">
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
       <label class="form-label">Website</label>
       <input type="url" name="website" class="form-control" value="<?= $website ?>">
+    </div>
+
+        <div class="col-md-4">
+      <label class="form-label">Email Address</label>
+      <input type="email" name="email" class="form-control" value="<?= $email ?>">
     </div>
   </div>
 
   <div class="row mb-3">
-    <div class="col-md-6">
-      <label class="form-label">Email Address</label>
-      <input type="email" name="email" class="form-control" value="<?= $email ?>">
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">State of Residence</label>
-      <input type="text" name="state_residence" class="form-control" value="<?= $state_residence ?>">
-    </div>
+
+    <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">State of Residence</label>
+              <select id="state" name="state_residence" class="form-control" >
+              <option value="">-Select State-</option>
+               <option value="<?= $state_residence ?>" selected><?= $state_residence ?></option>
+            </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">LGA</label>
+             <select class="form-control" id="lga"  name="lga">
+            <option value="">-Select LGA-</option>
+            <option value="<?= $lga ?>" selected><?= $lga ?></option>
+          </select>
+                </div>
+              </div>
   </div>
 
    <div class="mb-3">
     <label class="form-label">Practice Full Address</label>
-  <textarea name="address" class="form-control" rows="2"><?= $address ?? ''?></textarea>
+  <textarea name="address" class="editor" ><?= $address ?? ''?></textarea>
   </div>
 
   <div class="row mb-3">
@@ -300,7 +334,7 @@ if (isset($_GET['vendor_id'])) {
 
                <div class="mb-3">
     <label class="form-label">Describe Your Products/Services</label>
-    <textarea name="services" class="form-control" rows="3"><?= $services ?? '' ?></textarea>
+    <textarea name="services" class="editor"><?= $services ?? '' ?></textarea>
   </div>
 
   <div class="mb-3">
@@ -335,10 +369,26 @@ if (isset($_GET['vendor_id'])) {
     </select>
   </div>
 
-  <div class="mb-3">
-    <label class="form-label">Availability (Days & Times)</label>
-    <input type="text" name="availability" class="form-control" value="<?= $availability ?? '' ?>">
-  </div>
+  <div class="row mb-3">
+    <label class="form-label">Availability (Days & Times)(e.g. Monday - Friday, 9am - 5pm)</label>
+    <div class="col-md-4">
+        <select name="preferred_days[]" id="preferred_days" class="form-select select-multiple" required multiple>
+            <?php
+            $days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+            foreach ($days as $day) {
+                $selected = in_array($day, $preferred_days_selected) ? 'selected' : '';
+                echo "<option value='$day' $selected>$day</option>";
+            }
+            ?>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <input type="time" name="start_time" class="form-control" placeholder="Start Time" value="<?= htmlspecialchars($start_time) ?>" required>
+    </div>
+    <div class="col-md-4">
+        <input type="time" name="end_time" class="form-control" placeholder="End Time" value="<?= htmlspecialchars($end_time) ?>" required>
+    </div>
+</div>
 
   <div class="mb-3">
   <label class="form-label">Status</label>

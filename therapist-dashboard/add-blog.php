@@ -86,16 +86,9 @@
             </div>
 
             <!-- Tags -->
-            <div class="form-group">
-              <label for="status">Status</label>
-             <select name="status" class="form-control" required>
-              <option> Select Status</option>
-              <option value="active"> Published</option>
-               <option value="pending"> pending</option>
-            </select>
-            </div>
 
-         
+            <input name="status" type="hidden" value="pending">
+      
               <input type="hidden" name="user" value="<?php echo $buyerId; ?>">
             <!-- Submit Button -->
             <button type="submit" class="btn btn-primary"  id="submitBtn">Submit Blog</button>

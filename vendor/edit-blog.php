@@ -131,7 +131,7 @@ if (isset($_GET['blog_id'])) {
 
       </div>
 
-       <input type="hidden" name="blog_id" value="<?php echo $blogId; ?>">
+    <input type="hidden" name="blog_id" value="<?php echo $blogId; ?>">
     <input type="hidden" name="action" value="updatevendorblog">
             <!-- Tags -->
             <div class="form-group">
@@ -139,15 +139,7 @@ if (isset($_GET['blog_id'])) {
               <input type="text" id="blogTags" name="blogTags" class="form-control" placeholder="Add tags (comma separated)" value="<?php echo $tags; ?>">
             </div>
 
-          <div class="form-group">
-          <label for="status">Status</label>
-          <select name="status" class="form-control" required>
-            <option value="">Select Status</option>
-            <option value="active" <?php echo ($status === 'active') ? 'selected' : ''; ?>>Published</option>
-            <option value="pending" <?php echo ($status === 'pending') ? 'selected' : ''; ?>>Pending</option>
-          </select>
-        </div>
-         
+            <input type="hidden" name="status" value="<?php echo $status; ?>" >
 
             <!-- Submit Button -->
             <button class="btn btn-primary"  id="submitBtn">Submit Blog</button>

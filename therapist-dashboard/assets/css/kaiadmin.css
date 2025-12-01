@@ -1703,6 +1703,13 @@ body[data-background-color="dark"] .border-top {
 .card-with-nav .card-body {
   padding: 15px 25px !important; }
 
+
+  .small-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
 .card-list {
   padding: 10px 0; }
   .card-list .item-list {

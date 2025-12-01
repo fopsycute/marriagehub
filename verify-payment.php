@@ -483,7 +483,6 @@ function verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, 
 
     $reference = mysqli_real_escape_string($con, $_GET['reference']);
     $currentdatetime = date('Y-m-d H:i:s');
-    $date = $currentdatetime;
 
     // 1. FETCH ORDER (only pending allowed)
     $orderQuery = mysqli_query($con, "
@@ -503,13 +502,13 @@ function verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, 
         die("Payment already processed.");
     }
 
-    $advert_id     = $order['advert_id'];
-    $user_id       = $order['user_id'];
-    $amount        = $order['amount'];
-    $start_date    = $order['start_date'];
-    $end_date      = $order['end_date'];
-    $banner        = $order['banner'];
-    $redirect_url  = $order['redirect_url'];
+    $advert_id    = $order['advert_id'];
+    $user_id      = $order['user_id'];
+    $amount       = $order['amount'];
+    $start_date   = $order['start_date'];
+    $end_date     = $order['end_date'];
+    $banner       = $order['banner'];
+    $redirect_url = $order['redirect_url'];
 
     // Fetch buyer info
     $userQuery = mysqli_query($con, "
@@ -527,58 +526,66 @@ function verifyAdvertPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, 
     // 2. MARK ORDER AS PAID
     mysqli_query($con, "
         UPDATE {$siteprefix}advert_orders
-        SET status='paid', paid_at='$date'
+        SET status='paid', paid_at='$currentdatetime'
         WHERE reference='$reference'
     ");
 
     // 3. INSERT INTO ACTIVE ADVERTS
     mysqli_query($con, "
         INSERT INTO {$siteprefix}active_adverts 
-        (advert_id, user_id, banner, redirect_url, start_date, end_date, created_at,status)
+        (advert_id, user_id, banner, redirect_url, start_date, end_date, created_at, status)
         VALUES 
-        ('$advert_id', '$user_id', '$banner', '$redirect_url', '$start_date', '$end_date', '$date', 'active')
+        ('$advert_id', '$user_id', '$banner', '$redirect_url', '$start_date', '$end_date', '$currentdatetime', 'pending')
     ");
 
     // 4. ADD TO ADMIN PROFITS
     mysqli_query($con, "
         INSERT INTO {$siteprefix}profits (amount, advert_id, type, date)
-        VALUES ('$amount', '$advert_id', 'Advert Purchase', '$date')
+        VALUES ('$amount', '$advert_id', 'Advert Purchase', '$currentdatetime')
     ");
 
-    // 5. ADMIN ALERT
-    insertAdminAlert(
-        $con,
-        "A new advert payment of {$sitecurrency}" . number_format($amount, 2) . " was received.",
-        "profits.php",
-        $date,
-        "adverts",
-        0
-    );
+    // 5. ADMIN ALERT & EMAIL
+    $adminMessage  = "A new advert payment of {$sitecurrency}" . number_format($amount, 2) . " has been received. The advert is pending review.";
+    $adminEmail    = $siteMail;
+    $adminName     = $siteName;
+    $emailSubject  = "New Advert Pending Approval";
+    $emailMessage  = "
+        <p>Hi {$adminName},</p>
+        <p>A new advert payment of <strong>{$sitecurrency}" . number_format($amount, 2) . "</strong> has been received and is awaiting approval.</p>
+        <p>Please <a href='{$siteurl}admin/active-adverts.php'>login to your dashboard</a> to review and approve the advert.</p>
+        <p>Thank you.</p>
+    ";
+    sendEmail($adminEmail, $siteName, $siteMail, $adminName, $emailMessage, $emailSubject);
 
-    // 6. BUYER ALERT
+    $messageStatus = 0;        // 0 = unread
+    $link          = "active-adverts.php";
+    $msgType       = "adverts";
+    insertAdminAlert($con, $adminMessage, $link, $currentdatetime, $msgType, $messageStatus);
+
+    // 6. BUYER ALERT & EMAIL
     insertAlert(
         $con,
         $user_id,
         "Your advert payment of {$sitecurrency}" . number_format($amount, 2) . " was successful. Your advert is now active.",
-        $date,
+        $currentdatetime,
         0
     );
 
-    // 7. BUYER EMAIL
-    $subject = "Advert Payment Successful";
-    $message = "
+    $buyerSubject = "Advert Payment Successful";
+    $buyerMessage = "
         <p>Your advert payment of <strong>{$sitecurrency}" . number_format($amount, 2) . "</strong> was successful.</p>
-        <p>Your advert from <strong>{$start_date}</strong> to <strong>{$end_date}</strong> is now active.</p>
+        <p>Your advert from <strong>{$start_date}</strong> to <strong>{$end_date}</strong> is pending admin approval.</p>
     ";
-    sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $message, $subject);
+    sendEmail($buyer_email, $siteName, $siteMail, $buyer_name, $buyerMessage, $buyerSubject);
 
-    // 8. REDIRECT USER
+    // 7. REDIRECT USER
     echo "<script>
         alert('Payment successful! Your advert is now active.');
         window.location.href='{$siteurl}';
     </script>";
     exit;
 }
+
 
 
 

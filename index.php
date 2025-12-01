@@ -168,6 +168,103 @@
 </div>
 </div>
 
+
+
+  <!-- Trending Category Section -->
+<section id="trending-category" class="trending-category section">
+  <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <div class="section-title-container d-flex align-items-center justify-content-between">
+          <h2>More Articles</h2>
+          <p><a href="<?php echo $siteurl; ?>blog.php">View All</a></p>
+        </div>
+      </div><!-- End Section Title -->
+
+  <!-- Blog Grid Container -->
+  <div class="container my-5">
+    <div class="row g-4">
+      <?php
+      $url = $siteurl . "script/admin.php?action=bloglists";
+      $data = curl_get_contents($url);
+      $limit = 6; // Number of blogs to show
+      $count = 0;
+
+      if ($data !== false) {
+          $blogs = json_decode($data);
+          
+       // RANDOMIZE BLOG DISPLAY
+         shuffle($blogs);
+
+          if (!empty($blogs)) {
+              foreach ($blogs as $blog) {
+                  if (isset($blog->status) && strtolower($blog->status) === 'active' && $blog->group_id == '') {
+                      $count++;
+                      if ($count > $limit) break;
+
+                      $blogId = $blog->id;
+                      $title = htmlspecialchars($blog->title);
+                      $slug = htmlspecialchars($blog->slug);
+                      $author = htmlspecialchars(trim($blog->first_name . ' ' . $blog->last_name));
+                      $content = limitWords(strip_tags($blog->article), 10);
+                      $date = date('F d, Y', strtotime($blog->created_at));
+                      $views = htmlspecialchars($blog->views ?? 0);
+                      $photo = !empty($blog->photo)
+                          ? $siteurl . $imagePath . $blog->photo
+                          : $siteurl . "assets/img/user.jpg";
+                      $blogimage = !empty($blog->featured_image)
+                          ? $siteurl . $imagePath . $blog->featured_image
+                          : $siteurl . "assets/img/default-blog.jpg";
+                      $blogUrl = $siteurl . "blog-details/" . $slug;
+                     $categoryNames = !empty($blog->category_names) ? explode(',', $blog->category_names) : ['General'];
+                    $category = htmlspecialchars(trim($categoryNames[0]));
+
+                      ?>
+                      
+   <div class="col-lg-4 col-md-6 col-12">
+  <div class="contentBox p-3 h-100">
+    
+    <!-- Category Badge -->
+    <span class="category-outline-badge mb-2 d-inline-block">
+      <?php echo $category; ?>
+    </span>
+
+    <!-- Date + Views -->
+    <small class="text-muted d-block mb-2"><?php echo $date; ?> • <?php echo $views; ?> views</small>
+
+    <!-- Blog Title -->
+    <h5 class="card-title mb-2">
+      <a href="<?php echo $blogUrl; ?>" class="text-dark text-decoration-none">
+        <?php echo $title; ?>
+      </a>
+    </h5>
+
+    <!-- Short Excerpt -->
+    <p class="mb-3"><?php echo $content; ?>...</p>
+
+    <!-- Author -->
+    <div class="d-flex align-items-center mt-auto">
+      <img src="<?php echo $photo; ?>" 
+           alt="<?php echo $author; ?>" 
+           class="rounded-circle me-2" 
+           style="width:40px;height:40px;">
+      <span><?php echo $author; ?></span>
+    </div>
+
+  </div>
+</div>
+
+                  <?php
+                  }
+              }
+          }
+      }
+      ?>
+    </div>
+  </div>
+
+</section><!-- /Trending Category Section -->
+
+
     <!-- Community Group -->
   <section id="featured-courses" class="featured-courses section">
 
@@ -861,6 +958,170 @@ if ($data !== false) {
       </div>
 
 </section>
+
+
+<section id="best-sellers" class="best-sellers section">
+
+    <div class="container section-title" data-aos="fade-up">
+        <h2>Events & Programs</h2>
+        <p>Stay connected and inspired through our curated events and programs designed to strengthen relationships, marriages, and families.</p>
+    </div>
+
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-5">
+
+<?php
+$url = $siteurl . "script/admin.php?action=eventlists";
+$data = curl_get_contents($url);
+
+$limit = 8;
+$count = 0;
+
+if ($data !== false) {
+
+    $events = json_decode($data);
+
+    if (!empty($events)) {
+
+        foreach ($events as $event) {
+
+            // Extract next event date/time
+            $eventDate = null;
+            $startTime = null;
+            $endTime   = null;
+
+            if (!empty($event->next_event_date_time)) {
+                list($eventDate, $startTime, $endTime) = explode("|", $event->next_event_date_time);
+            }
+
+            if (!$eventDate) continue;
+
+            // Current date/time
+            $today   = date("Y-m-d");
+            $nowTime = date("H:i:s");
+
+            // Filter: Active + upcoming/ongoing
+            if (
+                strtolower($event->status ?? "") === "active" &&
+                (
+                    $eventDate > $today ||
+                    ($eventDate == $today && $endTime >= $nowTime)
+                )
+            ) {
+                $count++;
+                if ($count > $limit) break;
+
+                // BASIC FIELDS
+                $title = htmlspecialchars($event->title ?? "Untitled");
+                $event_type = strtolower($event->event_type_name ?? "");
+                $slug = $event->slug ?? "";
+                $eventUrl = $siteurl . $slug;
+
+                // CATEGORY
+                $category = "General";
+                if (!empty($event->category_names)) {
+                    $catArray = explode(",", $event->category_names);
+                    $category = htmlspecialchars(trim($catArray[0]));
+                }
+
+                // IMAGE
+                $featuredImg = !empty($event->featured_image)
+                    ? $siteurl . $imagePath . $event->featured_image
+                    : $siteurl . "assets/img/default-product.jpg";
+
+                // SELLER
+                $sellerName = htmlspecialchars(trim(($event->first_name ?? "") . " " . ($event->last_name ?? "")));
+                $sellerPhoto = !empty($event->photo)
+                    ? $siteurl . $imagePath . $event->photo
+                    : $siteurl . "assets/img/user.jpg";
+
+                // PRICE LOGIC
+                $pricingType = strtolower($event->pricing_type ?? "paid");
+                $displayPrice = "N/A";
+
+                if ($pricingType === "free") {
+                    $displayPrice = "Free";
+                } elseif ($pricingType === "donation") {
+                    $displayPrice = "Donate";
+                } else {
+                    if (!empty($event->prices)) {
+                        $prices = array_map('floatval', explode(",", $event->prices));
+
+                        if (count($prices) === 1) {
+                            $displayPrice = $sitecurrency . number_format($prices[0], 2);
+                        } else {
+                            $minPrice = min($prices);
+                            $maxPrice = max($prices);
+
+                            $displayPrice =
+                                $sitecurrency . number_format($minPrice, 2) . " - " .
+                                $sitecurrency . number_format($maxPrice, 2);
+                        }
+                    }
+                }
+
+                // Format date
+                $formattedDate = date("M d, Y", strtotime($eventDate));
+                $formattedStart = date("g:i A", strtotime($startTime));
+                $formattedEnd   = date("g:i A", strtotime($endTime));
+?>
+<!-- Event Card -->
+<div class="col-lg-3 col-md-6 col-6">
+    <div class="product-item">
+
+        <div class="product-image">
+            <div class="product-badge trending-badge"><?php echo $category; ?></div>
+            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid">
+        </div>
+
+        <div class="product-info">
+
+            <div class="product-category"><?php echo $event_type; ?></div>
+              <span class="product-date text-muted mb-2">
+                <?php echo $formattedDate . " • " . $formattedStart . " - " . $formattedEnd; ?>
+              </span>
+
+            <h4 class="product-name">
+                <a href="<?php echo $eventUrl; ?>"><?php echo $title; ?></a>
+            </h4>
+
+            <!-- Event Date Display -->
+          
+
+            <!-- Pricing -->
+            <div class="product-price"><?php echo $displayPrice; ?></div>
+
+            <!-- Seller -->
+            <div class="mt-3 d-flex align-items-center">
+                <img src="<?php echo $sellerPhoto; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
+                <span class="small text-muted"><?php echo $sellerName; ?></span>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<?php
+            }
+        }
+    }
+}
+?>
+
+        </div>
+
+<?php if ($count >= $limit): ?>
+    <div class="text-center mt-4">
+        <a href="<?php echo $siteurl; ?>events.php" class="btn btn-primary px-4 py-2">View All Events</a>
+    </div>
+<?php endif; ?>
+
+    </div>
+
+</section>
+
 
   </main>
 <?php include "footer.php"; ?>

@@ -36,16 +36,16 @@
             <!-- Description -->
             <div class="form-group">
               <label for="description">Description</label>
-              <textarea id="description" class="editor" name="description" placeholder="Enter event description"></textarea>
+              <textarea id="description" class="form-control" name="description" placeholder="Enter event description"></textarea>
             </div>
 
             <!-- Categories -->
             <div class="form-group">
               <label for="categories">Categories</label>
-               <select name="category[]" id="category" class="form-select select-multiple" required multiple>
+               <select name="category[]" id="eventcategory" class="form-select select-multiple" required multiple>
               <option value="">-- Select Category --</option>
               <?php
-           $url = $siteurl . "script/register.php?action=categorieslists";
+           $url = $siteurl . "script/register.php?action=eventcategorieslists";
               $data = curl_get_contents($url); // using your helper from header
             if ($data !== false) {
                 $categories = json_decode($data);
@@ -70,7 +70,7 @@
             <!-- Sub-Categories -->
             <div class="form-group">
               <label for="subcategories">Sub-Categories</label>
-               <select name="subcategory[]" id="subcategory" class="form-select select-multiple" required multiple>
+               <select name="subcategory[]" id="eventsubcategory" class="form-select select-multiple" required multiple>
 
 
                     <option value="">-- Select Sub-Category --</option>
@@ -137,7 +137,7 @@
                     <input type="time" class="form-control" name="event_end_times[]" required>
                   </div>
                   <div class="col-auto">
-                    <button type="button" class="btn btn-success btn-sm" onclick="addDateTimeRow()"><i class="fa fa-plus me-1"></i></button>
+                    <button type="button" class="btn btn-success btn-sm"><i class="fa fa-plus me-1"></i></button>
                   </div>
                 </div>
               </div>
@@ -231,7 +231,7 @@
       </div>
       <div class="mb-3">
       <label>Description/Notes:</label>
-      <textarea class="editor" name="video_module_desc[]"></textarea>
+      <textarea class="form-control" name="video_module_desc[]"></textarea>
       </div>
       <div class="mb-3">
       <label>Total Duration:</label>
@@ -332,7 +332,7 @@
             <input type="text" class="form-control mb-2" name="ticket_name[]" placeholder="Ticket Name">
             </div>
             <div class="form-group">
-            <textarea class="editor mb-2" rows="2" name="ticket_benefits[]" placeholder="Benefits"></textarea>
+            <textarea class="form-control mb-2" rows="2" name="ticket_benefits[]" placeholder="Benefits"></textarea>
             </div>
 
             <div class="form-group">

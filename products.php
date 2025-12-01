@@ -100,6 +100,13 @@ if (isset($_GET['slug'])) {
     header("Location: index.php");
     exit;
 }
+
+// Prepare product page context for related content (category/subcategory names)
+$contextCats = array_filter(array_map('trim', explode(',', strtolower($category ?? ''))));
+$contextSubs = array_filter(array_map('trim', explode(',', strtolower($subcategory ?? ''))));
+// canonical ids for this listing (internal id and public listing_id)
+$currentInternalId = intval($listing->id ?? 0);
+$currentExternalListingId = intval($listing->listing_id ?? 0);
             ?>
 
 
@@ -675,5 +682,559 @@ if ($data !== false) {
       </div>
     </section>
 
+
+
+      <section id="best-sellers" class="best-sellers section">
+
+      <!-- Section Title -->
+      <div class="container section-title aos-init aos-animate" data-aos="fade-up">
+        <h2>Related Products & Services</h2>
+       
+      </div><!-- End Section Title -->
+
+      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-5">
+         
+          <!-- Product 4 -->
+  <?php
+$limit = 4; // Number of listings to show
+$queryParts = [];
+// We'll request a slightly larger page of candidates and filter client-side using the product's context
+$queryParts[] = 'items_per_page=' . intval($limit * 3);
+$queryParts[] = 'ajax=1';
+$url = $siteurl . "script/admin.php?action=listinglists" . (count($queryParts) ? '&' . implode('&', $queryParts) : '');
+$data = curl_get_contents($url);
+$count = 0;
+
+// collect buckets: subcategory matches, category matches, fallback
+$bySub = [];
+$byCat = [];
+$fallbackListings = [];
+
+if ($data !== false) {
+  $listingsRaw = json_decode($data);
+  $listings = [];
+  if (is_object($listingsRaw) && isset($listingsRaw->data) && is_array($listingsRaw->data)) {
+    $listings = $listingsRaw->data;
+  } elseif (is_array($listingsRaw)) {
+    $listings = $listingsRaw;
+  }
+
+  if (!empty($listings)) {
+    foreach ($listings as $l) {
+      // skip same listing
+            $sameListing = (isset($l->id) && $currentInternalId && intval($l->id) === $currentInternalId) || (isset($l->listing_id) && $currentExternalListingId && intval($l->listing_id) === $currentExternalListingId);
+      if ($sameListing) continue;
+
+      if (!isset($l->status) || strtolower($l->status) !== 'active') continue;
+      $listing_id = $l->listing_id ?? '';
+      $featuredImg = !empty($l->featured_image)
+                    ? $siteurl . $imagePath . $l->featured_image
+                    : $siteurl . "assets/img/default-product.jpg";
+                    $slug = $l->slug ?? '';
+                $listingUrl  = $siteurl . "products/" . $slug;
+
+      $lCats = array_filter(array_map('trim', explode(',', strtolower($l->category_names ?? ''))));
+      $lSubs = array_filter(array_map('trim', explode(',', strtolower($l->subcategory_names ?? ''))));
+
+      $matchedSub = !empty($contextSubs) && array_intersect($contextSubs, $lSubs);
+      $matchedCat = !$matchedSub && !empty($contextCats) && array_intersect($contextCats, $lCats);
+
+      if ($matchedSub) $bySub[$l->id ?? uniqid('l')] = $l;
+      elseif ($matchedCat) $byCat[$l->id ?? uniqid('l')] = $l;
+      else $fallbackListings[$l->id ?? uniqid('l')] = $l;
+    }
+
+    // Merge with priority and limit to $limit
+    $merged = [];
+    foreach ([$bySub, $byCat, $fallbackListings] as $pool) {
+      foreach ($pool as $id => $item) {
+        if (count($merged) >= $limit) break 2;
+        if (!isset($merged[$id])) $merged[$id] = $item;
+      }
+    }
+
+    $listings = array_values($merged);
+  }
+}
+                ?>
+
+                <!-- 🛍️ Product Card -->
+                <div class="col-lg-3 col-md-6 col-6">
+                  
+                    <div class="product-item">
+                        <div class="product-image">
+                            <div class="product-badge trending-badge"><?php echo $category; ?></div>
+                            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
+                            <div class="product-actions">
+                                      <button 
+                                  class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
+                                  title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
+                                  data-product-id="<?php echo $listing_id; ?>"
+                              >
+                                  <?php if ($isWishlisted): ?>
+                                      <i class="bi bi-heart-fill text-red-500"></i>
+                                  <?php else: ?>
+                                      <i class="bi bi-heart"></i>
+                                  <?php endif; ?>
+                              </button>
+
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category"><?php echo $category; ?></div>
+                            <h4 class="product-name">
+                                <a href="<?php echo $listingUrl; ?>"><?php echo $title; ?></a>
+                            </h4>
+                            <div class="product-price"><?php echo $displayPrice; ?></div>
+
+                            <!--Seller Info -->
+                            <div class="mt-3 d-flex align-items-center">
+                                <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
+                                <span class="small text-muted"><?php echo $sellerName; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php
+    
+?>
+
+          <!-- End Product 4 -->
+
+        </div>
+
+      </div>
+
+</section>
+
+<!-- Questions Slider Section -->
+<section id="questions-slider" class="section">
+   <div class="container section-title" data-aos="fade-up">
+    <div class="section-title-container d-flex align-items-center justify-content-between">
+      <h2>Related Question and Answer</h2>
+      <p><a href="<?php echo $siteurl; ?>questions-answers.php">View All</a></p>
+    </div>
+  </div><!-- End Section Title -->
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <?php
+    // Fetch and Filter Questions
+    $url = $siteurl . "script/admin.php?action=questionlists";
+    $data = curl_get_contents($url);
+    $questionsList = [];
+
+    if ($data !== false) {
+        $questions = json_decode($data);
+        if (!empty($questions)) {
+            $count = 0;
+
+            // Prefer subcategory matches then category matches
+            $matches = [];
+            $fallback = [];
+
+            foreach ($questions as $question) {
+
+                // Skip inactive questions (if status field exists)
+                if (isset($question->status) && strtolower($question->status) !== 'active') continue;
+
+                // compare on category/subcategory NAMES (product context uses names)
+                $qCats = array_filter(array_map('trim', explode(',', strtolower($question->category_names ?? ''))));
+                $qSubs = array_filter(array_map('trim', explode(',', strtolower($question->subcategory_names ?? ''))));
+
+                $isMatch = false;
+                if (!empty($contextSubs) && array_intersect($contextSubs, $qSubs)) {
+                  $isMatch = true; // subcategory name matched
+                } elseif (!empty($contextCats) && array_intersect($contextCats, $qCats)) {
+                  $isMatch = true; // category name matched
+                }
+
+                // collect matches; fallback collects all recent entries to show when no matches
+                if ($isMatch) {
+                    $matches[] = $question;
+                } else {
+                    $fallback[] = $question;
+                }
+            }
+
+            // Choose source: matched questions (prefer) or fallback (latest)
+            $sourceQuestions = !empty($matches) ? $matches : array_slice($fallback, 0, 4);
+            $count = 0;
+            foreach ($sourceQuestions as $question) {
+                if ($count >= 4) break;
+
+                $questionId = $question->id;
+                $title = $question->title;
+                $article = $question->article;
+                  $slug = $question->slug ?? '';
+                $date = date('M d, Y', strtotime($question->created_at));
+                $category = !empty($question->category_names) ? trim(explode(',', $question->category_names)[0]) : 'Uncategorized';
+                $subcategory = !empty($question->subcategory_names) ? trim(explode(',', $question->subcategory_names)[0]) : 'General';
+
+                $anonymous = intval($question->anonymous ?? 0);
+                $authorDisplay = ($anonymous === 1)
+                    ? "Anonymous"
+                    : (trim(($question->first_name ?? '') . ' ' . ($question->last_name ?? '')) ?: "Unknown User");
+
+                // Limit text preview to 5 words
+                $words = explode(' ', strip_tags($article));
+                $shortText = implode(' ', array_slice($words, 0, 5));
+                $hasMore = count($words) > 5;
+                
+                $questionsList[] = [
+                    'id' => $questionId,
+                    'title' => $title,
+                    'slug' => $slug,
+                    'author' => $authorDisplay,
+                    'category' => $category,
+                    'date' => $date,
+                    'shortText' => $shortText,
+                    'hasMore' => $hasMore
+                ];
+                $count++;
+            }
+        }
+    }
+    ?>
+
+    <?php if (!empty($questionsList)): ?>
+      <!-- Swiper Container -->
+      <div class="swiper init-swiper">
+        <script type="application/json" class="swiper-config">
+          {
+            "loop": true,
+            "autoplay": {
+              "delay": 4000,
+              "disableOnInteraction": false
+            },
+            "grabCursor": true,
+            "speed": 600,
+            "slidesPerView": "auto",
+            "spaceBetween": 20,
+            "navigation": {
+              "nextEl": ".questions-swiper-button-next",
+              "prevEl": ".questions-swiper-button-prev"
+            },
+            "breakpoints": {
+              "320": {
+                "slidesPerView": 1,
+                "spaceBetween": 10
+              },
+              "576": {
+                "slidesPerView": 2,
+                "spaceBetween": 15
+              },
+              "768": {
+                "slidesPerView": 3,
+                "spaceBetween": 20
+              },
+              "992": {
+                "slidesPerView": 3,
+                "spaceBetween": 20
+              }
+            }
+          }
+        </script>
+
+   <div class="swiper-wrapper">
+  <?php foreach ($questionsList as $q): ?>
+    <div class="swiper-slide">
+      <div class="post-list border-bottom p-3 bg-white rounded shadow-sm">
+        <div class="post-meta mb-2">
+          <span class="date fw-bold text-primary"><?php echo $q['category']; ?></span>
+          <span class="mx-1">•</span>
+          <span class="text-muted small"><?php echo $q['date']; ?></span>
+        </div>
+
+        <h2 class="mb-2 fs-5 d-flex align-items-center justify-content-between">
+          <a href="<?php echo $siteurl; ?>single-questions/<?php echo $q['slug']; ?>" 
+             class="text-dark text-decoration-none hover:text-primary flex-grow-1">
+            <?php echo $q['title']; ?>
+          </a>
+          <a href="<?php echo $siteurl; ?>single-questions/<?php echo $q['slug']; ?>" 
+             class="text-primary ms-2">
+            <i class="bi bi-arrow-right fs-5"></i>
+          </a>
+        </h2>
+
+        <p class="mb-1 text-muted">
+          <?php echo $q['shortText']; ?><?php echo $q['hasMore'] ? '...' : ''; ?>
+        </p>
+
+        <span class="author d-block text-secondary small">
+          <?php echo $q['author']; ?>
+        </span>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
+
+        <!-- Swiper Navigation Buttons -->
+        <div class="questions-swiper-button-prev swiper-button-prev"></div>
+        <div class="questions-swiper-button-next swiper-button-next"></div>
+      </div>
+    <?php else: ?>
+      <p>No questions available.</p>
+    <?php endif; ?>
+
+  </div>
+</section>
+ <!-- Trending Category Section -->
+<section id="trending-category" class="trending-category section">
+  <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <div class="section-title-container d-flex align-items-center justify-content-between">
+          <h2>Related Articles</h2>
+          <p><a href="<?php echo $siteurl; ?>blog.php">View All</a></p>
+        </div>
+      </div><!-- End Section Title -->
+
+  <!-- Blog Grid Container -->
+  <div class="container my-5">
+    <div class="row g-4">
+      <?php
+      $url = $siteurl . "script/admin.php?action=bloglists";
+      $data = curl_get_contents($url);
+      $limit = 4; // Number of blogs to show (match products)
+      $relatedBlogs = [];
+
+      // Use product page context (category/subcategory names)
+      $pCats = $contextCats;
+      $pSubs = $contextSubs;
+
+      if ($data !== false) {
+          $blogs = json_decode($data);
+          $bySub = [];
+          $byCat = [];
+          $fallback = [];
+
+          if (!empty($blogs) && is_array($blogs)) {
+              foreach ($blogs as $blog) {
+                  if (!isset($blog->status) || strtolower($blog->status) !== 'active') continue;
+                  if (!empty($blog->group_id)) continue; // skip group posts
+                  $bid = $blog->id ?? null; if (!$bid) continue;
+
+                  $bCats = array_filter(array_map('trim', explode(',', strtolower($blog->category_names ?? ''))));
+                  $bSubs = array_filter(array_map('trim', explode(',', strtolower($blog->subcategory_names ?? ''))));
+
+                  $matchedSub = (!empty($pSubs) && array_intersect($pSubs, $bSubs));
+                  $matchedCat = (!$matchedSub && !empty($pCats) && array_intersect($pCats, $bCats));
+
+                  if ($matchedSub) $bySub[$bid] = $blog;
+                  elseif ($matchedCat) $byCat[$bid] = $blog;
+                  else $fallback[$bid] = $blog;
+              }
+
+              $merged = [];
+              foreach ([$bySub, $byCat, $fallback] as $pool) {
+                  foreach ($pool as $id => $item) {
+                      if (count($merged) >= $limit) break 2;
+                      if (!isset($merged[$id])) $merged[$id] = $item;
+                  }
+              }
+              $relatedBlogs = array_values($merged);
+          }
+      }
+
+      if (!empty($relatedBlogs)) {
+          foreach ($relatedBlogs as $blog) {
+              $blogId = $blog->id;
+              $title = htmlspecialchars($blog->title);
+              $slug = htmlspecialchars($blog->slug);
+              $author = htmlspecialchars(trim($blog->first_name . ' ' . $blog->last_name));
+              $content = limitWords(strip_tags($blog->article), 10);
+              $date = date('F d, Y', strtotime($blog->created_at));
+              $views = htmlspecialchars($blog->views ?? 0);
+              $photo = !empty($blog->photo) ? $siteurl . $imagePath . $blog->photo : $siteurl . "assets/img/user.jpg";
+              $blogimage = !empty($blog->featured_image) ? $siteurl . $imagePath . $blog->featured_image : $siteurl . "assets/img/default-blog.jpg";
+              $blogUrl = $siteurl . "blog-details/" . $slug;
+              $categoryNames = !empty($blog->category_names) ? explode(',', $blog->category_names) : ['General'];
+              $category = htmlspecialchars(trim($categoryNames[0]));
+
+                      ?>
+                      
+   <div class="col-lg-4 col-md-6 col-12">
+  <div class="contentBox p-3 h-100">
+    
+    <!-- Category Badge -->
+    <span class="category-outline-badge mb-2 d-inline-block">
+      <?php echo $category; ?>
+    </span>
+
+    <!-- Date + Views -->
+    <small class="text-muted d-block mb-2"><?php echo $date; ?> • <?php echo $views; ?> views</small>
+
+    <!-- Blog Title -->
+    <h5 class="card-title mb-2">
+      <a href="<?php echo $blogUrl; ?>" class="text-dark text-decoration-none">
+        <?php echo $title; ?>
+      </a>
+    </h5>
+
+    <!-- Short Excerpt -->
+    <p class="mb-3"><?php echo $content; ?>...</p>
+
+    <!-- Author -->
+    <div class="d-flex align-items-center mt-auto">
+      <img src="<?php echo $photo; ?>" 
+           alt="<?php echo $author; ?>" 
+           class="rounded-circle me-2" 
+           style="width:40px;height:40px;">
+      <span><?php echo $author; ?></span>
+    </div>
+
+  </div>
+</div>
+
+                  <?php
+                  }
+              }
+   
+      ?>
+    </div>
+  </div>
+
+</section><!-- /Trending Category Section -->
+
+
+ <!-- Community Group -->
+  <section id="featured-courses" class="featured-courses section">
+
+  <!-- Section Title -->
+  <div class="container section-title" data-aos="fade-up">
+    <div class="section-title-container d-flex align-items-center justify-content-between">
+      <h2>Tribes & Groups</h2>
+      <p><a href="<?php echo $siteurl; ?>all-groups.php">View All</a></p>
+    </div>
+  </div><!-- End Section Title -->
+
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row">
+      <?php
+        // Fetch groups and select related ones based on product context (subcat -> cat -> fallback)
+        $url = $siteurl . "script/admin.php?action=grouplists";
+        $groupsData = curl_get_contents($url);
+
+        $groupsToShow = [];
+        if ($groupsData !== false) {
+          $groups = json_decode($groupsData);
+          $bySub = [];
+          $byCat = [];
+          $fallback = [];
+
+          if (!empty($groups) && is_array($groups)) {
+            foreach ($groups as $group) {
+              if (!isset($group->status) || strtolower($group->status) !== 'active') continue;
+              $gid = $group->id ?? null; if (!$gid) continue;
+
+              $gCats = array_filter(array_map('trim', explode(',', strtolower($group->category_names ?? ''))));
+              $gSubs = array_filter(array_map('trim', explode(',', strtolower($group->subcategory_names ?? ''))));
+
+              $matchedSub = (!empty($contextSubs) && array_intersect($contextSubs, $gSubs));
+              $matchedCat = (!$matchedSub && !empty($contextCats) && array_intersect($contextCats, $gCats));
+
+              if ($matchedSub) $bySub[$gid] = $group;
+              elseif ($matchedCat) $byCat[$gid] = $group;
+              else $fallback[$gid] = $group;
+            }
+
+            // merge and limit to 4
+            $merged = [];
+            foreach ([$bySub, $byCat, $fallback] as $pool) {
+              foreach ($pool as $id => $item) {
+                if (count($merged) >= 4) break 2;
+                if (!isset($merged[$id])) $merged[$id] = $item;
+              }
+            }
+
+            $groupsToShow = array_values($merged);
+          }
+        }
+
+        if (!empty($groupsToShow)):
+          foreach ($groupsToShow as $group):
+              $groupId = $group->id;
+              $title = $group->group_name;
+              $author = $group->first_name . ' ' . $group->last_name;
+              $group_access = $group->group_access;
+              $group_type = $group->group_type;
+              $date = date('M d, Y', strtotime($group->created_at));
+              $banner = $group->banner ?? '';
+              $slug = $group->slug ?? '';
+              $content = limitWords(strip_tags($group->group_description), 10);
+              $photo = !empty($group->photo)
+                          ? $siteurl . $imagePath . $group->photo
+                          : $siteurl . "assets/img/user.jpg";
+              $bannerimage = $siteurl . $imagePath . $banner;
+
+              // Category & Subcategory — only first item
+              $category = !empty($group->category_names) ? trim(explode(',', $group->category_names)[0]) : 'Uncategorized';
+              $subcategory = !empty($group->subcategory_names) ? trim(explode(',', $group->subcategory_names)[0]) : 'General';
+
+              // Price logic
+        if (strtolower($group_access) === 'free') {
+          $price = 'Free';
+      } else {
+          $fees = [
+              floatval($group->fee_1m ?? 0),
+              floatval($group->fee_3m ?? 0),
+              floatval($group->fee_6m ?? 0),
+              floatval($group->fee_12m ?? 0)
+          ];
+
+          // ✅ Use regular anonymous function for broader compatibility
+          $fees = array_filter($fees, function ($f) {
+              return $f > 0;
+          });
+
+          if (!empty($fees)) {
+              $minFee = min($fees);
+              $maxFee = max($fees);
+              $price = ($minFee === $maxFee)
+                  ? '₦' . number_format($minFee)
+                  : '₦' . number_format($minFee) . ' - ₦' . number_format($maxFee);
+          } else {
+              $price = 'Paid';
+          }
+      }
+      ?>
+        <div class="col-lg-4 col-md-6 col-12 mb-4">
+          <div class="course-card">
+            <div class="course-image">
+              <img src="<?php echo $bannerimage; ?>" alt="Course" class="img-fluid">
+              <div class="badge featured"><?php echo $group_type; ?></div>
+              <div class="price-badge"><?php echo $price; ?></div>
+            </div>
+            <div class="course-content">
+              <div class="course-meta">
+                <span class="level"><?php echo $category; ?></span>
+                <span class="duration"><?php echo $subcategory; ?></span>
+              </div>
+              <h3><a href="group/<?php echo $slug; ?>"><?php echo $title; ?></a></h3>
+              <p><?php echo $content; ?>...</p>
+              <div class="instructor">
+                <img src="<?php echo $photo; ?>" alt="Instructor" class="instructor-img">
+                <div class="instructor-info">
+                  <h6><?php echo $author; ?></h6>
+                  <span>Admin</span>
+                </div>
+              </div>
+              <a href="<?php echo $siteurl; ?>group/<?php echo $slug; ?>" class="btn-course">Join Group</a>
+            </div>
+          </div>
+        </div>
+      <?php
+          endforeach;
+      else:
+          echo '<p>No active groups found.</p>';
+      endif;
+      ?>
+    </div>
+  </div>
+
+</section><!-- /Community Group -->
 
     <?php include "footer.php"; ?>

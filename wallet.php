@@ -133,7 +133,7 @@ $total_dispute_amount = $totals['total_dispute_amount'] ?? '0.00';
           <p class="pt-3">
            <input type="number" name="amount" class="form-control" max="<?php echo $wallet; ?>" 
             min="<?php echo $minimum_withdrawal; ?>" placeholder="Enter Amount to withdraw" required />
-            <span class="text-small text-primary">Minimum withdrawal is ₦<?php echo number_format($minimum_withdrawal); ?></span>
+            <span class="text-small text-primary">Minimum withdrawal is ₦<?php echo number_format($minimum_withdrawal, 2); ?></span>
 
           </p>
         </div>

@@ -1,474 +1,729 @@
+    <?php include "header.php"; ?>
+<?php 
+$sitelink = $siteurl . "script/";
+if (isset($_GET['slug'])) {
+
+    $slug = $_GET['slug'];
+    $apiUrl = $siteurl . "script/admin.php?action=fetcheventslug&slug=" . urlencode($slug);
+
+    $data = curl_get_contents($apiUrl);
+    $listing = json_decode($data, true); // single associative array
+
+    if (!empty($listing)) {
+
+        // BASIC FIELDS
+        $title       = htmlspecialchars($listing['title'] ?? '');
+        $event_id    = $listing['event_id'];
+        $description = $listing['description'] ?? '';
+        $pricingType = strtolower($listing['pricing_type'] ?? '');
+        $category    = htmlspecialchars($listing['category_names'] ?? '');
+        $subcategory = htmlspecialchars($listing['subcategory_names'] ?? '');
+        $status      = strtolower($listing['status'] ?? '');
+        $event_type  = htmlspecialchars($listing['event_type_name'] ?? '');
+        $format      = htmlspecialchars($listing['delivery_format'] ?? '');
+        $target_audience = htmlspecialchars($listing['target_audience'] ?? '');
+
+        // SHORT BIO
+        $shortBio = limitWords(strip_tags($description), 20);
+        $isTruncated = (str_word_count(strip_tags($description)) > 20);
+
+        // SELLER
+        $sellerName  = trim(($listing['first_name'] ?? '') . ' ' . ($listing['last_name'] ?? ''));
+        $sellerPhoto = !empty($listing['photo'])
+            ? $siteurl . $imagePath . $listing['photo']
+            : $siteurl . "assets/img/default-user.jpg";
+
+        // IMAGES
+        $images = !empty($listing['all_images']) ? explode(',', $listing['all_images']) : [];
+
+        // EVENT DATES
+$eventDates = [];
+$now = date('Y-m-d H:i:s');
+
+if (!empty($listing['all_event_dates_times'])) {
+
+    foreach (explode(',', $listing['all_event_dates_times']) as $d) {
+
+        list($date, $start, $end) = explode('|', $d);
+
+        // Convert to full datetime
+        $event_end = $date . ' ' . $end;
+
+        // Only add it if the date/time has NOT passed
+        if ($event_end >= $now) {
+            $eventDates[] = [
+                'date'  => $date,
+                'start' => $start,
+                'end'   => $end
+            ];
+        }
+    }
+}
 
 
+    $event_passed = false;
 
-<?php include "header.php"; ?>
-<section id="category-header" class="category-header section">
+if (!empty($eventDates)) {
+    $now = date('Y-m-d H:i:s');
+    $all_past = true;
 
-            <div class="container aos-init aos-animate" data-aos="fade-up">
+    foreach ($eventDates as $ed) {
+        // Correct field names
+        if (!empty($ed['date']) && !empty($ed['end'])) {
 
-              <!-- Filter and Sort Options -->
-              <form method="get" id="marketFilter">
-              <div class="filter-container mb-4 aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
-                <div class="row g-3">
-                  <div class="col-12 col-md-6 col-lg-4">
-                    <div class="filter-item search-form">
-                      <label for="productSearch" class="form-label">Search Events</label>
-                      <div class="input-group">
-                        <input type="text" name="search" class="form-control" id="productSearch" placeholder="Search for Events..." aria-label="Search for events" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                        <button class="btn search-btn" type="submit">
-                          <i class="bi bi-search"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+            $event_end = $ed['date'] . ' ' . $ed['end'];
 
-                  <div class="col-12 col-md-6 col-lg-2">
-                    <div class="filter-item">
-                      <label for="priceRange" class="form-label">Price Range</label>
-                      <?php
-                      // Fetch price bounds from the API and generate ranges dynamically
-                      $priceBounds = null;
-                      $boundsData = curl_get_contents($siteurl . "script/admin.php?action=listing_price_bounds");
-                      if ($boundsData !== false) {
-                          $priceBounds = json_decode($boundsData, true);
-                      }
-
-                      $priceOptions = [];
-                      if (!empty($priceBounds) && isset($priceBounds['min']) && isset($priceBounds['max'])) {
-                          $pmin = floatval($priceBounds['min']);
-                          $pmax = floatval($priceBounds['max']);
-                          if ($pmax > $pmin) {
-                              // create 5 buckets
-                              $buckets = 5;
-                              $step = ($pmax - $pmin) / $buckets;
-                              $low = $pmin;
-                              for ($i = 0; $i < $buckets; $i++) {
-                                  $high = ($i == $buckets - 1) ? $pmax : floor($low + $step);
-                                  $label = $sitecurrency . number_format($low, 0) . ' - ' . $sitecurrency . number_format($high, 0);
-                                  $value = floor($low) . '-' . floor($high);
-                                  $priceOptions[] = ['value' => $value, 'label' => $label];
-                                  $low = $high + 1;
-                              }
-                              // add open-ended top bucket
-                              $priceOptions[] = ['value' => floor($pmax) . '+', 'label' => $sitecurrency . number_format($pmax, 0) . ' &+' ];
-                          }
-                      }
-                      ?>
-                      <select class="form-select" id="priceRange" name="price_range">
-                        <option value="">All Prices</option>
-                        <?php foreach ($priceOptions as $opt): ?>
-                          <option value="<?php echo htmlspecialchars($opt['value']); ?>" <?php echo (isset($_GET['price_range']) && $_GET['price_range'] == $opt['value']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($opt['label']); ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                  </div>
-
-
-                  <div class="col-12 col-md-6 col-lg-2">
-                    <div class="filter-item">
-                      <label for="sortBy" class="form-label">Sort By</label>
-                      <select class="form-select" id="sortBy" name="sort">
-                     
-                        <option value="price_asc" <?php echo (isset($_GET['sort']) && $_GET['sort']=='price_asc') ? 'selected' : ''; ?>>Price: Low to High</option>
-                        <option value="price_desc" <?php echo (isset($_GET['sort']) && $_GET['sort']=='price_desc') ? 'selected' : ''; ?>>Price: High to Low</option>
-                        <option value="rating" <?php echo (isset($_GET['sort']) && $_GET['sort']=='rating') ? 'selected' : ''; ?>>Customer Rating</option>
-                        <option value="newest" <?php echo (isset($_GET['sort']) && $_GET['sort']=='newest') ? 'selected' : ''; ?>>Newest Arrivals</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6 col-lg-4">
-                    <div class="filter-item">
-                      <label class="form-label">View</label>
-                      <div class="d-flex align-items-center">
-                        <div class="items-per-page">
-                          <select class="form-select" id="itemsPerPage" name="items_per_page" aria-label="Items per page">
-                            <option value="12" <?php echo (isset($_GET['items_per_page']) && $_GET['items_per_page']==12) ? 'selected' : ''; ?>>12 per page</option>
-                            <option value="24" <?php echo (isset($_GET['items_per_page']) && $_GET['items_per_page']==24) ? 'selected' : ''; ?>>24 per page</option>
-                            <option value="48" <?php echo (isset($_GET['items_per_page']) && $_GET['items_per_page']==48) ? 'selected' : ''; ?>>48 per page</option>
-                            <option value="96" <?php echo (isset($_GET['items_per_page']) && $_GET['items_per_page']==96) ? 'selected' : ''; ?>>96 per page</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row mt-3">
-                  <div class="col-12 aos-init aos-animate" data-aos="fade-up" data-aos-delay="200">
-                    <div class="active-filters">
-                      <span class="active-filter-label">Active Filters:</span>
-                      <div class="filter-tags">
-                        <?php if (!empty($_GET['search'])): ?>
-                        <span class="filter-tag"><?php echo htmlspecialchars($_GET['search']); ?> <button class="filter-remove" type="button" onclick="location.href='marketplace.php' "><i class="bi bi-x"></i></button></span>
-                        <?php endif; ?>
-                        <?php if (!empty($_GET['price_range'])): ?>
-                        <span class="filter-tag"><?php echo htmlspecialchars($_GET['price_range']); ?> <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=price_range]').value=''; document.getElementById('marketFilter').submit();"><i class="bi bi-x"></i></button></span>
-                        <?php endif; ?>
-                        <button class="clear-all-btn btn-primary" type="button" onclick="location.href='marketplace.php'">Clear All</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-              </form>
-            </div>
-
-          </section>
-
-            <section id="best-sellers" class="best-sellers section">
-                
-      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row g-5">
-<?php
-$params = [];
-if (!empty($_GET['search'])) $params['search'] = trim($_GET['search']);
-if (!empty($_GET['price_range'])) $params['price_range'] = trim($_GET['price_range']);
-if (!empty($_GET['sort'])) $params['sort'] = trim($_GET['sort']);
-$itemsPerPage = isset($_GET['items_per_page']) ? intval($_GET['items_per_page']) : 12;
-// Always include items_per_page in params so backend receives the intended page size
-$params['items_per_page'] = $itemsPerPage;
-$currentPage = !empty($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$params['page'] = $currentPage;
-// Request structured response (total + data) for server-side pagination
-$params['ajax'] = 1;
-$query = http_build_query($params);
-$url = $siteurl . "script/admin.php?action=listinglists" . ($query ? "&$query" : "");
-$data = curl_get_contents($url);
-
-$totalItems = 0;
-$listings = [];
-if ($data !== false) {
-  $resp = json_decode($data, true);
-  if (is_array($resp) && isset($resp['data'])) {
-    // convert associative arrays to objects to keep existing template accessors ($listing->field)
-    $listings = json_decode(json_encode($resp['data']));
-    $totalItems = intval($resp['total'] ?? 0);
-  } else {
-    // fallback for legacy responses
-    $decoded = json_decode($data);
-    if ($decoded) $listings = $decoded;
-  }
-
-  if (!empty($listings)) {
-    foreach ($listings as $listing) {
-            // ✅ Only active listings
-            if (isset($listing->status) && strtolower($listing->status) === 'active' && $listing->type == 'Service') {
-
-                // 🧩 Extract data
-                $listingId   = $listing->id;
-                $title       = htmlspecialchars($listing->title);
-                $slug        = htmlspecialchars($listing->slug ?? '');
-                $pricingType = htmlspecialchars($listing->pricing_type ?? '');
-                $price       = htmlspecialchars($listing->price ?? '');
-                $priceMin    = htmlspecialchars($listing->price_min ?? '');
-                $priceMax    = htmlspecialchars($listing->price_max ?? '');
-                $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
-                $category    = htmlspecialchars(trim($categoryNames[0]));
-                $featuredImg = !empty($listing->featured_image)
-                    ? $siteurl . $imagePath . $listing->featured_image
-                    : $siteurl . "assets/img/default-product.jpg";
-                $listingUrl  = $siteurl . "products/" . $slug;
-
-                // 🧩 Seller Info
-                $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
-                $sellerPhoto = !empty($listing->photo)
-                    ? $siteurl . $imagePath . $listing->photo
-                    : $siteurl . "assets/img/user.jpg";
-
-                // 🧩 Compute Display Price
-                $displayPrice = 'Contact for price';
-                if ($pricingType === 'Starting Price' && !empty($price)) {
-                    $displayPrice = $sitecurrency  . number_format($price, 2);
-                } elseif ($pricingType === 'Price Range' && !empty($priceMin) && !empty($priceMax)) {
-                    $displayPrice = $sitecurrency . number_format($priceMin, 2) . $sitecurrency .'-'. number_format($priceMax, 2);
-                }
-
-                // ✅ Check wishlist status
-                $isWishlisted = false;
-
-                if (!empty($buyerId)) {
-                    $apiCheckUrl = $siteurl . "script/user.php?action=checkWishlist&user_id={$buyerId}&listing_id={$listingId}";
-                    $wishlistData = curl_get_contents($apiCheckUrl);
-
-                    if ($wishlistData !== false) {
-                        $wishlistResult = json_decode($wishlistData, true);
-                        if (is_array($wishlistResult)) {
-                            if (isset($wishlistResult['isWishlisted'])) {
-                                $isWishlisted = (bool)$wishlistResult['isWishlisted'];
-                            } elseif (isset($wishlistResult['data']['isWishlisted'])) {
-                                $isWishlisted = (bool)$wishlistResult['data']['isWishlisted'];
-                            }
-                        }
-                    }
-                }
-                ?>
-
-                <!-- 🛍️ Product Card -->
-                <div class="col-lg-3 col-md-6 col-6">
-                    <div class="product-item">
-                        <div class="product-image">
-                            <div class="product-badge trending-badge"><?php echo $category; ?></div>
-                            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
-                            <div class="product-actions">
-
-            
-
-                                <button 
-                                    class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
-                                    title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>">
-                                    <?php if ($isWishlisted): ?>
-                                        <i class="bi bi-heart-fill text-danger"></i>
-                                    <?php else: ?>
-                                        <i class="bi bi-heart"></i>
-                                    <?php endif; ?>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="product-info">
-                            <div class="product-category"><?php echo $category; ?></div>
-                            <h4 class="product-name">
-                                <a href="<?php echo $listingUrl; ?>"><?php echo $title; ?></a>
-                            </h4>
-                            <div class="product-price"><?php echo $displayPrice; ?></div>
-
-                            <!--Seller Info -->
-                            <div class="mt-3 d-flex align-items-center">
-                                <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
-                                <span class="small text-muted"><?php echo $sellerName; ?></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-<?php
+            // If any event end time is still upcoming, event has NOT passed
+            if ($event_end >= $now) {
+                $all_past = false;
+                break;
             }
+        }
+    }
+
+    $event_passed = $all_past;
+}
+
+
+        // TICKETS
+        $tickets = [];
+        if (!empty($listing['tickets'])) {
+            foreach (explode(',', $listing['tickets']) as $i => $t) {
+                list($name, $price, $seat,$benefits,$ticket_id) = explode('|', $t);
+              
+                $tickets[] = [
+                    'ticket_name' => $name,
+                    'price'       => $price,
+                    'seatremain'  => $seat,
+                    'id'          => $ticket_id,
+                    'benefits'    => $benefits
+                ];
+            }
+        }
+
+  $user_purchased = hasUserPurchased($con, $buyerId, $event_id, $siteprefix);
+  $is_in_cart = isInCart($con, $order_id, $event_id, $pricingType, $siteprefix);
+        // Redirect inactive
+        if ($status !== 'active') {
+            header("Location: index.php");
+            exit;
         }
     }
 }
 ?>
 
+   <?php
+          $stats_url = $sitelink . "user.php?action=fetcheventReviewStats&event_id=" . $event_id;
+          $stats_data = curl_get_contents($stats_url);
+          $stats = $stats_data ? json_decode($stats_data, true) : [];
 
+          $average = round($stats['average_rating'] ?? 0, 1);
+          $total_reviews = intval($stats['total_reviews'] ?? 0);
+          $five = $stats['five_star_percent'] ?? 0;
+          $four = $stats['four_star_percent'] ?? 0;
+          $three = $stats['three_star_percent'] ?? 0;
+          $two = $stats['two_star_percent'] ?? 0;
+          $one = $stats['one_star_percent'] ?? 0;
+          ?>
+
+
+
+<section id="product-details" class="product-details section">
+
+      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-4">
+          <!-- Product Gallery -->
+          <div class="col-lg-6 aos-init aos-animate" data-aos="zoom-in" data-aos-delay="150">
+            <div class="justify-content-between d-flex align-items-start mb-3">
+             <div class="product-share">
+                    <button class="share-btn" id="webShareBtn" aria-label="Share product">
+                      <i class="bi bi-share"></i>
+                    </button>
+                    <div class="share-dropdown">
+                      <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode($siteurl . $slug); ?>&text=<?php echo urlencode($title); ?>"
+                        target="_blank" rel="noopener" title="Share on Twitter">
+                        <i class="bi bi-twitter"></i>
+                      </a>
+
+                      <!-- Facebook -->
+                      <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($siteurl . $slug); ?>"
+                        target="_blank" rel="noopener" title="Share on Facebook">
+                        <i class="bi bi-facebook"></i>
+                      </a>
+
+                      <!-- LinkedIn -->
+                      <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode($siteurl . $slug); ?>&title=<?php echo urlencode($title); ?>"
+                        target="_blank" rel="noopener" title="Share on LinkedIn">
+                        <i class="bi bi-linkedin"></i>
+                      </a>
+
+                    </div>
+                     </div>
+                     <div class="product-id">
+                    <span class="me-1">Event ID: <?php echo $event_id; ?></span>
+                      <span class="badge-category"><?php echo $event_type; ?></span>
+                        </div>
+                    </div>
+    <div class="product-gallery">
+        <?php if (!empty($images)) { 
+            // First image is main
+            $mainImage = $siteurl . $imagePath . trim($images[0]);
+        ?>
+        <!-- 🖼️ Main Showcase -->
+        <div class="main-showcase">
+            <div class="image-zoom-container">
+                <img src="<?php echo $mainImage; ?>" 
+                     alt="<?php echo $title; ?>" 
+                     class="img-fluid main-product-image drift-zoom" 
+                     id="main-product-image" 
+                     data-zoom="<?php echo $mainImage; ?>">
+                <div class="image-navigation">
+                    <button class="nav-arrow prev-image image-nav-btn" type="button">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="nav-arrow next-image image-nav-btn" type="button">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🧩 Thumbnail Grid -->
+        <div class="thumbnail-grid">
+            <?php foreach ($images as $index => $imgName): 
+                $imgUrl = $siteurl . $imagePath . trim($imgName);
+                $active = $index === 0 ? 'active' : '';
+            ?>
+            <div class="thumbnail-wrapper thumbnail-item <?php echo $active; ?>" 
+                 data-image="<?php echo $imgUrl; ?>">
+                <img src="<?php echo $imgUrl; ?>" 
+                     alt="View <?php echo $index + 1; ?>" 
+                     class="img-fluid">
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php } else { ?>
+            <!-- Fallback if no images -->
+            <img src="<?php echo $siteurl . 'assets/img/default-product.jpg'; ?>" 
+                 alt="No Image" class="img-fluid rounded">
+        <?php } ?>
+    </div>
+
+
+        </div>
+      
+
+          <!-- Product Details -->
+          <div class="col-lg-6 aos-init aos-animate" data-aos="fade-left" data-aos-delay="200">
+            <div class="product-details">
+              <div class="product-badge-container">
+                <span class="badge-category m-1"><?php echo $category; ?></span>
+                <span class="badge-category m-1"><?php echo $subcategory; ?></span>
+                <div class="rating-group">
+                  <div class="stars">
+                   
+                 
+                  </div>
+                  <span class="review-text"></span>
+                </div>
+              </div>
+
+              <h1 class="product-name"><?php echo $title; ?></h1>
+
+              <div class="pricing-section">
+                <div class="price-display">
+                  <span class="sale-price">
+               <?php
+                if ($pricingType === 'paid') {
+                  echo '<span id="paidPrice"></span>'; // Empty placeholder for JS
+                } elseif ($pricingType === 'free') {
+                echo 'Free';
+                } elseif ($pricingType === 'donation') {
+                echo 'Donate';
+                }
+            ?>
+            </span>
+
+
+                  </span>
+                 
+                </div>
+              </div>
+
+        <div class="product-description">
+
+        <p class="bio-text">
+          <span class="bio-short"><?php echo $shortBio; ?></span>
+          <?php if ($isTruncated): ?>
+            <span class="bio-full d-none"><?php echo $description; ?></span>
+            <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
+          <?php endif; ?>
+        </p>
+              </div>
+  <?php if ($pricingType === 'paid'): ?>
+              <div class="availability-status">
+                <!-- SELECTABLE TICKET BUTTONS -->
+
+    <label class="form-label"><strong>Select Tickets:</strong></label>
+
+    <!-- ✅ Hidden input to store currency -->
+    <input type="hidden" id="siteCurrency" value="<?php echo htmlspecialchars($sitecurrency); ?>">
+
+    <div class="ticket-options d-block mb-3">
+        <?php foreach ($tickets as $i => $t): 
+            $ticket_id =$t['id'];  
+            $ticket_name = htmlspecialchars($t['ticket_name']);
+            $benefits    = htmlspecialchars($t['benefits'] ?? '');
+            $amount      = floatval($t['price']);
+            $seatremain  = intval($t['seatremain']);
+            $isSoldOut   = $seatremain <= 0;
+        ?>
+        <div class="mb-2 ticket-item w-100">
+            <input
+      type="checkbox"
+      class="btn-check variation-checkbox"
+      id="ticket<?php echo $ticket_id; ?>"
+      name="variation_ids[]"
+      value="<?php echo $ticket_id; ?>"
+      data-price="<?php echo $amount; ?>"
+      onchange="toggleTicketInfo(this)"
+      <?php if ($isSoldOut) echo 'disabled'; ?>
+      autocomplete="off">
+
+
+            <label
+                class="btn btn-outline-<?php echo $isSoldOut ? 'secondary' : 'primary'; ?> w-100 text-start px-3 py-2"
+                for="ticket<?php echo $ticket_id; ?>"
+                <?php if ($isSoldOut): ?>title="Ticket Sold Out"<?php endif; ?>
+            >
+                <?php echo $ticket_name; ?> (<?php echo $sitecurrency . number_format($amount, 2); ?>)
+                <?php if ($isSoldOut): ?>
+                    <span class="text-danger fw-bold"> - Sold Out</span>
+                <?php endif; ?>
+            </label>
+
+            <!-- ✅ Hidden data for JS/frontend -->
+            <input type="hidden" id="seat-<?php echo $ticket_id; ?>" value="<?php echo $seatremain; ?>">
+            <input type="hidden" id="benefits-<?php echo $ticket_id; ?>" value="<?php echo $benefits; ?>">
+            <input type="hidden" id="price-<?php echo $ticket_id; ?>" value="<?php echo $amount; ?>">
+        </div>
+        <?php endforeach; ?>
+    </div>
+          </div> 
+<?php endif; ?>
+
+  
+<div class="purchase-section">
+<div class="action-buttons">
+    <?php if ($event_passed): ?>
+        <a class="btn btn-danger">Event Passed</a>
+
+    <?php elseif ($user_purchased): ?>
+        <a href="<?php echo $siteurl; ?>dashboard.php" class="btn btn-success">
+            <i class="bi bi-person"></i> Go to Dashboard
+        </a>
+
+    <?php else: ?>
+        <?php if ($pricingType === 'paid' || $pricingType === 'free'): ?>
+            <?php 
+            // Check if this event/training is already in cart
+            $is_in_cart = isInCart($con, $order_id ?? null, $event_id, $pricingType, $siteprefix);
+            ?>
+            <?php if ($is_in_cart): ?>
+                <a href="<?php echo $siteurl; ?>cart.php" class="btn btn-primary add-to-cart-btn">
+                    <i class="bi bi-cart-check"></i> View Cart
+                </a>
+            <?php else: ?>
+               <input type="hidden" name="pricing" id="pricing" value="<?php echo $pricingType; ?>">
+              <input type="hidden" name="event_id" id="current_event_id" value="<?php echo $event_id; ?>">
+                <button class="btn primary-action" id="addtoCart">
+                    <i class="bi bi-bag-plus"></i> Add to Cart
+                </button>
+            <?php endif; ?>
+
+        <?php elseif ($pricingType === 'donation'): ?>
+            <button class="btn btn-primary donate-btn" type="button"
+                id="donateBtn"
+                data-event-id="<?php echo $event_id; ?>"
+                data-orders_id="<?php echo uniqid('OD'); ?>">
+                <i class="bi bi-cash-coin"></i> Donate
+            </button>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
+</div>
+
+<div class="other-status">
+
+<?php
+$details_rows = "";
+
+// 🔹 EVENT SCHEDULE (only upcoming dates already filtered)
+if (!empty($eventDates)) {
+    foreach ($eventDates as $d) {
+        $dateFormatted = date("l, F j, Y", strtotime($d['date']));
+        $timeFormatted = date("g:i A", strtotime($d['start'])) . " - " . date("g:i A", strtotime($d['end']));
+        
+        $details_rows .= "
+            <tr>
+                <td><strong>Event Date:</strong></td>
+                <td>{$dateFormatted}</td>
+            </tr>
+            <tr>
+                <td><strong>Time:</strong></td>
+                <td>{$timeFormatted}</td>
+            </tr>
+        ";
+    }
+}
+
+// 🔹 TARGET AUDIENCE
+if (!empty($target_audience)) {
+    $details_rows .= "
+        <tr>
+            <td><strong>Target Audience:</strong></td>
+            <td>{$target_audience}</td>
+        </tr>
+    ";
+}
+
+// 🔹 DELIVERY FORMAT
+$delivery_details = "";
+
+if ($format === 'physical') {
+    $fields = [
+        'address' => 'Address',
+        'state' => 'State',
+        'lga' => 'LGA',
+        'country' => 'Country'
+    ];
+    foreach ($fields as $col => $label) {
+        if (!empty($listing[$col])) {
+            $delivery_details .= "
+                <tr>
+                    <td><strong>{$label}:</strong></td>
+                    <td>" . htmlspecialchars($listing[$col]) . "</td>
+                </tr>
+            ";
+        }
+    }
+
+} elseif ($format === 'hybrid') {
+    $fields = [
+        'hybrid_physical_address' => 'Physical Address',
+        'hybrid_state' => 'State',
+        'hybrid_lga' => 'LGA',
+        'hybrid_country' => 'Country',
+        'hybrid_foreign_address' => 'Foreign Address'
+    ];
+    foreach ($fields as $col => $label) {
+        if (!empty($listing[$col])) {
+            $delivery_details .= "
+                <tr>
+                    <td><strong>{$label}:</strong></td>
+                    <td>" . htmlspecialchars($listing[$col]) . "</td>
+                </tr>
+            ";
+        }
+    }
+
+} elseif ($format === 'online') {
+    $delivery_details .= "
+        <tr>
+            <td><strong>Format:</strong></td>
+            <td>Online (Link will be sent after registration)</td>
+        </tr>
+    ";
+}
+
+// ADD DELIVERY FORMAT TO TABLE
+$details_rows .= $delivery_details;
+?>
+
+<!-- FINAL TABLE OUTPUT -->
+<?php if (!empty($details_rows)) : ?>
+    <h6>Event Details</h6>
+    <table class="table table-bordered table-sm">
+        <tbody>
+            <?= $details_rows ?>
+        </tbody>
+    </table>
+<?php endif; ?>
 
 </div>
-        </div>
-    
-        </section>
-    <!-- Pagination -->
-                <section id="category-pagination" class="category-pagination section">
-                    <div class="container">
-                      <nav class="d-flex justify-content-center" aria-label="Page navigation">
-                        <ul id="marketplace-pagination-list">
-                          <!-- JS will populate pagination links -->
-                        </ul>
-                      </nav>
+
+</div>
+</div>
+</div>
+
+       <!-- Information Tabs -->
+        <div class="row mt-5 aos-init aos-animate" data-aos="fade-up" data-aos-delay="300">
+          <div class="col-12">
+            <div class="info-tabs-container">
+              <nav class="tabs-navigation nav" role="tablist">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-overview" type="button" aria-selected="true" role="tab">Description</button>
+           
+                          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ecommerce-product-details-5-customer-reviews" type="button" aria-selected="false" tabindex="-1" role="tab">Reviews (<?php echo $total_reviews; ?>)</button>
+              </nav>
+
+              <div class="tab-content">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="ecommerce-product-details-5-overview" role="tabpanel">
+                  <div class="overview-content">
+                    <div class="row g-4">
+                      <div class="col-lg-12">
+                        <div class="content-section">
+                          <h3>Description</h3>
+                           <p class="bio-text">
+                    <span class="bio-short"><?php echo $shortBio; ?></span>
+                    <?php if ($isTruncated): ?>
+                      <span class="bio-full d-none"><?php echo $description; ?></span>
+                      <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
+                    <?php endif; ?>
+                  </p> 
                     </div>
-                </section>
-<script>
-// Inject PHP variables into JS
-const API_BASE = '<?php echo $siteurl; ?>script/admin.php?action=listinglists';
-const SITEURL = '<?php echo $siteurl; ?>';
-const IMAGE_PATH = '<?php echo $imagePath ?? "uploads/"; ?>';
-const SITE_CURRENCY = '<?php echo $sitecurrency ?? ""; ?>';
-let currentPage = <?php echo isset($currentPage) ? intval($currentPage) : 1; ?>;
-let itemsPerPage = <?php echo isset($itemsPerPage) ? intval($itemsPerPage) : 2; ?>;
-let totalItems = <?php echo isset($totalItems) ? intval($totalItems) : 0; ?>;
+                  </div>
+                </div>
+                 </div>
+                </div>
+           
 
-function buildQuery(params) {
-  return Object.keys(params).filter(k => params[k] !== undefined && params[k] !== '' && params[k] !== null).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
-}
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="ecommerce-product-details-5-customer-reviews" role="tabpanel">
+                  <div class="reviews-content">
 
-function renderListings(listings) {
-  const container = document.querySelector('.best-sellers .container .row.g-5');
-  if (!container) return;
-  if (!Array.isArray(listings) || listings.length === 0) {
-    container.innerHTML = '<div class="col-12"><p>No services found.</p></div>';
-    return;
-  }
-  let html = '';
-  listings.forEach(listing => {
-    if (!listing.status || listing.status.toLowerCase() !== 'active' || listing.type !== 'Service') return;
-    const listingId = listing.id;
-    const title = listing.title ? listing.title.replace(/</g,'&lt;') : '';
-    const slug = listing.slug || '';
-    const pricingType = listing.pricing_type || '';
-    const price = listing.price || '';
-    const priceMin = listing.price_min || '';
-    const priceMax = listing.price_max || '';
-    const categoryNames = listing.category_names ? listing.category_names.split(',') : ['General'];
-    const category = categoryNames[0] ? categoryNames[0].trim() : 'General';
-    const featuredImg = listing.featured_image ? (SITEURL + IMAGE_PATH + listing.featured_image) : (SITEURL + 'assets/img/default-product.jpg');
-    const listingUrl = SITEURL + 'products/' + encodeURIComponent(slug);
-    const sellerName = ((listing.first_name || '') + ' ' + (listing.last_name || '')).trim();
-    const sellerPhoto = listing.photo ? (SITEURL + IMAGE_PATH + listing.photo) : (SITEURL + 'assets/img/user.jpg');
-    let displayPrice = 'Contact for price';
-    if (pricingType === 'Starting Price' && price) displayPrice = SITE_CURRENCY + parseFloat(price).toFixed(2);
-    else if (pricingType === 'Price Range' && priceMin && priceMax) displayPrice = SITE_CURRENCY + parseFloat(priceMin).toFixed(2) + '-' + SITE_CURRENCY + parseFloat(priceMax).toFixed(2);
+                   <div class="comment-form section" id="write_review">
+                  <div class="container">
+                    <?php if ($activeLog == 1) { ?>
+                    <form id="posteventreview" method="POST">
+                      <div class="col-lg-12 text-center mt-1" id="messages"></div> 
 
-    html += `
-      <div class="col-lg-3 col-md-6 col-6">
-        <div class="product-item">
-          <div class="product-image">
-            <div class="product-badge trending-badge">${category}</div>
-            <img src="${featuredImg}" alt="${title}" class="img-fluid" loading="lazy">
-            <div class="product-actions">
-              <button class="action-btn wishlist-btn" data-product-id="${listingId}" title="Add to Wishlist">
-                <i class="bi bi-heart"></i>
-              </button>
+                      <h4>Give Review</h4>
+                      <input name="user_id" type="hidden" class="form-control" value="<?php echo $buyerId; ?>">
+                      <input name="event_id" type="hidden" class="form-control" value="<?php echo $event_id; ?>">
+                            <!-- Star rating -->
+                      <div class="mb-3">
+                        <label class="form-label">Your rating</label>
+                        <div class="star-rating" role="radiogroup" aria-label="Rating">
+                          <button type="button" class="star" data-value="1" aria-label="1 star">☆</button>
+                          <button type="button" class="star" data-value="2" aria-label="2 stars">☆</button>
+                          <button type="button" class="star" data-value="3" aria-label="3 stars">☆</button>
+                          <button type="button" class="star" data-value="4" aria-label="4 stars">☆</button>
+                          <button type="button" class="star" data-value="5" aria-label="5 stars">☆</button>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="0">
+                      </div>
+                      <div class="row">
+                          <input type="hidden" value="post_eventreview" name="action">
+                        <div class="col form-group">
+                          <textarea name="comment" class="editor" placeholder="Your Review*"></textarea>
+                        </div>
+                      </div>
+
+                      <div class="text-center">
+                        <button type="submit" class="btn btn-primary" id="submit-btn">Post Review</button>
+                      </div>
+
+                    </form>
+
+                    <?php } ?>
+
+                  </div>
+                </div>
+
+             
+
+                    <div class="reviews-header">
+                <div class="rating-overview">
+                  <div class="average-score">
+                    <div class="score-display"><?php echo $average; ?></div>
+                    <div class="score-stars">
+                      <?php
+                      $fullStars = floor($average);
+                      $halfStar = ($average - $fullStars >= 0.5);
+                      for ($i = 1; $i <= 5; $i++) {
+                          if ($i <= $fullStars) {
+                              echo '<i class="bi bi-star-fill"></i>';
+                          } elseif ($halfStar && $i == $fullStars + 1) {
+                              echo '<i class="bi bi-star-half"></i>';
+                          } else {
+                              echo '<i class="bi bi-star"></i>';
+                          }
+                      }
+                      ?>
+                    </div>
+                    <div class="total-reviews">
+                      <?php echo $total_reviews; ?> customer review<?php echo ($total_reviews != 1) ? 's' : ''; ?>
+                    </div>
+                  </div>
+
+                  <div class="rating-distribution">
+                    <div class="rating-row">
+                      <span class="stars-label">5★</span>
+                      <div class="progress-container"><div class="progress-fill" style="width: <?php echo $five; ?>%;"></div></div>
+                      <span class="count-label"><?php echo $stats['five_star'] ?? 0; ?></span>
+                    </div>
+                    <div class="rating-row">
+                      <span class="stars-label">4★</span>
+                      <div class="progress-container"><div class="progress-fill" style="width: <?php echo $four; ?>%;"></div></div>
+                      <span class="count-label"><?php echo $stats['four_star'] ?? 0; ?></span>
+                    </div>
+                    <div class="rating-row">
+                      <span class="stars-label">3★</span>
+                      <div class="progress-container"><div class="progress-fill" style="width: <?php echo $three; ?>%;"></div></div>
+                      <span class="count-label"><?php echo $stats['three_star'] ?? 0; ?></span>
+                    </div>
+                    <div class="rating-row">
+                      <span class="stars-label">2★</span>
+                      <div class="progress-container"><div class="progress-fill" style="width: <?php echo $two; ?>%;"></div></div>
+                      <span class="count-label"><?php echo $stats['two_star'] ?? 0; ?></span>
+                    </div>
+                    <div class="rating-row">
+                      <span class="stars-label">1★</span>
+                      <div class="progress-container"><div class="progress-fill" style="width: <?php echo $one; ?>%;"></div></div>
+                      <span class="count-label"><?php echo $stats['one_star'] ?? 0; ?></span>
+                    </div>
+                  </div>
+                </div>
+                         <?php if ($activeLog == 1) { ?>
+                <div class="write-review-cta">
+                  <h4>Share Your Experience</h4>
+                  <p>Help others make informed decisions</p>
+                  <a href="#write_review" class="btn review-btn">Write Review</a>
+                </div>
+
+                <?php } ?>
+              </div>
+
+
+                    <div class="customer-reviews-list">
+                     <?php 
+
+$comments_url = $sitelink . "user.php?action=eventcommentsdata&event_id=" . $event_id;
+
+$data = curl_get_contents($comments_url);
+if ($data !== false) {
+    $comments = json_decode($data);
+    if (!empty($comments) && is_array($comments)) {
+
+        $reviewsPerPage = 12;
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $totalReviews = count($comments);
+        $totalPages = max(1, ceil($totalReviews / $reviewsPerPage));
+        if ($page > $totalPages) $page = $totalPages;
+        $start = ($page - 1) * $reviewsPerPage;
+        $commentsToShow = array_slice($comments, $start, $reviewsPerPage);
+
+        foreach ($commentsToShow as $comment) {
+            $username     = htmlspecialchars(trim(($comment->first_name ?? '') . ' ' . ($comment->last_name ?? '')) ?: 'Anonymous');
+            $avatar       = htmlspecialchars($siteurl . $imagePath . ($comment->photo ?? 'default.png'));
+            $commentText  = nl2br(htmlspecialchars($comment->comment ?? ''));
+            $rating       = max(0, min(5, intval($comment->rating ?? 0)));
+            $headline     = htmlspecialchars($comment->headline ?? 'Review');
+            $created_date = !empty($comment->created_at) ? date('F d, Y', strtotime($comment->created_at)) : '';
+            $verified     = !empty($comment->verified_buyer) ? true : false;
+            ?>
+
+            <div class="review-card">
+              <div class="reviewer-profile">
+                <img src="<?php echo $avatar; ?>" alt="<?php echo $username; ?>" class="profile-pic">
+                <div class="profile-details">
+                  <div class="customer-name">
+                    <?php echo $username; ?>
+                    <?php if ($verified): ?>
+                      <span class="badge bg-success ms-2">Verified Buyer</span>
+                    <?php else: ?>
+                      <span class="badge bg-light text-muted ms-2">&nbsp;</span>
+                    <?php endif; ?>
+                  </div>
+                  <div class="review-meta">
+                    <div class="review-stars">
+                      <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <i class="bi <?php echo ($i <= $rating) ? 'bi-star-fill' : 'bi-star'; ?>"></i>
+                      <?php endfor; ?>
+                    </div>
+                    <span class="review-date"><?php echo $created_date; ?></span>
+                  </div>
+                </div>
+              </div>
+              <h5 class="review-headline"><?php echo $headline; ?></h5>
+              <div class="review-text">
+                <p><?php echo $commentText; ?></p>
+              </div>
+        
             </div>
-          </div>
-          <div class="product-info">
-            <div class="product-category">${category}</div>
-            <h4 class="product-name"><a href="${listingUrl}">${title}</a></h4>
-            <div class="product-price">${displayPrice}</div>
-            <div class="mt-3 d-flex align-items-center">
-              <img src="${sellerPhoto}" alt="${sellerName}" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
-              <span class="small text-muted">${sellerName}</span>
+
+            <?php
+           
+        include 'inline-ad.php';
+
+        }
+
+        // Pagination UI
+        if ($totalPages > 1) {
+            $baseParams = $_GET;
+            if (!isset($baseParams['event_id']) && !empty($event_id)) {
+                $baseParams['event_id'] = $event_id;
+            }
+            ?>
+            <nav aria-label="Reviews pagination" class="mt-4">
+              <ul class="pagination justify-content-center">
+                <?php
+                $prev = $baseParams;
+                $prev['page'] = max(1, $page - 1);
+                ?>
+                <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                  <a class="page-link" href="?<?php echo http_build_query($prev); ?>" aria-label="Previous">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+
+                <?php
+                $displayRange = 5;
+                $startPage = max(1, $page - floor($displayRange / 2));
+                $endPage = min($totalPages, $startPage + $displayRange - 1);
+                if ($endPage - $startPage + 1 < $displayRange) {
+                    $startPage = max(1, $endPage - $displayRange + 1);
+                }
+                for ($i = $startPage; $i <= $endPage; $i++):
+                    $p = $baseParams;
+                    $p['page'] = $i;
+                    ?>
+                    <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                      <a class="page-link" href="?<?php echo http_build_query($p); ?>"><?php echo $i; ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <?php
+                $next = $baseParams;
+                $next['page'] = min($totalPages, $page + 1);
+                ?>
+                <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                  <a class="page-link" href="?<?php echo http_build_query($next); ?>" aria-label="Next">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <?php
+        }
+    } else {
+        echo "<p class='text-center text-muted py-3'>No reviews yet.</p>";
+    }
+} else {
+    echo "<p class='text-center text-danger py-3'>Unable to fetch reviews.</p>";
+}
+?>
+                    
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
+</div>
+</section>
 
-let debounceTimer = null;
-function liveFetch() {
-  const form = document.getElementById('marketFilter');
-  if (!form) return;
-  const formData = new FormData(form);
-  const params = {};
-  for (const [k, v] of formData.entries()) params[k] = v;
-  const query = buildQuery(params);
-  const url = API_BASE + (query ? '&' + query : '');
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      // If structured response { total, data }
-      if (data && data.data && Array.isArray(data.data)) {
-        renderListings(data.data);
-        renderPagination(data.total || 0, currentPage, itemsPerPage);
-      } else if (Array.isArray(data)) {
-        renderListings(data);
-        renderPagination(0, 1, itemsPerPage);
-      } else {
-        console.error('Unexpected response format', data);
-      }
-      updateActiveFilters();
-      // update browser URL to reflect current filters and page
-      try {
-        const urlParams = new URLSearchParams(buildQuery(params));
-        const newUrl = window.location.pathname + '?' + urlParams.toString();
-        history.replaceState(null, '', newUrl);
-      } catch (e) {}
-    })
-    .catch(err => console.error('Live fetch error', err));
-}
-
-// debounce helper
-function scheduleLiveFetch() {
-  clearTimeout(debounceTimer);
-  // reset to first page when filters change
-  currentPage = 1;
-  debounceTimer = setTimeout(liveFetch, 300);
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  const searchInput = document.querySelector('#marketFilter [name=search]');
-  const selects = document.querySelectorAll('#marketFilter select');
-  if (searchInput) {
-    searchInput.addEventListener('input', scheduleLiveFetch);
-  }
-  selects.forEach(s => s.addEventListener('change', function(){ scheduleLiveFetch(); }));
-  
-  // Pagination clicks (delegated)
-  document.addEventListener('click', function(e){
-    const t = e.target.closest && e.target.closest('[data-market-page]');
-    if (t) {
-      e.preventDefault();
-      const p = parseInt(t.getAttribute('data-market-page')) || 1;
-      if (p === currentPage) return;
-      currentPage = p;
-      liveFetch();
-    }
-  });
-
-  // Initial update of active filters and pagination on page load
-  updateActiveFilters();
-  // If server provided total (rendered), allow JS to render pagination correctly after DOM load
-  try {
-    // if global totalItems injected by server
-    if (typeof totalItems !== 'undefined' && totalItems > 0) {
-      renderPagination(totalItems, currentPage, itemsPerPage);
-    }
-  } catch (e) {}
-});
-
-// Update the active filters UI tags based on current form values
-function updateActiveFilters() {
-  const container = document.querySelector('.filter-tags');
-  if (!container) return;
-  const form = document.getElementById('marketFilter');
-  const fd = new FormData(form);
-  let html = '';
-  const search = (fd.get('search') || '').trim();
-  const price = (fd.get('price_range') || '').trim();
-  if (search) {
-    html += `<span class="filter-tag">${escapeHtml(search)} <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=search]').value=''; scheduleLiveFetch();"><i class="bi bi-x"></i></button></span>`;
-  }
-  if (price) {
-    html += `<span class="filter-tag">${escapeHtml(price)} <button class="filter-remove" type="button" onclick="document.getElementById('marketFilter').querySelector('[name=price_range]').value=''; scheduleLiveFetch();"><i class="bi bi-x"></i></button></span>`;
-  }
-  html += `<button class="clear-all-btn" type="button" onclick="document.getElementById('marketFilter').reset(); scheduleLiveFetch();">Clear All</button>`;
-  container.innerHTML = html;
-}
-
-function escapeHtml(unsafe) {
-  return String(unsafe).replace(/[&<>"'`=\/]/g, function (s) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'\/','`':'&#96;','=':'&#61;'})[s]; });
-}
-
-// Render pagination controls
-function renderPagination(total, page, perPage) {
-  const container = document.getElementById('marketplace-pagination-list');
-  if (!container) return;
-  perPage = parseInt(perPage, 10) || 1;
-  total = parseInt(total, 10) || 0;
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
-
-  // hide pagination when there is only one page or no items
-  if (total <= perPage || totalPages <= 1) {
-    container.innerHTML = '';
-    return;
-  }
-
-  let html = '';
-  // previous
-  const prevDisabled = page <= 1;
-  html += `<li class="page-item ${prevDisabled ? 'disabled' : ''}"><a class="page-link" href="#" data-market-page="${Math.max(1, page-1)}" aria-label="Previous"><span aria-hidden="true"><i class="bi bi-arrow-left"></i></span><span class="d-none d-sm-inline"> Previous</span></a></li>`;
-
-  // page numbers (show first, last, current +-2)
-  const showRange = 2;
-  for (let p = 1; p <= totalPages; p++) {
-    if (p === 1 || p === totalPages || (p >= page - showRange && p <= page + showRange)) {
-      const active = p === page ? ' active' : '';
-      const aria = p === page ? ' aria-current="page"' : '';
-      html += `<li class="page-item${active}"><a class="page-link" href="#" data-market-page="${p}"${aria}>${p}</a></li>`;
-    } else if (p === 2 && page - showRange > 2) {
-      html += `<li class="page-item disabled"><span class="page-link">&hellip;</span></li>`;
-    } else if (p === totalPages - 1 && page + showRange < totalPages - 1) {
-      html += `<li class="page-item disabled"><span class="page-link">&hellip;</span></li>`;
-    }
-  }
-
-  // next
-  const nextDisabled = page >= totalPages;
-  html += `<li class="page-item ${nextDisabled ? 'disabled' : ''}"><a class="page-link" href="#" data-market-page="${Math.min(totalPages, page+1)}" aria-label="Next"><span class="d-none d-sm-inline">Next </span><span aria-hidden="true"><i class="bi bi-arrow-right"></i></span></a></li>`;
-  container.innerHTML = html;
-}
-</script>
-
-<?php include "footer.php"; ?>
+    <?php include "footer.php"; ?>

@@ -1,9 +1,26 @@
 <?php
 include "connect.php";
-
+$response = []; // initialize to empty array
 function getallcategoriesdata($con) {
     global $siteprefix;  
     $query = "SELECT * FROM {$siteprefix}categories WHERE parent_id IS NULL";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $categoryData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $categoryData[] = $row;
+        }
+        return $categoryData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
+
+function getalleventcategoriesdata($con) {
+    global $siteprefix;  
+    $query = "SELECT * FROM {$siteprefix}event_categories WHERE parent_id IS NULL";
     $result = mysqli_query($con, $query);
 
     if ($result) {
@@ -90,6 +107,28 @@ function getsubcategoriesbyparents($con, $parentIds) {
 }
 
 
+function geteventsubcategoriesbyparents($con, $parentIds) {
+    global $siteprefix;
+
+    // convert parent_ids (comma-separated) into int array
+    $ids = array_map('intval', explode(",", $parentIds));
+    $idsList = implode(",", $ids);
+
+    // only fetch subcategories that belong to those parent_ids
+    $query = "SELECT * FROM {$siteprefix}event_categories WHERE parent_id IN ($idsList)";
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $subcategoryData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subcategoryData[] = $row;
+        }
+        return $subcategoryData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
 function getprofessionbyparents($con, $parentIds) {
     global $siteprefix;
 
@@ -155,7 +194,8 @@ function registerVendorEndpoint($postData, $filesData) {
     $phone                 = mysqli_real_escape_string($con, $postData['phone']);
     $website               = mysqli_real_escape_string($con, $postData['website']);
     $email                 = mysqli_real_escape_string($con, $postData['email']);
-    $stateResidence        = mysqli_real_escape_string($con, $postData['state_residence']);
+    $state               = mysqli_real_escape_string($con, $postData['state']);
+    $lga                 = mysqli_real_escape_string($con, $postData['lga']);
     $address               = mysqli_real_escape_string($con, $postData['address']);
 
     $facebook  = mysqli_real_escape_string($con, $postData['facebook']);
@@ -215,12 +255,15 @@ while (true) {
 
     $coverage      = isset($postData['coverage']) ? mysqli_real_escape_string($con, implode(",", $postData['coverage'])) : '';
     $onsite         = mysqli_real_escape_string($con, $postData['onsite']);
-    $availability   = mysqli_real_escape_string($con, $postData['availability']);
+    $preferred_days = isset($_POST['preferred_days']) ? implode(', ', $_POST['preferred_days']) : '';
+    $start_time = $_POST['start_time'] ?? '';
+    $end_time = $_POST['end_time'] ?? '';
+    $availability = "$preferred_days | $start_time - $end_time ";
     $consent        = isset($postData['consent']) ? 1 : 0;
     $user_type      ="vendor";
 
 
-        // ✅ Check if email already exists
+   // ✅ Check if email already exists
     $checkEmail = "SELECT id FROM {$siteprefix}users WHERE email = '$email' LIMIT 1";
     $result = mysqli_query($con, $checkEmail);
     if ($result && mysqli_num_rows($result) > 0) {
@@ -279,14 +322,14 @@ if (strlen($password) < 8 ||
     $sql = "INSERT INTO {$siteprefix}users 
             (title, first_name, middle_name, last_name, photo, dob, gender, nationality, languages,
              business_name, registered_business_name, owner_name, business_logo, portfolio,
-             phone, website, email, state_residence, address,
+             phone, website, email, state_residence,lga, address,
              facebook, twitter, instagram, linkedin,
              category_id, subcategory_id, services, experience_years,
              coverage, onsite, availability, consent, status, user_type, subscription_status,password,slug)
             VALUES
             ('$title', '$firstName', '$middleName', '$lastName', '$photoFile', '$dob', '$gender', '$nationality', '$languages',
              '$businessName', '$registeredBusiness', '$ownerName', '$logoFile', '$portfolioCSV',
-             '$phone', '$website', '$email', '$stateResidence', '$address',
+             '$phone', '$website', '$email', '$state','$lga', '$address',
              '$facebook', '$twitter', '$instagram', '$linkedin',
              '$categoryId', '$subcategoryId', '$services', '$experience',
              '$coverage', '$onsite', '$availability', '$consent', 'pending','$user_type', 'inactive','$passwordhash','$alt_title')";
@@ -476,10 +519,18 @@ while (true) {
 
     // Reuse your existing uploadImages() function
     $uploadedFiles = uploadImages($_FILES['photos'], $targetDir);
-    $uploadedLogo = uploadImages($_FILES['business_logo'], $targetDir);
+    // Business logo
+$businessLogo = null;
+if (!empty($filesData["business_logo"]["name"])) {
+    $businessLogo = uniqid() . '_' . basename($filesData["business_logo"]["name"]);
+    $logoPath = $targetDir . $businessLogo;
+    move_uploaded_file($filesData["business_logo"]["tmp_name"], $logoPath);
+}
+
     // Since this is a single file upload, just get the first item
     $photopictures = !empty($uploadedFiles) ? $uploadedFiles[0] : '';
-    $businessLogo =!empty($uploadedLogo ) ? $uploadedLogo [0] : '';
+
+    
 
     $photoFile = uploadFile($filesData['passport'], $targetDir);
     $cvFile = uploadFile($filesData['cv'], $targetDir);
@@ -500,14 +551,14 @@ while (true) {
     // SQL insert
     $sql = "INSERT INTO {$siteprefix}users 
         (title, first_name, middle_name, last_name,photo, dob, gender, nationality, languages,
-         business_name, registered_business_name, owner_name, business_logo, phone, website, email,
+         business_name, registered_business_name, owner_name, business_logo,portfolio, phone, website, email,
          state_residence, lga, address, facebook, twitter, instagram, linkedin,
          professional_title, professional_field, qualification, institution, graduation_year, certifications, associations,
          experience_years, specializations, sub_specialization, work_with, session_format, consultation_days,
          session_duration, rate, bio, cv, license, passport, consent, user_type, status, subscription_status, password,slug)
     VALUES
         ('$title', '$firstName', '$middleName', '$lastName','$photopictures', '$dob', '$gender', '$nationality', '$languages',
-         '$businessName', '$registeredBusiness', '$ownerName', '$businessLogo', '$phone', '$website', '$email',
+         '$businessName', '$registeredBusiness', '$ownerName', '$businessLogo', '$portfolioCSV', '$phone', '$website', '$email',
          '$state', '$lga', '$address', '$facebook', '$twitter', '$instagram', '$linkedin',
          '$professionalTitle', '$professional_field', '$qualification', '$institution', '$graduationYear', '$certifications', '$associations',
          '$experience', '$specializations','$sub_specialization', '$workWith', '$sessionFormat', '$consultation_info',
@@ -558,17 +609,6 @@ while (true) {
         $messages .= generateMessage("Database Error: " . mysqli_error($con), "red");
         return ['status' => 'error', 'messages' => $messages];
     }
-}
-
-/**
- * Helper to handle single file upload safely
- */
-function uploadFile($fileData, $targetDir) {
-    if (empty($fileData['name'])) return '';
-    $fileName = uniqid() . '_' . basename($fileData['name']);
-    $targetPath = $targetDir . $fileName;
-    move_uploaded_file($fileData['tmp_name'], $targetPath);
-    return $fileName;
 }
 
 
@@ -695,7 +735,7 @@ if (strlen($password) < 8 ||
 
 
 function verified($con, $userId, $token) {
-    global $siteprefix;
+    global $siteprefix, $siteMail, $siteName;
     $response = ['status' => 'error', 'messages' => ''];
 
     if ($userId && $token) {
@@ -730,11 +770,10 @@ function verified($con, $userId, $token) {
                 ");
                 $user = mysqli_fetch_assoc($userQuery);
 
-                // FIXED userType
                 $userType = strtolower(trim($user['user_type']));
                 $userSlug = trim($user['slug'] ?? '');
 
-                // Vendor flow (FIXED condition)
+                // Vendor flow
                 if ($userType === 'vendor') {
 
                     mysqli_query($con, "
@@ -753,6 +792,42 @@ function verified($con, $userId, $token) {
                         'status' => 'success',
                         'messages' => 'Email verified successfully! You are now on the Free plan.',
                         'redirect' => 'vendor-pricing/' . $userSlug
+                    ];
+                }
+
+                // Therapist flow
+                if ($userType === 'therapist') {
+
+                    // Update user but keep status pending
+                    mysqli_query($con, "
+                        UPDATE {$siteprefix}users 
+                        SET 
+                            is_verified = 1,
+                            is_active = 1,
+                            status = 'in_progress',
+                            verification_token = NULL
+                        WHERE id = '$userId'
+                    ");
+
+                    // Notify admin
+                    $adminEmail = $siteMail;   // admin email
+                    $adminName  = $siteName;   // admin name (site name)
+                    $emailSubject = "New Therapist In Progress Approval";
+                    $emailMessage_admin = "<p>A new therapist has verified their email and is in progress approval. Please login to your dashboard to process it.</p>";
+                    sendEmail($adminEmail, $siteName, $siteMail, $adminName, $emailMessage_admin, $emailSubject);
+
+                    // Insert admin alert
+                    $adminMessage = "New therapist in progress approval";
+                    $link = "admin-dashboard"; // adjust to actual dashboard link
+                    $date = date('Y-m-d H:i:s');
+                    $msgType = "therapist_pending";
+                    $messageStatus = 0;
+                    insertadminAlert($con, $adminMessage, $link, $date, $msgType, $messageStatus);
+
+                    return [
+                        'status' => 'success',
+                        'messages' => 'Email verified successfully! Your account is still in process, admin needs to check and approve your details.',
+                        'redirect' => 'login.php'
                     ];
                 }
 
@@ -785,6 +860,7 @@ function verified($con, $userId, $token) {
 
     return $response;
 }
+
 
 
 function ResetLink($postData, $siteName, $siteMail){   
@@ -918,6 +994,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['action'])) {
     }  
 
 
+     if ($_GET['action'] == 'eventcategorieslists') {
+    $response = getalleventcategoriesdata($con);
+     }
+
      if ($_GET['action'] == 'professionlists') {
         $response =  getallprofessiondata($con);
     } 
@@ -939,6 +1019,11 @@ if (isset($_GET['action']) && strtolower($_GET['action']) === 'verifyemail') {
     
     if ($_GET['action'] == 'subcategorieslists' && isset($_GET['parent_ids'])) {
         $response = getsubcategoriesbyparents($con, $_GET['parent_ids']);
+    }
+
+    
+     if ($_GET['action'] == 'eventsubcategorieslists' && isset($_GET['parent_ids'])) {
+        $response = geteventsubcategoriesbyparents($con, $_GET['parent_ids']);
     }
 
 

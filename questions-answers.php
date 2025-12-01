@@ -18,98 +18,105 @@
   <section id="courses-2" class="courses-2 section">
     <div class="container" data-aos="fade-up" data-aos-delay="100">
       <div class="row">
-        
-        <!-- Filters Sidebar -->
-        <div class="col-lg-3">
-          <div class="course-filters" data-aos="fade-right" data-aos-delay="100">
-            <h4 class="filter-title">Filter Questions</h4>
+        <div class="col-12">
+          <!-- Small/medium toggle for filters -->
+          <div class="row d-lg-none mb-2">
+            <div class="col-12">
+              <button id="toggleQAFiltersBtn" class="btn btn-outline-primary w-100" aria-expanded="false" aria-controls="qaFilterBlock">Show filters</button>
+            </div>
+          </div>
 
-            <form method="get" id="questionFilterForm">
-              <!-- Search -->
-              <div class="filter-group">
-                <h5>Search</h5>
-                <div class="filter-options mb-2">
-                  <input type="text" name="search" class="form-control"
-                    placeholder="Search title, author, category, subcategory"
-                    value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                </div>
+          <div id="qaFilterBlock">
+          <div class="course-filters horizontal-filters mb-4" data-aos="fade-up" data-aos-delay="100">
+            <form method="get" id="questionFilterForm" class="row g-2 align-items-end">
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label visually-hidden" for="searchInput">Search</label>
+                 <input type="text" id="searchInput" name="search"
+         class="form-control"
+         placeholder="Search title, author, category, subcategory">
               </div>
 
-              <!-- Category -->
-              <div class="filter-group">
-                <h5>Category</h5>
-                <div class="filter-options">
-                  <select name="category[]" id="category" class="form-select select-multiple" multiple>
-                    <option value="">-- Select Category --</option>
-                    <?php
-                    $url = $siteurl . "script/register.php?action=categorieslists";
+              <div class="col-6 col-md-3 col-lg-3">
+                <label class="form-label visually-hidden" for="category">Category</label>
+                <select name="category[]" id="category" class="form-select select-multiple" multiple>
+                  <option value="">-- Select Category --</option>
+                  <?php
+                  $url = $siteurl . "script/register.php?action=categorieslists";
+                  $data = curl_get_contents($url);
+                  $selectedCategories = isset($_GET['category']) ? (array)$_GET['category'] : [];
+
+                  if ($data !== false) {
+                    $categories = json_decode($data);
+                    if (!empty($categories)) {
+                      foreach ($categories as $category) {
+                        $categoryId = $category->id;
+                        $name = htmlspecialchars($category->category_name);
+                        $selected = in_array($categoryId, $selectedCategories) ? 'selected' : '';
+                        echo "<option value='{$categoryId}' {$selected}>{$name}</option>";
+                      }
+                    }
+                  }
+                  ?>
+                </select>
+              </div>
+
+              <div class="col-6 col-md-3 col-lg-3">
+                <label class="form-label visually-hidden" for="subcategory">Sub Category</label>
+                <select name="subcategory[]" id="subcategory" class="form-select select-multiple" multiple>
+                  <option value="">-- Select Sub-Category --</option>
+                  <?php
+                  $selectedSubcategories = isset($_GET['subcategory']) ? (array)$_GET['subcategory'] : [];
+                  if (!empty($selectedCategories)) {
+                    $parentIds = implode(',', array_map('intval', $selectedCategories));
+                    $url = $siteurl . "script/register.php?action=subcategorieslists&parent_ids=" . $parentIds;
                     $data = curl_get_contents($url);
-                    $selectedCategories = isset($_GET['category']) ? (array)$_GET['category'] : [];
-
                     if ($data !== false) {
-                      $categories = json_decode($data);
-                      if (!empty($categories)) {
-                        foreach ($categories as $category) {
-                          $categoryId = $category->id;
-                          $name = htmlspecialchars($category->category_name);
-                          $selected = in_array($categoryId, $selectedCategories) ? 'selected' : '';
-                          echo "<option value='{$categoryId}' {$selected}>{$name}</option>";
+                      $subcategories = json_decode($data);
+                      if (!empty($subcategories)) {
+                        foreach ($subcategories as $subcat) {
+                          $subcatId = $subcat->id;
+                          $name = htmlspecialchars($subcat->category_name);
+                          $selected = in_array($subcatId, $selectedSubcategories) ? 'selected' : '';
+                          echo "<option value='{$subcatId}' {$selected}>{$name}</option>";
                         }
                       }
                     }
-                    ?>
-                  </select>
-                </div>
+                  }
+                  ?>
+                </select>
               </div>
 
-              <!-- Subcategory -->
-              <div class="filter-group">
-                <h5>Sub Category</h5>
-                <div class="filter-options">
-                  <select name="subcategory[]" id="subcategory" class="form-select select-multiple" multiple>
-                    <option value="">-- Select Sub-Category --</option>
-                    <?php
-                    $selectedSubcategories = isset($_GET['subcategory']) ? (array)$_GET['subcategory'] : [];
-                    if (!empty($selectedCategories)) {
-                      $parentIds = implode(',', array_map('intval', $selectedCategories));
-                      $url = $siteurl . "script/register.php?action=subcategorieslists&parent_ids=" . $parentIds;
-                      $data = curl_get_contents($url);
-                      if ($data !== false) {
-                        $subcategories = json_decode($data);
-                        if (!empty($subcategories)) {
-                          foreach ($subcategories as $subcat) {
-                            $subcatId = $subcat->id;
-                            $name = htmlspecialchars($subcat->category_name);
-                            $selected = in_array($subcatId, $selectedSubcategories) ? 'selected' : '';
-                            echo "<option value='{$subcatId}' {$selected}>{$name}</option>";
-                          }
-                        }
-                      }
-                    }
-                    ?>
-                  </select>
-                </div>
-              </div>
+    
 
-              <!-- Sort -->
-              <div class="filter-group">
-                <h5>Sort</h5>
-                <div class="filter-options">
-                  <select name="sort" class="form-select">
-                    <option value="popular" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'popular') ? 'selected' : ''; ?>>Most Popular</option>
-                    <option value="newest" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'newest') ? 'selected' : ''; ?>>Newest First</option>
-                  </select>
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary w-100 mt-2">Filter</button>
             </form>
+
+            <div id="activeFilters" class="mt-2  d-flex justify-content-between align-items-center">
+              <span class="active-filter-label">Active Filters:</span>
+              <div class="filter-tags d-inline-block ms-2" id="filterTagsContainer">
+              <span id="clearSearch"
+        style="position:absolute; right:10px; top:50%; transform:translateY(-50%);
+               cursor:pointer; display:none; font-size:18px;">
+              &times;
+            </span>
+              </div>
+              <button id="clearFiltersBtn" class="d-flex justify-content-end btn btn-sm btn-outline-primary ms-3">Clear All</button>
+            </div>
           </div>
         </div>
-        <!-- End Filters Sidebar -->
 
-        <!-- Questions Section -->
-        <div class="col-lg-9">
+        <div class="col-12">
+          <div class="d-flex justify-content-end mb-3">
+      <div class="sort-dropdown">
+        <select id="sortDropdown" class="form-select" style="width:200px;">
+          <option value="recent">Most recent</option>
+          <option value="popular">Most Popular</option>
+          <option value="upvoted">Most upvoted</option>
+          <option value="answered">Most answered</option>
+          <option value="unanswered">Unanswered</option>
+        </select>
+      </div>
+    </div>
+
           <div class="courses-header" data-aos="fade-left" data-aos-delay="100">
             <!----
             <div class="search-box">
@@ -203,6 +210,8 @@
                       $questionId = $question->id;
                       $title = htmlspecialchars($question->title);
                       $article = htmlspecialchars($question->article);
+                      $views = intval($question->views ?? 0);
+                      $total_answers = intval($question->total_answers ?? 0);
                       $date = date('M d, Y', strtotime($question->created_at));
                       $category = !empty($question->category_names) ? trim(explode(',', $question->category_names)[0]) : 'Uncategorized';
                       $subcategory = !empty($question->subcategory_names) ? trim(explode(',', $question->subcategory_names)[0]) : 'General';
@@ -237,7 +246,9 @@
                             <div class="mt-2 text-muted small">
                               Asked by <?php echo $authorDisplay; ?> on <?php echo $date; ?>
                             </div>
-
+                            <div class="mt-1 text-muted small">
+                              <?php echo $views; ?> Views | <?php echo $total_answers; ?> Answers
+                            </div>
                             <a href="single-questions/<?php echo $question->slug; ?>" class="btn-course mt-2">
                               View Question
                             </a>
@@ -288,6 +299,291 @@
     </div>
   </section>
 </main>
+
+
+
+<section id="trending-category" class="trending-category section">
+  <!-- Section Title -->
+  <div class="container section-title" data-aos="fade-up">
+    <div class="section-title-container d-flex align-items-center justify-content-between">
+      <h2>Related Blogs</h2>
+      <p><a href="<?php echo $siteurl; ?>blog.php">View All</a></p>
+    </div>
+  </div><!-- End Section Title -->
+
+  <!-- Blog Grid Container (filtered: subcategory -> category -> fallback recent) -->
+  <div class="container my-5">
+    <div class="row g-4">
+      <?php
+      $limit = 4; // Number of blogs to show
+      $url = $siteurl . "script/admin.php?action=bloglists";
+      $data = curl_get_contents($url);
+
+      $related = [];
+      if ($data !== false) {
+        $blogs = json_decode($data);
+        $matches = [];
+        $fallback = [];
+
+        $selectedSub = !empty($selectedSubcategories) ? intval($selectedSubcategories[0]) : 0;
+        $selectedCat = !empty($selectedCategories) ? intval($selectedCategories[0]) : 0;
+
+        if (!empty($blogs)) {
+          foreach ($blogs as $blog) {
+            // skip inactive or group posts
+            if (isset($blog->status) && strtolower($blog->status) !== 'active') continue;
+            if (!empty($blog->group_id)) continue;
+
+            $bCats = !empty($blog->categories) ? array_map('intval', array_filter(array_map('trim', explode(',', $blog->categories)))) : [];
+            $bSubs = !empty($blog->subcategories) ? array_map('intval', array_filter(array_map('trim', explode(',', $blog->subcategories)))) : [];
+
+            $isMatch = false;
+            if ($selectedSub && in_array($selectedSub, $bSubs)) {
+              $isMatch = true; // subcategory
+            } elseif ($selectedCat && in_array($selectedCat, $bCats)) {
+              $isMatch = true; // category
+            }
+
+            if ($isMatch) {
+              $matches[] = $blog;
+            } else {
+              $fallback[] = $blog;
+            }
+
+            if (count($matches) >= $limit) break; // early stop on matches
+          }
+
+          $source = !empty($matches) ? array_slice($matches, 0, $limit) : array_slice($fallback, 0, $limit);
+
+          foreach ($source as $b) {
+            $blogId = $b->id ?? '';
+            $title = htmlspecialchars($b->title ?? 'Untitled');
+            $slug = htmlspecialchars($b->slug ?? '');
+            $author = htmlspecialchars(trim(($b->first_name ?? '') . ' ' . ($b->last_name ?? '')) ?: 'Unknown');
+            $content = limitWords(strip_tags($b->article ?? ''), 10);
+            $date = date('F d, Y', strtotime($b->created_at ?? ''));
+            $views = htmlspecialchars($b->views ?? 0);
+            $photo = !empty($b->photo) ? $siteurl . $imagePath . $b->photo : $siteurl . "assets/img/user.jpg";
+            $blogimage = !empty($b->featured_image) ? $siteurl . $imagePath . $b->featured_image : $siteurl . "assets/img/default-blog.jpg";
+            $blogUrl = $siteurl . "blog-details/" . $slug;
+            $categoryNames = !empty($b->category_names) ? explode(',', $b->category_names) : ['General'];
+            $category = htmlspecialchars(trim($categoryNames[0]));
+
+            $related[] = [
+              'title' => $title,
+              'slug' => $slug,
+              'author' => $author,
+              'content' => $content,
+              'date' => $date,
+              'views' => $views,
+              'photo' => $photo,
+              'blogimage' => $blogimage,
+              'blogUrl' => $blogUrl,
+              'category' => $category
+            ];
+          }
+        }
+      }
+
+      if (!empty($related)):
+        foreach ($related as $r): ?>
+
+          <div class="col-lg-3 col-md-6 col-12">
+            <div class="card blog-card h-100 shadow-sm border-0">
+              <a href="<?php echo $r['blogUrl']; ?>" class="blog-img-wrapper position-relative">
+                <img src="<?php echo $r['blogimage']; ?>" class="card-img-top" alt="<?php echo $r['title']; ?>">
+                <span class="badge category-badge-on-image"><?php echo $r['category']; ?></span>
+              </a>
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between mb-2 align-items-center">
+                  <small class="text-muted"><?php echo $r['date']; ?> • <?php echo $r['views']; ?> views</small>
+                </div>
+                <h5 class="card-title">
+                  <a href="<?php echo $r['blogUrl']; ?>" class="text-dark text-decoration-none"><?php echo $r['title']; ?></a>
+                </h5>
+                <p class="card-text mb-4"><?php echo $r['content']; ?>...</p>
+                <div class="mt-auto d-flex align-items-center">
+                  <img src="<?php echo $r['photo']; ?>" alt="<?php echo $r['author']; ?>" class="rounded-circle me-2" style="width:40px;height:40px;">
+                  <span><?php echo $r['author']; ?></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+      <?php
+        endforeach;
+      else:
+        echo '<p>No related blogs found.</p>';
+      endif;
+      ?>
+
+    </div>
+  </div>
+
+</section>
+
+
+<section id="best-sellers" class="best-sellers section">
+
+      <!-- Section Title -->
+      <div class="container section-title aos-init aos-animate" data-aos="fade-up">
+        <h2>Explore Top-Quality Products</h2>
+        <p>Explore quality products sourced directly from our trusted vendors.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container aos-init aos-animate" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row g-5">
+         
+          <!-- Product 4 -->
+  <?php
+
+$limit = 4; // Number of listings to show
+$queryParts = [];
+// prefer selected subcategory then category for related listings
+if (!empty($selectedSubcategories)) {
+  $queryParts[] = 'subcategory_id=' . intval($selectedSubcategories[0]);
+} elseif (!empty($selectedCategories)) {
+  $queryParts[] = 'category_id=' . intval($selectedCategories[0]);
+}
+$queryParts[] = 'items_per_page=' . intval($limit);
+$queryParts[] = 'ajax=1';
+$url = $siteurl . "script/admin.php?action=listinglists" . (count($queryParts) ? '&' . implode('&', $queryParts) : '');
+$data = curl_get_contents($url);
+$count = 0;
+
+if ($data !== false) {
+  $rawListings = json_decode($data);
+  $listings = [];
+  if (is_object($rawListings) && isset($rawListings->data) && is_array($rawListings->data)) {
+    $listings = $rawListings->data;
+  } elseif (is_array($rawListings)) {
+    $listings = $rawListings;
+  }
+
+    if (!empty($listings)) {
+        foreach ($listings as $listing) {
+            // ✅ Only active listings
+            if (isset($listing->status) && strtolower($listing->status) === 'active') {
+                $count++;
+                if ($count > $limit) break;
+
+                // 🧩 Extract data
+                $listingId   = $listing->id;
+                $listing_id = $listing->listing_id;
+                $title       = htmlspecialchars($listing->title);
+                $slug        = htmlspecialchars($listing->slug ?? '');
+                $pricingType = htmlspecialchars($listing->pricing_type ?? '');
+                $price       = htmlspecialchars($listing->price ?? '');
+                $priceMin    = htmlspecialchars($listing->price_min ?? '');
+                $priceMax    = htmlspecialchars($listing->price_max ?? '');
+                $categoryNames = !empty($listing->category_names) ? explode(',', $listing->category_names) : ['General'];
+                $category    = htmlspecialchars(trim($categoryNames[0]));
+                $featuredImg = !empty($listing->featured_image)
+                    ? $siteurl . $imagePath . $listing->featured_image
+                    : $siteurl . "assets/img/default-product.jpg";
+                $listingUrl  = $siteurl . "products/" . $slug;
+
+                // 🧩 Seller Info
+                $sellerName = htmlspecialchars(trim(($listing->first_name ?? '') . ' ' . ($listing->last_name ?? '')));
+                $sellerPhoto = !empty($listing->photo)
+                    ? $siteurl . $imagePath . $listing->photo
+                    : $siteurl . "assets/img/user.jpg";
+
+                // 🧩 Compute Display Price
+                $displayPrice = 'Contact for price';
+                if ($pricingType === 'Starting Price' && !empty($price)) {
+                    $displayPrice = $sitecurrency  . number_format($price, 2);
+                } elseif ($pricingType === 'Price Range' && !empty($priceMin) && !empty($priceMax)) {
+                    $displayPrice = $sitecurrency . number_format($priceMin, 2) . $sitecurrency .'-'. number_format($priceMax, 2);
+                }
+
+
+                    // ✅ Check wishlist status
+              $isWishlisted = false; // Always define first
+
+        if (!empty($buyerId)) {
+            // ✅ Use $siteurl instead of undefined $sitelink
+            $apiCheckUrl = $siteurl . "script/user.php?action=checkWishlist&user_id={$buyerId}&listing_id={$listingId}";
+            $wishlistData = curl_get_contents($apiCheckUrl);
+
+            if ($wishlistData !== false) {
+                $wishlistResult = json_decode($wishlistData, true);
+
+                // ✅ Make it flexible to match possible response structures
+                if (is_array($wishlistResult)) {
+                    if (isset($wishlistResult['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['isWishlisted'];
+                    } elseif (isset($wishlistResult['data']['isWishlisted'])) {
+                        $isWishlisted = (bool)$wishlistResult['data']['isWishlisted'];
+                    }
+                }
+            }
+        }
+                ?>
+
+                <!-- 🛍️ Product Card -->
+                <div class="col-lg-3 col-md-6 col-6">
+                  
+                    <div class="product-item">
+                        <div class="product-image">
+                            <div class="product-badge trending-badge"><?php echo $category; ?></div>
+                            <img src="<?php echo $featuredImg; ?>" alt="<?php echo $title; ?>" class="img-fluid" loading="lazy">
+                            <div class="product-actions">
+                                      <button 
+                                  class="action-btn wishlist-btn <?php echo $isWishlisted ? 'added' : ''; ?>" 
+                                  title="<?php echo $isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'; ?>" 
+                                  data-product-id="<?php echo $listing_id; ?>"
+                              >
+                                  <?php if ($isWishlisted): ?>
+                                      <i class="bi bi-heart-fill text-red-500"></i>
+                                  <?php else: ?>
+                                      <i class="bi bi-heart"></i>
+                                  <?php endif; ?>
+                              </button>
+
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category"><?php echo $category; ?></div>
+                            <h4 class="product-name">
+                                <a href="<?php echo $listingUrl; ?>"><?php echo $title; ?></a>
+                            </h4>
+                            <div class="product-price"><?php echo $displayPrice; ?></div>
+
+                            <!--Seller Info -->
+                            <div class="mt-3 d-flex align-items-center">
+                                <img src="<?php echo $sellerPhoto; ?>" alt="<?php echo $sellerName; ?>" class="rounded-circle me-2" style="width:35px;height:35px;object-fit:cover;">
+                                <span class="small text-muted"><?php echo $sellerName; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php
+            }
+        }
+    }
+}
+?>
+
+          <!-- End Product 4 -->
+
+        </div>
+<?php if ($count >= $limit): ?>
+    <div class="text-center mt-4">
+        <a href="<?php echo $siteurl; ?>marketplace" class="btn btn-primary px-4 py-2">
+            View All Products
+        </a>
+    </div>
+<?php endif; ?>
+
+      </div>
+
+</section>
+
+
 
 
 

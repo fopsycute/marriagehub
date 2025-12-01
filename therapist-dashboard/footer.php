@@ -18,11 +18,11 @@
             </nav>
             <div class="copyright">
               2024, made with <i class="fa fa-heart heart text-danger"></i> by
-              <a href="http://www.themekita.com"><?php echo $sitename; ?></a>
+              <a href="<?php echo $siteurl; ?>"><?php echo $sitename; ?></a>
             </div>
             <div>
               Distributed by
-              <a target="_blank" href="https://themewagon.com/"><?php echo $sitename; ?></a>.
+              <a target="_blank" href="<?php echo $siteurl; ?>"><?php echo $sitename; ?></a>.
             </div>
           </div>
         </footer>
@@ -263,6 +263,7 @@
     <!-- Kaiadmin JS -->
     <script src="assets/js/kaiadmin.min.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/state-select.js"></script>
 
     <!-- Kaiadmin DEMO methods, don't include it in your project! -->
     <script src="assets/js/setting-demo.js"></script>

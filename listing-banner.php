@@ -1,18 +1,18 @@
-<?php
-// Sidebar banner widget — compact card for sidebar
-$banners = [];
-if (function_exists('loadBanners') && isset($con, $siteprefix, $siteurl)) {
-  $banners = loadBanners($con, $siteprefix, $siteurl, 'listing-pages-in-between-listings');
-}
 
-// Debug: output banner URLs for quick inspection in page source
+<?php
+// Load banners
+$banners = loadBanners($con, $siteprefix, $siteurl, 'listing-pages-in-between-listings');
+
+// Debug: output banner URLs as an HTML comment so you can inspect them in page source
 if (!empty($banners)) {
   $urls = array_map(function($b){ return $b['banner']; }, $banners);
-  echo "<!-- SIDEBAR_BANNER_URLS: " . implode(' | ', $urls) . " -->\n";
+  echo "<!-- BANNER_URLS: " . implode(' | ', $urls) . " -->\n";
 }
 
+// Only render the section if there are banners
 if (!empty($banners)):
 ?>
+
 
 <div class="sidebar-card sidebar-sticky" data-aos="fade-up" data-aos-delay="80">
   <div class="d-flex align-items-center justify-content-between mb-2">

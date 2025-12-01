@@ -4,7 +4,7 @@ ob_start();
 
 // ✅ Log errors but don’t display to users in production
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 
 
@@ -75,7 +75,7 @@ $adminimagePath = '../../uploads/';
 $admindocumentPath = '../../documents/';
 $sitecurrency = "₦";
 $sitecurrencyCode = "&#8358;";
-$documentPath = 'documents/';
+$documentPath = 'secure/';
 $adminurl = 'https://admin.marriagehub.ng/';
 
 // ✅ Fetch site settings (single call)
@@ -100,6 +100,8 @@ if ($sql2 && mysqli_num_rows($sql2) > 0) {
     $privacy_policy = $row["privacy_policy"];
     $terms_policy = $row["terms_policy"];
     $minimum_withdrawal  = $row["minimum_withdrawal"];
+    $google_map    = $row["google_map"];
+    $site_address = $row["site_address"];
     $brevokey = $row["brevo_key"];
     $sitekeywords = $row["site_keywords"];
 }

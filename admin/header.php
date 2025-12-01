@@ -90,16 +90,17 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
     </script>
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+<link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <!-- Select2 -->
   <link href="assets/css/select2.min.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 <link rel="stylesheet" href="assets/css/kaiadmin.css" />
-  <?php include "../script/tinymce.php"; ?>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="assets/css/demo.css" />
+     <?php include "../script/tinymce.php"; ?>
   </head>
   <body>
     <div class="wrapper">
@@ -239,6 +240,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                         <span class="sub-item">Manage Users</span>
                       </a>
                     </li>
+                    
                   </ul>
                 </div>
               </li>
@@ -313,17 +315,51 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                       </a>
                     </li>
 
+                   
+                     <li>
+                      <a href="active-adverts.php">
+                        <span class="sub-item">Active Adverts</span>
+                      </a>
+                  </li>
                     
+                    <li>
+                      <a href="adverts.php">
+                        <span class="sub-item">All Adverts Order</span>
+                      </a>
+                  </li>
+
                   </ul>
                 </div>
               </li>
+
+                  <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#subs">
+                 <i class="fa-brands fa-buysellads"></i>
+                  <p>Subscribers Management</p>
+                  <span class="caret"></span>
+                </a>
+                <div class="collapse" id="subs">
+                  <ul class="nav nav-collapse">
+                    
+                    <li>
+                      <a href="subscriber-list.php">
+                        <span class="sub-item">All Subscribers</span>
+                      </a>
+                  </li>
+
+                  </ul>
+                </div>
+              </li>
+
+
+
                    <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#category">
+                <a data-bs-toggle="collapse" href="#catego">
                   <i class="fas fa-wallet"></i>
                   <p>Order of categories</p>
                   <span class="caret"></span>
                 </a>
-                <div class="collapse" id="category">
+                <div class="collapse" id="catego">
                   <ul class="nav nav-collapse">
                   
                     <li>
@@ -351,7 +387,70 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                   </ul>
                 </div>
               </li>
+         
 
+
+          <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#eve">
+                  <i class="fas fa-calendar"></i>
+                  <p> Events & Programs Management</p>
+                  <span class="caret"></span>
+                </a>
+                <div class="collapse" id="eve">
+                  <ul class="nav nav-collapse">
+                  
+                    <li>
+                      <a href="add-event.php">
+                        <span class="sub-item">Add Event</span>
+                      </a>
+                    </li>
+
+                     <li>
+                      <a href="pending-events.php">
+                        <span class="sub-item">Pending Events</span>
+                      </a>
+                    </li>
+
+                      <li>
+                      <a href="approved-event.php">
+                        <span class="sub-item">Approved Events</span>
+                      </a>
+                    </li>
+
+                     
+                     </ul>
+                </div>
+              </li>
+
+                <li class="nav-item">
+                <a data-bs-toggle="collapse" href="#questions">
+                  <i class="fas fa-question"></i>
+                  <p>Questions</p>
+                  <span class="caret"></span>
+                </a>
+                <div class="collapse" id="questions">
+                  <ul class="nav nav-collapse">
+                  
+                    <li>
+                      <a href="my-question.php">
+                        <span class="sub-item">Admin Question</span>
+                      </a>
+                    </li>
+
+                     <li>
+                      <a href="pending-question.php">
+                        <span class="sub-item">Pending Question</span>
+                      </a>
+                    </li>
+
+                      <li>
+                      <a href="approved-questions.php">
+                        <span class="sub-item">Approved Question</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
 
               <li class="nav-item">
                 <a data-bs-toggle="collapse" href="#books">

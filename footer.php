@@ -9,8 +9,8 @@
              <span><?php echo $sitename; ?></span>
           </a>
           <div class="footer-contact pt-3">
-            <p>A108 Adam Street</p>
-            <p>New York, NY 535022</p>
+            <p><?php echo $site_address; ?></p>
+           
             <p class="mt-3"><strong>Phone:</strong> <span><?php echo $sitenumber; ?></span></p>
             <p><strong>Email:</strong> <span><?php echo $sitemail; ?></span></p>
           </div>
@@ -23,15 +23,30 @@
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Useful Links</h4>
+          <h4>Company</h4>
           <ul>
             <li><a href="<?php echo $siteurl; ?>index.php">Home</a></li>
             <li><a href="<?php echo $siteurl; ?>about.php">About us</a></li>
             <li><a href="<?php echo $siteurl; ?>terms.php">Terms of service</a></li>
             <li><a href="<?php echo $siteurl; ?>privacy.php">Privacy policy</a></li>
              <li><a href="<?php echo $siteurl; ?>why-us.php">Why Us</a></li>
+              <li><a href="<?php echo $siteurl; ?>cookie-policy.php">Cookie Policy</a></li>
           </ul>
         </div>
+
+<div class="col-lg-4 col-md-3">
+<div class="newsletter-box">
+    <h3>Subscribe to Our Newsletter</h3>
+    <form id="newsletterForm" method="POST">
+        <input type="email" id="newsletter_email" name="email" class="form-control" placeholder="Enter your email" required>
+        <br>
+        <input type="hidden" name="action" value="subscribeNewsletter">
+        <button type="submit" class="btn btn-primary" id="submitNewsletter">SUBMIT</button>
+         <p id="newsletter_message" class="mt-1"></p>
+    </form>
+   
+</div>
+</div>
     <!---
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Our Services</h4>
@@ -103,9 +118,12 @@
      <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
      <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
        
   <script src="<?php echo $siteurl; ?>assets/js/main.js"></script>
     <script src="<?php echo $siteurl; ?>assets/js/api.js"></script>
+     <script src="<?php echo $siteurl; ?>assets/js/other.js"></script>
+     <script src="<?php echo $siteurl; ?>assets/js/state-select.js"></script>
     <!-- jsPDF & html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

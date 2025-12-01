@@ -1,4 +1,3 @@
-
 // ===== Advert Purchase Script =====
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -162,6 +161,8 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
 });
+
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -478,6 +479,7 @@ function updateWishlistCount(count) {
 }
 
 
+
 function showToast(message) {
   const toastContainer = document.createElement('div');
   toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
@@ -543,6 +545,35 @@ function payWithPaystack() {
 }
 
 
+function toggleTicketInfo(checkbox) {
+  const ticketId = checkbox.value;
+
+  // Get hidden data
+  const seatRemain = document.getElementById('seat-' + ticketId)?.value || '';
+  const benefits   = document.getElementById('benefits-' + ticketId)?.value || '';
+  const price      = document.getElementById('price-' + ticketId)?.value || '';
+
+  // Find the info container
+  let infoDiv = document.getElementById('info-' + ticketId);
+  if (!infoDiv) {
+    infoDiv = document.createElement('div');
+    infoDiv.id = 'info-' + ticketId;
+    infoDiv.className = 'ticket-info mt-1 small text-muted';
+    checkbox.closest('.ticket-item').appendChild(infoDiv);
+  }
+
+  if (checkbox.checked) {
+    infoDiv.innerHTML = `
+      <strong>Remaining Seats:</strong> ${seatRemain}<br>
+      <strong>Benefits:</strong> ${benefits}<br>
+      <strong>Price:</strong> ${price}
+    `;
+    infoDiv.style.display = 'block';
+  } else {
+    infoDiv.style.display = 'none';
+  }
+}
+
 
 function handleGroupAccessToggle() {
   const paidFields = $('#paid-subscription-fields');
@@ -573,48 +604,46 @@ $(document).ready(function() {
   handleGroupAccessToggle();
 });
 
+document.addEventListener('click', function (e) {
+  // share action
+  const target = e.target.closest('.share-action');
+  if (target) {
+    e.preventDefault();
+    const provider = target.dataset.provider;
+    const url = target.dataset.url;
+    const title = target.dataset.title;
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.read-toggle').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const container = this.closest('.bio-text');
-      const shortBio = container.querySelector('.bio-short');
-      const fullBio = container.querySelector('.bio-full');
+    if (provider === 'native' && navigator.share) {
+      navigator.share({ title: title, url: url }).catch(()=>{});
+      return;
+    }
 
-      if (fullBio.classList.contains('d-none')) {
-        shortBio.classList.add('d-none');
-        fullBio.classList.remove('d-none');
-        this.textContent = 'Read Less';
-      } else {
-        fullBio.classList.add('d-none');
-        shortBio.classList.remove('d-none');
-        this.textContent = 'Read More';
-      }
-    });
-  });
+    let shareUrl = '';
+    if (provider === 'facebook') shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    else if (provider === 'twitter') shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url);
+    else if (provider === 'whatsapp') shareUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(title + ' ' + url);
+    else if (provider === 'linkedin') shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+
+    if (shareUrl) window.open(shareUrl, '_blank', 'noopener');
+  }
+
+  // copy link action
+  if (e.target.closest('.copy-link')) {
+    e.preventDefault();
+    const url = e.target.closest('.copy-link').dataset.url;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){
+        alert('Link copied to clipboard');
+      }).catch(function(){
+        // fallback
+        const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Link copied to clipboard');
+      });
+    } else {
+      const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Link copied to clipboard');
+    }
+  }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.read-toggles').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const container = this.closest('.bio-text');
-      const shortBio = container.querySelector('.bio-shorts');
-      const fullBio = container.querySelector('.bio-fulls');
-
-      if (fullBio.classList.contains('d-none')) {
-        shortBio.classList.add('d-none');
-        fullBio.classList.remove('d-none');
-        this.textContent = 'Read Less';
-      } else {
-        fullBio.classList.add('d-none');
-        shortBio.classList.remove('d-none');
-        this.textContent = 'Read More';
-      }
-    });
-  });
-});
 //web share
 document.addEventListener('DOMContentLoaded', function () {
   const shareBtn = document.getElementById('webShareBtn');
@@ -689,6 +718,42 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+document.addEventListener('DOMContentLoaded', function () {
+  const likeBtn = document.getElementById('likesBtn');
+  if (!likeBtn) return;
+
+  likeBtn.addEventListener('click', function () {
+    const groupId = likeBtn.dataset.groupId;
+    const apiUrl = likeBtn.dataset.likesUrl;
+    const likeCountEl = document.getElementById('likeCounts');
+    likeBtn.disabled = true;
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'like_group',
+        group_id: groupId
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      likeBtn.disabled = false;
+      if (data.status === 'success') {
+        likeCountEl.textContent = data.likes;
+      } else {
+        alert(data.messages.replace(/<\/?[^>]+(>|$)/g, ''));
+      }
+    })
+    .catch(err => {
+      likeBtn.disabled = false;
+      console.error('Error:', err);
+    });
+  });
+});
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
   const qualificationSelect = document.getElementById('highest_qualification');
   const otherField = document.getElementById('otherQualificationField');
@@ -735,905 +800,73 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
+document.addEventListener("DOMContentLoaded", function () {
 
+    const payBtn = document.getElementById("paystackBtn");
+    if (!payBtn) return; // Stop if the button does not exist on this page
 
-document.addEventListener('DOMContentLoaded', function () {
-      const stateAndLGAs = {
-    "Abia": [
-        "Aba North",
-        "Aba South",
-        "Arochukwu",
-        "Bende",
-        "Ikwuano",
-        "Isiala-Ngwa North",
-        "Isiala-Ngwa South",
-        "Isuikwato",
-        "Obi Nwa",
-        "Ohafia",
-        "Osisioma",
-        "Ngwa",
-        "Ugwunagbo",
-        "Ukwa East",
-        "Ukwa West",
-        "Umuahia North",
-        "Umuahia South",
-        "Umu-Neochi"
-    ],
-		 "Adamawa": [
-        "Demsa",
-        "Fufore",
-        "Ganaye",
-        "Gireri",
-        "Gombi",
-        "Guyuk",
-        "Hong",
-        "Jada",
-        "Lamurde",
-        "Madagali",
-        "Maiha",
-        "Mayo-Belwa",
-        "Michika",
-        "Mubi North",
-        "Mubi South",
-        "Numan",
-        "Shelleng",
-        "Song",
-        "Toungo",
-        "Yola North",
-        "Yola South"
-    ],
-    "Anambra": [
-        "Aguata",
-        "Anambra East",
-        "Anambra West",
-        "Anaocha",
-        "Awka North",
-        "Awka South",
-        "Ayamelum",
-        "Dunukofia",
-        "Ekwusigo",
-        "Idemili North",
-        "Idemili south",
-        "Ihiala",
-        "Njikoka",
-        "Nnewi North",
-        "Nnewi South",
-        "Ogbaru",
-        "Onitsha North",
-        "Onitsha South",
-        "Orumba North",
-        "Orumba South",
-        "Oyi"
-    ],
-    "Akwa Ibom": [
-        "Abak",
-        "Eastern Obolo",
-        "Eket",
-        "Esit Eket",
-        "Essien Udim",
-        "Etim Ekpo",
-        "Etinan",
-        "Ibeno",
-        "Ibesikpo Asutan",
-        "Ibiono Ibom",
-        "Ika",
-        "Ikono",
-        "Ikot Abasi",
-        "Ikot Ekpene",
-        "Ini",
-        "Itu",
-        "Mbo",
-        "Mkpat Enin",
-        "Nsit Atai",
-        "Nsit Ibom",
-        "Nsit Ubium",
-        "Obot Akara",
-        "Okobo",
-        "Onna",
-        "Oron",
-        "Oruk Anam",
-        "Udung Uko",
-        "Ukanafun",
-        "Uruan",
-        "Urue-Offong/Oruko ",
-        "Uyo"
-    ],
-    "Bauchi": [
-        "Alkaleri",
-        "Bauchi",
-        "Bogoro",
-        "Damban",
-        "Darazo",
-        "Dass",
-        "Ganjuwa",
-        "Giade",
-        "Itas/Gadau",
-        "Jama'are",
-        "Katagum",
-        "Kirfi",
-        "Misau",
-        "Ningi",
-        "Shira",
-        "Tafawa-Balewa",
-        "Toro",
-        "Warji",
-        "Zaki"
-    ],
-    "Bayelsa": [
-        "Brass",
-        "Ekeremor",
-        "Kolokuma/Opokuma",
-        "Nembe",
-        "Ogbia",
-        "Sagbama",
-        "Southern Jaw",
-        "Yenegoa"
-    ],
-    "Benue": [
-        "Ado",
-        "Agatu",
-        "Apa",
-        "Buruku",
-        "Gboko",
-        "Guma",
-        "Gwer East",
-        "Gwer West",
-        "Katsina-Ala",
-        "Konshisha",
-        "Kwande",
-        "Logo",
-        "Makurdi",
-        "Obi",
-        "Ogbadibo",
-        "Oju",
-        "Okpokwu",
-        "Ohimini",
-        "Oturkpo",
-        "Tarka",
-        "Ukum",
-        "Ushongo",
-        "Vandeikya"
-    ],
-    "Borno": [
-        "Abadam",
-        "Askira/Uba",
-        "Bama",
-        "Bayo",
-        "Biu",
-        "Chibok",
-        "Damboa",
-        "Dikwa",
-        "Gubio",
-        "Guzamala",
-        "Gwoza",
-        "Hawul",
-        "Jere",
-        "Kaga",
-        "Kala/Balge",
-        "Konduga",
-        "Kukawa",
-        "Kwaya Kusar",
-        "Mafa",
-        "Magumeri",
-        "Maiduguri",
-        "Marte",
-        "Mobbar",
-        "Monguno",
-        "Ngala",
-        "Nganzai",
-        "Shani"
-    ],
-    "Cross River": [
-        "Akpabuyo",
-        "Odukpani",
-        "Akamkpa",
-        "Biase",
-        "Abi",
-        "Ikom",
-        "Yarkur",
-        "Odubra",
-        "Boki",
-        "Ogoja",
-        "Yala",
-        "Obanliku",
-        "Obudu",
-        "Calabar South",
-        "Etung",
-        "Bekwara",
-        "Bakassi",
-        "Calabar Municipality"
-    ],
-    "Delta": [
-        "Oshimili",
-        "Aniocha",
-        "Aniocha South",
-        "Ika South",
-        "Ika North-East",
-        "Ndokwa West",
-        "Ndokwa East",
-        "Isoko south",
-        "Isoko North",
-        "Bomadi",
-        "Burutu",
-        "Ughelli South",
-        "Ughelli North",
-        "Ethiope West",
-        "Ethiope East",
-        "Sapele",
-        "Okpe",
-        "Warri North",
-        "Warri South",
-        "Uvwie",
-        "Udu",
-        "Warri Central",
-        "Ukwani",
-        "Oshimili North",
-        "Patani"
-    ],
-    "Ebonyi": [
-        "Edda",
-        "Afikpo",
-        "Onicha",
-        "Ohaozara",
-        "Abakaliki",
-        "Ishielu",
-        "lkwo",
-        "Ezza",
-        "Ezza South",
-        "Ohaukwu",
-        "Ebonyi",
-        "Ivo"
-    ],
-    "Enugu": [
-        "Enugu South,",
-        "Igbo-Eze South",
-        "Enugu North",
-        "Nkanu",
-        "Udi Agwu",
-        "Oji-River",
-        "Ezeagu",
-        "IgboEze North",
-        "Isi-Uzo",
-        "Nsukka",
-        "Igbo-Ekiti",
-        "Uzo-Uwani",
-        "Enugu Eas",
-        "Aninri",
-        "Nkanu East",
-        "Udenu."
-    ],
-    "Edo": [
-        "Esan North-East",
-        "Esan Central",
-        "Esan West",
-        "Egor",
-        "Ukpoba",
-        "Central",
-        "Etsako Central",
-        "Igueben",
-        "Oredo",
-        "Ovia SouthWest",
-        "Ovia South-East",
-        "Orhionwon",
-        "Uhunmwonde",
-        "Etsako East",
-        "Esan South-East"
-    ],
-    "Ekiti": [
-        "Ado",
-        "Ekiti-East",
-        "Ekiti-West",
-        "Emure/Ise/Orun",
-        "Ekiti South-West",
-        "Ikere",
-        "Irepodun",
-        "Ijero,",
-        "Ido/Osi",
-        "Oye",
-        "Ikole",
-        "Moba",
-        "Gbonyin",
-        "Efon",
-        "Ise/Orun",
-        "Ilejemeje."
-    ],
-    "FCT": [
-        "Abaji",
-        "Abuja Municipal",
-        "Bwari",
-        "Gwagwalada",
-        "Kuje",
-        "Kwali"
-    ],
-    "Gombe": [
-        "Akko",
-        "Balanga",
-        "Billiri",
-        "Dukku",
-        "Kaltungo",
-        "Kwami",
-        "Shomgom",
-        "Funakaye",
-        "Gombe",
-        "Nafada/Bajoga",
-        "Yamaltu/Delta."
-    ],
-    "Imo": [
-        "Aboh-Mbaise",
-        "Ahiazu-Mbaise",
-        "Ehime-Mbano",
-        "Ezinihitte",
-        "Ideato North",
-        "Ideato South",
-        "Ihitte/Uboma",
-        "Ikeduru",
-        "Isiala Mbano",
-        "Isu",
-        "Mbaitoli",
-        "Mbaitoli",
-        "Ngor-Okpala",
-        "Njaba",
-        "Nwangele",
-        "Nkwerre",
-        "Obowo",
-        "Oguta",
-        "Ohaji/Egbema",
-        "Okigwe",
-        "Orlu",
-        "Orsu",
-        "Oru East",
-        "Oru West",
-        "Owerri-Municipal",
-        "Owerri North",
-        "Owerri West"
-    ],
-    "Jigawa": [
-        "Auyo",
-        "Babura",
-        "Birni Kudu",
-        "Biriniwa",
-        "Buji",
-        "Dutse",
-        "Gagarawa",
-        "Garki",
-        "Gumel",
-        "Guri",
-        "Gwaram",
-        "Gwiwa",
-        "Hadejia",
-        "Jahun",
-        "Kafin Hausa",
-        "Kaugama Kazaure",
-        "Kiri Kasamma",
-        "Kiyawa",
-        "Maigatari",
-        "Malam Madori",
-        "Miga",
-        "Ringim",
-        "Roni",
-        "Sule-Tankarkar",
-        "Taura",
-        "Yankwashi"
-    ],
-    "Kaduna": [
-        "Birni-Gwari",
-        "Chikun",
-        "Giwa",
-        "Igabi",
-        "Ikara",
-        "jaba",
-        "Jema'a",
-        "Kachia",
-        "Kaduna North",
-        "Kaduna South",
-        "Kagarko",
-        "Kajuru",
-        "Kaura",
-        "Kauru",
-        "Kubau",
-        "Kudan",
-        "Lere",
-        "Makarfi",
-        "Sabon-Gari",
-        "Sanga",
-        "Soba",
-        "Zango-Kataf",
-        "Zaria"
-    ],
-    "Kano": [
-        "Ajingi",
-        "Albasu",
-        "Bagwai",
-        "Bebeji",
-        "Bichi",
-        "Bunkure",
-        "Dala",
-        "Dambatta",
-        "Dawakin Kudu",
-        "Dawakin Tofa",
-        "Doguwa",
-        "Fagge",
-        "Gabasawa",
-        "Garko",
-        "Garum",
-        "Mallam",
-        "Gaya",
-        "Gezawa",
-        "Gwale",
-        "Gwarzo",
-        "Kabo",
-        "Kano Municipal",
-        "Karaye",
-        "Kibiya",
-        "Kiru",
-        "kumbotso",
-        "Ghari",
-        "Kura",
-        "Madobi",
-        "Makoda",
-        "Minjibir",
-        "Nasarawa",
-        "Rano",
-        "Rimin Gado",
-        "Rogo",
-        "Shanono",
-        "Sumaila",
-        "Takali",
-        "Tarauni",
-        "Tofa",
-        "Tsanyawa",
-        "Tudun Wada",
-        "Ungogo",
-        "Warawa",
-        "Wudil"
-    ],
-    "Katsina": [
-        "Bakori",
-        "Batagarawa",
-        "Batsari",
-        "Baure",
-        "Bindawa",
-        "Charanchi",
-        "Dandume",
-        "Danja",
-        "Dan Musa",
-        "Daura",
-        "Dutsi",
-        "Dutsin-Ma",
-        "Faskari",
-        "Funtua",
-        "Ingawa",
-        "Jibia",
-        "Kafur",
-        "Kaita",
-        "Kankara",
-        "Kankia",
-        "Katsina",
-        "Kurfi",
-        "Kusada",
-        "Mai'Adua",
-        "Malumfashi",
-        "Mani",
-        "Mashi",
-        "Matazuu",
-        "Musawa",
-        "Rimi",
-        "Sabuwa",
-        "Safana",
-        "Sandamu",
-        "Zango"
-    ],
-    "Kebbi": [
-        "Aleiro",
-        "Arewa-Dandi",
-        "Argungu",
-        "Augie",
-        "Bagudo",
-        "Birnin Kebbi",
-        "Bunza",
-        "Dandi",
-        "Fakai",
-        "Gwandu",
-        "Jega",
-        "Kalgo",
-        "Koko/Besse",
-        "Maiyama",
-        "Ngaski",
-        "Sakaba",
-        "Shanga",
-        "Suru",
-        "Wasagu/Danko",
-        "Yauri",
-        "Zuru"
-    ],
-    "Kogi": [
-        "Adavi",
-        "Ajaokuta",
-        "Ankpa",
-        "Bassa",
-        "Dekina",
-        "Ibaji",
-        "Idah",
-        "Igalamela-Odolu",
-        "Ijumu",
-        "Kabba/Bunu",
-        "Kogi",
-        "Lokoja",
-        "Mopa-Muro",
-        "Ofu",
-        "Ogori/Mangongo",
-        "Okehi",
-        "Okene",
-        "Olamabolo",
-        "Omala",
-        "Yagba East",
-        "Yagba West"
-    ],
-    "Kwara": [
-        "Asa",
-        "Baruten",
-        "Edu",
-        "Ekiti",
-        "Ifelodun",
-        "Ilorin East",
-        "Ilorin West",
-        "Irepodun",
-        "Isin",
-        "Kaiama",
-        "Moro",
-        "Offa",
-        "Oke-Ero",
-        "Oyun",
-        "Pategi"
-    ],
-    "Lagos": [
-        "Agege",
-        "Ajeromi-Ifelodun",
-        "Alimosho",
-        "Amuwo-Odofin",
-        "Apapa",
-        "Badagry",
-        "Epe",
-        "Eti-Osa",
-        "Ibeju/Lekki",
-        "Ifako-Ijaye",
-        "Ikeja",
-        "Ikorodu",
-        "Kosofe",
-        "Lagos Island",
-        "Lagos Mainland",
-        "Mushin",
-        "Ojo",
-        "Oshodi-Isolo",
-        "Shomolu",
-        "Surulere"
-    ],
-    "Nasarawa": [
-        "Akwanga",
-        "Awe",
-        "Doma",
-        "Karu",
-        "Keana",
-        "Keffi",
-        "Kokona",
-        "Lafia",
-        "Nasarawa",
-        "Nasarawa-Eggon",
-        "Obi",
-        "Toto",
-        "Wamba"
-    ],
-    "Niger": [
-        "Agaie",
-        "Agwara",
-        "Bida",
-        "Borgu",
-        "Bosso",
-        "Chanchaga",
-        "Edati",
-        "Gbako",
-        "Gurara",
-        "Katcha",
-        "Kontagora",
-        "Lapai",
-        "Lavun",
-        "Magama",
-        "Mariga",
-        "Mashegu",
-        "Mokwa",
-        "Muya",
-        "Pailoro",
-        "Rafi",
-        "Rijau",
-        "Shiroro",
-        "Suleja",
-        "Tafa",
-        "Wushishi"
-    ],
-    "Ogun": [
-        "Abeokuta North",
-        "Abeokuta South",
-        "Ado-Odo/Ota",
-        "Yewa North",
-        "Yewa South",
-        "Ewekoro",
-        "Ifo",
-        "Ijebu East",
-        "Ijebu North",
-        "Ijebu North East",
-        "Ijebu Ode",
-        "Ikenne",
-        "Imeko-Afon",
-        "Ipokia",
-        "Obafemi-Owode",
-        "Ogun Waterside",
-        "Odeda",
-        "Odogbolu",
-        "Remo North",
-        "Shagamu"
-    ],
-    "Ondo": [
-        "Akoko North East",
-        "Akoko North West",
-        "Akoko South Akure East",
-        "Akoko South West",
-        "Akure North",
-        "Akure South",
-        "Ese-Odo",
-        "Idanre",
-        "Ifedore",
-        "Ilaje",
-        "Ile-Oluji",
-        "Okeigbo",
-        "Irele",
-        "Odigbo",
-        "Okitipupa",
-        "Ondo East",
-        "Ondo West",
-        "Ose",
-        "Owo"
-    ],
-    "Osun": [
-        "Aiyedade",
-        "Aiyedire",
-        "Atakumosa East",
-        "Atakumosa West",
-        "Boluwaduro",
-        "Boripe",
-        "Ede North",
-        "Ede South",
-        "Egbedore",
-        "Ejigbo",
-        "Ife Central",
-        "Ife East",
-        "Ife North",
-        "Ife South",
-        "Ifedayo",
-        "Ifelodun",
-        "Ila",
-        "Ilesha East",
-        "Ilesha West",
-        "Irepodun",
-        "Irewole",
-        "Isokan",
-        "Iwo",
-        "Obokun",
-        "Odo-Otin",
-        "Ola-Oluwa",
-        "Olorunda",
-        "Oriade",
-        "Orolu",
-        "Osogbo"
-    ],
-    "Oyo": [
-        "Afijio",
-        "Akinyele",
-        "Atiba",
-        "Atisbo",
-        "Egbeda",
-        "Ibadan Central",
-        "Ibadan North",
-        "Ibadan North West",
-        "Ibadan South East",
-        "Ibadan South West",
-        "Ibarapa Central",
-        "Ibarapa East",
-        "Ibarapa North",
-        "Ido",
-        "Irepo",
-        "Iseyin",
-        "Itesiwaju",
-        "Iwajowa",
-        "Kajola",
-        "Lagelu Ogbomosho North",
-        "Ogbomosho South",
-        "Ogo Oluwa",
-        "Olorunsogo",
-        "Oluyole",
-        "Ona-Ara",
-        "Orelope",
-        "Ori Ire",
-        "Oyo East",
-        "Oyo West",
-        "Saki East",
-        "Saki West",
-        "Surulere"
-    ],
-    "Plateau": [
-        "Barikin Ladi",
-        "Bassa",
-        "Bokkos",
-        "Jos East",
-        "Jos North",
-        "Jos South",
-        "Kanam",
-        "Kanke",
-        "Langtang North",
-        "Langtang South",
-        "Mangu",
-        "Mikang",
-        "Pankshin",
-        "Qua'an Pan",
-        "Riyom",
-        "Shendam",
-        "Wase"
-    ],
-    "Rivers": [
-        "Abua/Odual",
-        "Ahoada East",
-        "Ahoada West",
-        "Akuku Toru",
-        "Andoni",
-        "Asari-Toru",
-        "Bonny",
-        "Degema",
-        "Emohua",
-        "Eleme",
-        "Etche",
-        "Gokana",
-        "Ikwerre",
-        "Khana",
-        "Obio/Akpor",
-        "Ogba/Egbema/Ndoni",
-        "Ogu/Bolo",
-        "Okrika",
-        "Omumma",
-        "Opobo/Nkoro",
-        "Oyigbo",
-        "Port-Harcourt",
-        "Tai"
-    ],
-    "Sokoto": [
-        "Binji",
-        "Bodinga",
-        "Dange-shnsi",
-        "Gada",
-        "Goronyo",
-        "Gudu",
-        "Gawabawa",
-        "Illela",
-        "Isa",
-        "Kware",
-        "kebbe",
-        "Rabah",
-        "Sabon birni",
-        "Shagari",
-        "Silame",
-        "Sokoto North",
-        "Sokoto South",
-        "Tambuwal",
-        "Tqngaza",
-        "Tureta",
-        "Wamako",
-        "Wurno",
-        "Yabo"
-    ],
-    "Taraba": [
-        "Ardo-kola",
-        "Bali",
-        "Donga",
-        "Gashaka",
-        "Cassol",
-        "Ibi",
-        "Jalingo",
-        "Karin-Lamido",
-        "Kurmi",
-        "Lau",
-        "Sardauna",
-        "Takum",
-        "Ussa",
-        "Wukari",
-        "Yorro",
-        "Zing"
-    ],
-    "Yobe": [
-        "Bade",
-        "Bursari",
-        "Damaturu",
-        "Fika",
-        "Fune",
-        "Geidam",
-        "Gujba",
-        "Gulani",
-        "Jakusko",
-        "Karasuwa",
-        "Karawa",
-        "Machina",
-        "Nangere",
-        "Nguru Potiskum",
-        "Tarmua",
-        "Yunusari",
-        "Yusufari"
-    ],
-    "Zamfara": [
-        "Anka",
-        "Bakura",
-        "Birnin Magaji",
-        "Bukkuyum",
-        "Bungudu",
-        "Gummi",
-        "Gusau",
-        "Kaura",
-        "Namoda",
-        "Maradun",
-        "Maru",
-        "Shinkafi",
-        "Talata Mafara",
-        "Tsafe",
-        "Zurmi"
-    ]
-      };
+    payBtn.addEventListener("click", function () {
+        const paystackKey = document.getElementById("paystack-key").value;
+        const siteurl = document.getElementById("siteurl").value;
+        const email = document.getElementById("client_email").value;
+        const amount = document.getElementById("booking_amount").value * 100;
+        const reference = document.getElementById("reference").value;
 
-      const stateSelect = document.getElementById('state');
-      const lgaSelect = document.getElementById('lga');
+        const handler = PaystackPop.setup({
+            key: paystackKey,
+            email: email,
+            amount: amount,
+            currency: "NGN",
+            ref: reference,
+            callback: function (response) {
+                window.location.href =
+                    `${siteurl}verify-payment.php?action=verify-therapist-payment&reference=${response.reference}&booking_id=${reference}`;
+            },
+            onClose: function () {
+                alert("Payment cancelled.");
+            }
+        });
 
-      // Populate states
-      Object.keys(stateAndLGAs).forEach(state => {
-        const option = document.createElement('option');
-        option.value = state;
-        option.textContent = state;
-        stateSelect.appendChild(option);
-      });
-
-      // Populate LGAs when state is selected
-      stateSelect.addEventListener('change', function () {
-        const selectedState = this.value;
-        lgaSelect.innerHTML = '<option value="">-- Select LGA --</option>';
-
-        if (stateAndLGAs[selectedState]) {
-          stateAndLGAs[selectedState].forEach(lga => {
-            const option = document.createElement('option');
-            option.value = lga;
-            option.textContent = lga;
-            lgaSelect.appendChild(option);
-          });
-        }
-      });
+        handler.openIframe();
     });
 
-document.getElementById("paystackBtn").addEventListener("click", function () {
-    const paystackKey = document.getElementById("paystack-key").value;
-    const siteurl = document.getElementById("siteurl").value;
-    const email = document.getElementById("client_email").value;
-    const amount = document.getElementById("booking_amount").value * 100; // convert to kobo
-    const reference = document.getElementById("reference").value;
-
-    const handler = PaystackPop.setup({
-        key: paystackKey,
-        email: email,
-        amount: amount,
-        currency: "NGN",
-        ref: reference,
-        callback: function (response) {
-            window.location.href = `${siteurl}verify-payment.php?action=verify-therapist-payment&reference=${response.reference}&booking_id=${reference}`;
-        },
-        onClose: function () {
-            alert("Payment cancelled.");
-        }
-    });
-    handler.openIframe();
 });
 
+
+function updatePaymentButton() {
+  const paystackRadio = document.getElementById('paystack');
+  const manualRadio = document.getElementById('manual');
+  const paymentButton = document.getElementById('paymentButton');
+  const orderTotalEl = document.getElementById('order_total');
+  const siteCurrencyEl = document.getElementById('site_currency');
+
+  if (!paymentButton || !orderTotalEl || !siteCurrencyEl) {
+    return; // Safe exit if elements are not on this page
+  }
+
+  const orderTotal = orderTotalEl.value;
+  const siteCurrency = siteCurrencyEl.value;
+
+  if (manualRadio && manualRadio.checked) {
+    paymentButton.removeAttribute('onClick');
+    paymentButton.setAttribute('data-bs-toggle', 'modal');
+    paymentButton.setAttribute('data-bs-target', '#manualPaymentModal');
+    paymentButton.classList.remove('paystack-button');
+    paymentButton.innerHTML = `
+      <span class="btn-text">Proceed to Manual Payment</span>
+      <span class="btn-price">${siteCurrency}${orderTotal}</span>
+    `;
+  } else {
+    paymentButton.removeAttribute('data-bs-toggle');
+    paymentButton.removeAttribute('data-bs-target');
+    paymentButton.setAttribute('onClick', 'payWithPaystack()');
+    paymentButton.classList.add('paystack-button');
+    paymentButton.innerHTML = `
+      <span class="btn-text">Pay with Paystack</span>
+      <span class="btn-price">${siteCurrency}${orderTotal}</span>
+    `;
+  }
+}
 
 
 
@@ -1749,36 +982,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const shareButton = document.getElementById("shareProfileBtn");
-    const vendorName = document.getElementById("vendorName").value;
-    const shareUrl = document.getElementById("shareUrl").value;
+ function shareProfile(){
+                                    var vendorNameEl = document.getElementById('vendorName');
+                                    var shareUrlEl = document.getElementById('shareUrl');
+                                    var vendorName = vendorNameEl ? vendorNameEl.value : '';
+                                    var shareUrl = shareUrlEl ? shareUrlEl.value : window.location.href;
+                                    var shareText = vendorName ? "Check out " + vendorName + "'s profile" : 'Check out this profile';
 
-    shareButton.addEventListener("click", async function () {
-        const shareData = {
-            title: vendorName + " - Vendor Profile",
-            text: "Check out this vendor profile on HustleTunes!",
-            url: shareUrl
-        };
+                                    if (navigator.share){
+                                        navigator.share({ title: vendorName, text: shareText, url: shareUrl }).catch(function(){});
+                                        return;
+                                    }
 
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.log("Share cancelled or failed", err);
-            }
-        } else {
-            // Fallback: copy link to clipboard
-            navigator.clipboard.writeText(shareData.url)
-                .then(() => {
-                    alert("Profile link copied to clipboard: " + shareData.url);
-                })
-                .catch(err => {
-                    console.error("Failed to copy link:", err);
-                });
-        }
-    });
-});
+                                    var shareTextEl = document.getElementById('shareText');
+                                    if (shareTextEl) shareTextEl.textContent = shareText + ' — ' + shareUrl;
+
+                                    var modalEl = document.getElementById('shareModal');
+                                    if (typeof bootstrap !== 'undefined' && modalEl){
+                                        var modal = new bootstrap.Modal(modalEl);
+                                        modal.show();
+                                        return;
+                                    }
+
+                                    // Fallback prompt if no bootstrap modal
+                                    try { prompt(shareText + '\nCopy this link:', shareUrl); } catch (e) { /* ignore */ }
+                                }
+
+                                function copyShareLink(){
+                                    var shareUrlEl = document.getElementById('shareUrl');
+                                    var shareUrl = shareUrlEl ? shareUrlEl.value : window.location.href;
+                                    var feedback = document.getElementById('shareFeedback');
+                                    function showFeedback(msg, type){
+                                        if (!feedback) return;
+                                        feedback.style.display = 'block';
+                                        feedback.innerHTML = '<div class="alert alert-' + (type||'success') + ' py-1 my-0">' + msg + '</div>';
+                                        setTimeout(function(){ feedback.style.display = 'none'; }, 2500);
+                                    }
+
+                                    if (navigator.clipboard && navigator.clipboard.writeText){
+                                        navigator.clipboard.writeText(shareUrl).then(function(){ showFeedback('Link copied to clipboard'); }).catch(function(){ showFeedback('Unable to copy link', 'danger'); });
+                                    } else {
+                                        var tmp = document.createElement('input'); tmp.value = shareUrl; document.body.appendChild(tmp); tmp.select();
+                                        try { document.execCommand('copy'); showFeedback('Link copied to clipboard'); } catch (e) { showFeedback('Unable to copy link', 'danger'); }
+                                        tmp.remove();
+                                    }
+                                }
 
 
 
@@ -1863,36 +1111,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-document.addEventListener("DOMContentLoaded", function() {
-  const cartItems = document.querySelector('.cart-items');
-  if (!cartItems) return; // prevent error if .cart-items doesn't exist
-
-  cartItems.addEventListener('click', function(e) {
-    const btn = e.target.closest('.quantity-btn');
-    if (!btn) return;
-
-    const container = btn.closest('.quantity-selector');
-    const input = container.querySelector('.quantity-input');
-    const itemId = input.dataset.itemId;
-
-    let value = parseInt(input.value) || 1;
-    const min = parseInt(input.min) || 1;
-    const max = parseInt(input.max) || 100;
-
-    if (btn.classList.contains('increase')) {
-      if (value < max) value++;
-    } else if (btn.classList.contains('decrease')) {
-      if (value > min) value--;
-    }
-
-    input.value = value;
-
-    const updateBtn = document.querySelector('.btn-update');
-    if (updateBtn) updateBtn.disabled = false;
-
-    console.log(`Item ${itemId} quantity changed to ${value}`);
-  });
-});
 
 
 
@@ -1980,57 +1198,45 @@ document.addEventListener("DOMContentLoaded", function () {
     updatePrice();
 });
 
+function toggleCustomReason(value) {
+    document.getElementById('customReasonContainer').style.display =
+        (value === 'Other') ? 'block' : 'none';
+}
 
 
-document.addEventListener('DOMContentLoaded', function() {
-  const paystackRadio = document.getElementById('paystack');
-  const manualRadio = document.getElementById('manual');
-  const paymentButton = document.getElementById('paymentButton');
-  const orderTotalEl = document.getElementById('order_total');
-  const siteCurrencyEl = document.getElementById('site_currency');
-  const btnPriceText = document.getElementById('btn-price-text');
 
-  // ✅ Ensure required elements exist
-  if (!paymentButton || !orderTotalEl || !siteCurrencyEl) {
-    console.warn('⚠️ Missing required payment elements in DOM.');
-    return;
-  }
 
-  const orderTotal = orderTotalEl.value;
-  const siteCurrency = siteCurrencyEl.value;
+function increaseQuantity(id) {
+    const input = document.getElementById('quantity-' + id);
+    if (!input) return;
 
-  // Display currency and total initially
-  if (btnPriceText) {
-    btnPriceText.textContent = siteCurrency + orderTotal;
-  }
+    let value = parseInt(input.value) || 1;
+    const max = parseInt(input.max) || 100;
 
-  function updatePaymentButton() {
-    if (!paymentButton) return;
+    if (value < max) value++;
+    input.value = value;
 
-    if (manualRadio && manualRadio.checked) {
-      paymentButton.removeAttribute('onClick');
-      paymentButton.setAttribute('data-bs-toggle', 'modal');
-      paymentButton.setAttribute('data-bs-target', '#manualPaymentModal');
-      paymentButton.classList.remove('paystack-button');
-      paymentButton.innerHTML = `
-        <span class="btn-text">Proceed to Manual Payment</span>
-        <span class="btn-price">${siteCurrency}${orderTotal}</span>
-      `;
-    } else {
-      paymentButton.removeAttribute('data-bs-toggle');
-      paymentButton.removeAttribute('data-bs-target');
-      paymentButton.setAttribute('onClick', 'payWithPaystack()');
-      paymentButton.classList.add('paystack-button');
-      paymentButton.innerHTML = `
-        <span class="btn-text">Pay with Paystack</span>
-        <span class="btn-price">${siteCurrency}${orderTotal}</span>
-      `;
-    }
-  }
+    const updateBtn = document.querySelector('.btn-update');
+    if (updateBtn) updateBtn.disabled = false;
 
-  if (paystackRadio) paystackRadio.addEventListener('change', updatePaymentButton);
-  if (manualRadio) manualRadio.addEventListener('change', updatePaymentButton);
-});
+    console.log(`Item ${id} quantity increased to ${value}`);
+}
+
+function decreaseQuantity(id) {
+    const input = document.getElementById('quantity-' + id);
+    if (!input) return;
+
+    let value = parseInt(input.value) || 1;
+    const min = parseInt(input.min) || 1;
+
+    if (value > min) value--;
+    input.value = value;
+
+    const updateBtn = document.querySelector('.btn-update');
+    if (updateBtn) updateBtn.disabled = false;
+
+    console.log(`Item ${id} quantity decreased to ${value}`);
+}
 
 
 
@@ -2054,3 +1260,665 @@ function toggleBio(el) {
 
 
 
+document.addEventListener("click", function (e) {
+  if (!e.target.classList.contains("read-toggle")) return;
+
+  e.preventDefault();
+
+  const link = e.target;
+  const container = link.closest(".bio-text");
+  if (!container) return;
+
+  const shortBio = container.querySelector(".bio-short");
+  const fullBio = container.querySelector(".bio-full");
+
+  if (fullBio.classList.contains("d-none")) {
+    shortBio.classList.add("d-none");
+    fullBio.classList.remove("d-none");
+    link.textContent = "Read Less";
+  } else {
+    fullBio.classList.add("d-none");
+    shortBio.classList.remove("d-none");
+    link.textContent = "Read More";
+  }
+});
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('eventmarketplace');
+    if (!container) return;
+
+    const searchInput = container.querySelector("#searchInput");
+    const categorySelect = $('#eventcategory'); // Select2
+    const subcategorySelect = $('#eventsubcategory'); // Select2
+    const typeSelect = container.querySelector("#eventType");
+    const deliveryFormatSelect = container.querySelector("#deliveryFormat");
+    const pricingTypeSelect = container.querySelector("#pricingType");
+    const stateSelect = container.querySelector("#state");
+    const clearBtn = container.querySelector("#clearFilters");
+
+    const cardsPerPage = 16;
+    let currentPage = 1;
+    let filteredCards = [];
+
+    function refreshSubcategories(preserve = []) {
+        const selectedCats = categorySelect.val() || [];
+        subcategorySelect.empty().append('<option value="">-- Select Sub-Category --</option>');
+        if (!selectedCats.length) return;
+
+        const url = "<?php echo $siteurl; ?>script/register.php?action=eventsubcategorieslists&parent_ids=" + encodeURIComponent(selectedCats.join(','));
+        fetch(url)
+            .then(res => res.json())
+            .then(list => {
+                if (!Array.isArray(list)) return;
+                list.forEach(item => {
+                    const opt = new Option(item.category_name || item.name || item.id, item.id, preserve.includes(String(item.id)), preserve.includes(String(item.id)));
+                    subcategorySelect.append(opt);
+                });
+                subcategorySelect.trigger('change'); // refresh Select2
+            });
+    }
+
+    function filterEvents(page = 1) {
+        const keyword = (searchInput.value || '').toLowerCase().trim();
+        const selectedCategories = categorySelect.val() || [];
+        const selectedSubcategories = subcategorySelect.val() || [];
+        const selectedType = (typeSelect.value || '').toLowerCase().trim();
+        const selectedFormat = (deliveryFormatSelect.value || '').toLowerCase().trim();
+        const selectedPricing = (pricingTypeSelect.value || '').toLowerCase().trim();
+        const selectedState = (stateSelect.value || '').toLowerCase().trim();
+
+        filteredCards = $(container).find('.event-card').filter(function() {
+            const card = $(this);
+            const title = (card.data('title') || '').toLowerCase();
+            const cardCategories = (card.data('category') || '').toString().split(/\s*,\s*/).filter(Boolean);
+            const cardSubcategories = (card.data('subcategory') || '').toString().split(/\s*,\s*/).filter(Boolean);
+            const cardType = (card.data('type') || '').toLowerCase();
+            const cardFormat = (card.data('delivery_format') || '').toLowerCase();
+            const cardPricing = (card.data('pricing_type') || '').toLowerCase();
+            const cardState = (card.data('state') || '').toLowerCase();
+            const cardCatNames = (card.data('catname') || '').toLowerCase();
+            const cardSubcatNames = (card.data('subcatname') || '').toLowerCase();
+
+            // Show all if no filters applied
+            if (!keyword && !selectedCategories.length && !selectedSubcategories.length && !selectedType && !selectedFormat && !selectedPricing && !selectedState) {
+                return true;
+            }
+
+            const matchKeyword = !keyword || title.includes(keyword) || cardCatNames.includes(keyword) || cardSubcatNames.includes(keyword) || cardType.includes(keyword);
+            const matchCategory = !selectedCategories.length || selectedCategories.some(c => cardCategories.includes(c));
+            const matchSubcategory = !selectedSubcategories.length || selectedSubcategories.some(sc => cardSubcategories.includes(sc));
+            const matchType = !selectedType || cardType === selectedType;
+            const matchFormat = !selectedFormat || cardFormat === selectedFormat;
+            const matchPricing = !selectedPricing || cardPricing === selectedPricing;
+            const matchState = !selectedState || cardState === selectedState;
+
+            return matchKeyword && matchCategory && matchSubcategory && matchType && matchFormat && matchPricing && matchState;
+        });
+
+        renderPage(page);
+        renderPagination();
+    }
+
+    function renderPage(page) {
+        currentPage = page;
+        $(container).find('.event-card').hide();
+        const start = (page - 1) * cardsPerPage;
+        const end = start + cardsPerPage;
+        filteredCards.slice(start, end).show();
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
+        const $pagination = $(container).find('#marketplace-pagination-list');
+        $pagination.empty();
+
+        for (let i = 1; i <= totalPages; i++) {
+            $pagination.append(`
+                <li class="page-item ${i===currentPage ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        $pagination.find('a').click(function() {
+            const page = parseInt($(this).data('page'));
+            renderPage(page);
+        });
+    }
+
+    searchInput.addEventListener('keyup', debounce(() => filterEvents(1), 200));
+    typeSelect.addEventListener('change', () => filterEvents(1));
+    deliveryFormatSelect.addEventListener('change', () => filterEvents(1));
+    pricingTypeSelect.addEventListener('change', () => filterEvents(1));
+    stateSelect.addEventListener('change', () => filterEvents(1));
+
+    categorySelect.on('change', function() {
+        const preserve = subcategorySelect.val() || [];
+        refreshSubcategories(preserve);
+        setTimeout(() => filterEvents(1), 50);
+    });
+    subcategorySelect.on('change', () => filterEvents(1));
+
+    // Clear button now reloads page
+    clearBtn.addEventListener('click', function() {
+        location.reload();
+    });
+
+    function debounce(fn, wait) {
+        let t;
+        return function() { clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), wait); };
+    }
+
+    filterEvents(1); // initial load
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const wrapper = document.getElementById("blogFilterWrapper");
+    if (!wrapper) return;
+
+    const siteurlEl = document.getElementById("siteurl");
+    if (!siteurlEl) return console.error("siteurl element not found!");
+    const siteurl = siteurlEl.value;
+
+    const $category = $('#category', wrapper);
+    const $subcategory = $('#subcategory', wrapper);
+
+    if ($category.length) $category.select2({ placeholder: "Select category", allowClear: true });
+    if ($subcategory.length) $subcategory.select2({ placeholder: "Select subcategory", allowClear: true });
+
+    const resultsContainer = wrapper.querySelector("#blogResults");
+    const paginationList = document.getElementById("marketplace-pagination-list");
+    const perPage = 16; // Blogs per page
+    let blogsData = []; // Holds filtered blogs
+    let currentPage = 1;
+
+    // RUN AJAX FILTER
+    function runBlogFilter(page = 1) {
+        const form = wrapper.querySelector("#blogFilterForm");
+        if (!form) return;
+
+        const params = new URLSearchParams(new FormData(form)).toString();
+
+        fetch(siteurl + "blog.php?" + params)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const newContent = doc.querySelectorAll("#blogResults > div.col-lg-4");
+
+                blogsData = Array.from(newContent); // Store all filtered blogs
+                currentPage = page;
+                renderPagination();
+                renderPage(currentPage);
+            })
+            .catch(err => {
+                console.error("AJAX filter error:", err);
+                resultsContainer.innerHTML =
+                    "<p class='text-center text-danger'>Error loading blogs.</p>";
+            });
+    }
+
+    function renderPage(page) {
+        resultsContainer.innerHTML = '';
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        const pageItems = blogsData.slice(start, end);
+
+        if (pageItems.length === 0) {
+            resultsContainer.innerHTML = "<p class='text-center'>No blogs found for this filter.</p>";
+            paginationList.innerHTML = '';
+            return;
+        }
+
+        pageItems.forEach(item => resultsContainer.appendChild(item));
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(blogsData.length / perPage);
+        paginationList.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement("li");
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener("click", e => {
+                e.preventDefault();
+                currentPage = i;
+                renderPage(currentPage);
+                renderPagination();
+            });
+            paginationList.appendChild(li);
+        }
+    }
+
+    // Live search
+    const searchInput = wrapper.querySelector("#searchInput");
+    if (searchInput) searchInput.addEventListener("keyup", () => runBlogFilter(1));
+
+    // Category change → load subcategories + filter
+    if ($category.length) {
+        $category.on("change", function() {
+            let selected = $(this).val() || [];
+            if (!selected.length) {
+                $subcategory.html('').trigger('change');
+                runBlogFilter(1);
+                return;
+            }
+
+            fetch(siteurl + "script/register.php?action=subcategorieslists&parent_ids=" + selected.join(","))
+                .then(res => res.json())
+                .then(data => {
+                    let options = '';
+                    data.forEach(sc => options += `<option value="${sc.id}">${sc.category_name}</option>`);
+                    $subcategory.html(options).trigger('change');
+                    runBlogFilter(1);
+                })
+                .catch(err => console.error("Error loading subcategories:", err));
+        });
+    }
+
+    // Subcategory change
+    if ($subcategory.length) $subcategory.on("change", () => runBlogFilter(1));
+
+    // Clear filters
+    const clearBtn = wrapper.querySelector("#clearFilters");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function() {
+            if (searchInput) searchInput.value = '';
+            $category.val(null).trigger('change');
+            $subcategory.val(null).trigger('change');
+            runBlogFilter(1);
+        });
+    }
+
+    // Initial load
+    runBlogFilter(1);
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const siteurl = document.getElementById("siteurl").value; // your site URL
+    const searchInput = document.getElementById("searchInput");
+    const categorySelect = $("#category"); // Select2 instance (or native)
+    const subcategorySelect = $("#subcategory"); // Select2 instance (or native)
+    const sortDropdown = document.getElementById("sortDropdown");
+    const clearBtn = document.getElementById("clearFiltersBtn");
+    const filterTagsContainer = document.getElementById("filterTagsContainer");
+    const listContainer = document.querySelector(".courses-grid .row");
+
+    // Initialize Select2 if available (guarded) and ensure selects are enabled
+    if (typeof $.fn.select2 === 'function') {
+      try {
+        categorySelect.select2({ width: '100%' });
+        subcategorySelect.select2({ width: '100%' });
+      } catch (e) {
+        console.warn('Select2 init failed:', e);
+      }
+    }
+    // Ensure native selects are enabled in case something disabled them
+    try { categorySelect.prop('disabled', false); subcategorySelect.prop('disabled', false); } catch(e){}
+
+    // Small/medium filter toggle for Questions page
+    const qaToggleBtn = document.getElementById('toggleQAFiltersBtn');
+    const qaFilterBlock = document.getElementById('qaFilterBlock');
+    if (qaToggleBtn && qaFilterBlock) {
+      const slideUp = (el, duration = 220) => {
+        el.style.transitionProperty = 'height, margin, padding';
+        el.style.transitionDuration = duration + 'ms';
+        el.style.boxSizing = 'border-box';
+        el.style.height = el.offsetHeight + 'px';
+        el.offsetHeight;
+        el.style.overflow = 'hidden';
+        el.style.height = 0;
+        window.setTimeout(() => {
+          el.style.display = 'none';
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition-duration');
+          el.style.removeProperty('transition-property');
+        }, duration);
+      };
+
+      const slideDown = (el, duration = 220) => {
+        el.style.removeProperty('display');
+        let display = window.getComputedStyle(el).display;
+        if (display === 'none') display = 'block';
+        el.style.display = display;
+        const height = el.scrollHeight + 'px';
+        el.style.height = '0';
+        el.style.overflow = 'hidden';
+        el.style.transitionProperty = 'height, margin, padding';
+        el.style.transitionDuration = duration + 'ms';
+        el.offsetHeight;
+        el.style.height = height;
+        window.setTimeout(() => {
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition-duration');
+          el.style.removeProperty('transition-property');
+        }, duration);
+      };
+
+        // Prevent the clearSearch absolute element from accidentally overlaying selects
+        const clearSearchEl = document.getElementById('clearSearch');
+        if (clearSearchEl) {
+          clearSearchEl.style.position = 'relative';
+          clearSearchEl.style.right = '';
+          clearSearchEl.style.top = '';
+        }
+
+      function qaApplyInitial() {
+        if (window.innerWidth < 992) {
+          if (!qaFilterBlock.classList.contains('d-none')) qaFilterBlock.classList.add('d-none');
+          qaToggleBtn.textContent = 'Show filters';
+          qaToggleBtn.setAttribute('aria-expanded', 'false');
+          qaToggleBtn.style.display = '';
+        } else {
+          qaFilterBlock.classList.remove('d-none');
+          qaToggleBtn.style.display = 'none';
+          qaToggleBtn.setAttribute('aria-expanded', 'true');
+        }
+      }
+
+      qaToggleBtn.addEventListener('click', function () {
+        const hidden = qaFilterBlock.classList.contains('d-none') || window.getComputedStyle(qaFilterBlock).display === 'none';
+        if (hidden) {
+          qaFilterBlock.classList.remove('d-none');
+          slideDown(qaFilterBlock, 220);
+          qaToggleBtn.textContent = 'Hide filters';
+          qaToggleBtn.setAttribute('aria-expanded', 'true');
+          setTimeout(() => qaFilterBlock.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        } else {
+          slideUp(qaFilterBlock, 220);
+          qaToggleBtn.textContent = 'Show filters';
+          qaToggleBtn.setAttribute('aria-expanded', 'false');
+          setTimeout(() => qaFilterBlock.classList.add('d-none'), 230);
+        }
+      });
+
+      window.addEventListener('resize', qaApplyInitial);
+      qaApplyInitial();
+    }
+
+    let ALL_QUESTIONS = [];
+    let CATEGORY_NAMES = {};
+    let SUBCATEGORY_NAMES = {};
+    let ALL_SUBCATEGORIES = [];
+
+    // Fetch all questions
+    fetch(siteurl + "script/admin.php?action=questionlists")
+        .then(res => res.json())
+        .then(data => {
+            ALL_QUESTIONS = data;
+            applyFilters();
+        });
+
+    // Fetch categories
+    fetch(siteurl + "script/register.php?action=categorieslists")
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(cat => CATEGORY_NAMES[String(cat.id)] = cat.category_name);
+        });
+
+    // Fetch subcategories
+    fetch(siteurl + "script/register.php?action=subcategorieslists")
+        .then(res => res.json())
+        .then(data => {
+            ALL_SUBCATEGORIES = data; // full list for filtering
+            data.forEach(sub => SUBCATEGORY_NAMES[String(sub.id)] = sub.category_name);
+        });
+
+    //--------------------------------------
+    // Refresh Subcategory Options Based on Selected Categories
+    //--------------------------------------
+    function refreshSubcategories() {
+        const selectedCats = categorySelect.val() || [];
+        subcategorySelect.empty().append('<option value="">-- Select Sub-Category --</option>');
+
+        if (selectedCats.length === 0) return;
+
+        const filteredSubs = ALL_SUBCATEGORIES.filter(sub =>
+            selectedCats.includes(String(sub.parent_id))
+        );
+
+        filteredSubs.forEach(sub => {
+            const option = new Option(sub.category_name, sub.id, false, false);
+            subcategorySelect.append(option);
+        });
+
+        subcategorySelect.trigger("change");
+    }
+
+    //--------------------------------------
+    // Update Active Filter Tags
+    //--------------------------------------
+    function updateFilterTags() {
+        filterTagsContainer.innerHTML = "";
+
+        const search = searchInput.value.trim();
+        const categories = (categorySelect.val() || []).filter(Boolean).map(String);
+        const subcategories = (subcategorySelect.val() || []).filter(Boolean).map(String);
+
+        if (search) {
+            const tag = document.createElement("span");
+            tag.className = "badge bg-primary me-2";
+            tag.textContent = "Search: " + search;
+            filterTagsContainer.appendChild(tag);
+        }
+
+        categories.forEach(catId => {
+            const tag = document.createElement("span");
+            tag.className = "badge bg-info me-2";
+            tag.textContent = "Category: " + (CATEGORY_NAMES[String(catId)] || catId);
+            filterTagsContainer.appendChild(tag);
+        });
+
+
+    }
+
+    //--------------------------------------
+    // Apply Filters
+    //--------------------------------------
+    function applyFilters() {
+        const search = searchInput.value.toLowerCase().trim();
+        const categories = (categorySelect.val() || []).filter(Boolean).map(String);
+        const subcategories = (subcategorySelect.val() || []).filter(Boolean).map(String);
+        const sort = sortDropdown.value;
+
+        let filtered = ALL_QUESTIONS.filter(q => {
+            if (!q.status || q.status.toLowerCase() !== "active") return false;
+
+            // Search filter
+            if (search) {
+                const matchSearch =
+                    q.title?.toLowerCase().includes(search) ||
+                    q.article?.toLowerCase().includes(search) ||
+                    ((q.first_name || "") + " " + (q.last_name || "")).toLowerCase().includes(search) ||
+                    q.category_names?.toLowerCase().includes(search) ||
+                    q.subcategory_names?.toLowerCase().includes(search);
+                if (!matchSearch) return false;
+            }
+
+            // Category filter
+            if (categories.length) {
+                const qCats = (q.categories || "").split(",").map(c => c.trim());
+                if (!qCats.some(cat => categories.includes(cat))) return false;
+            }
+
+            // Subcategory filter
+            if (subcategories.length) {
+                const qSubs = (q.subcategories || "").split(",").map(s => s.trim());
+                if (!qSubs.some(sub => subcategories.includes(sub))) return false;
+            }
+
+            return true;
+        });
+
+        // Sorting and special filters
+        if (sort === "recent" || sort === "newest") {
+          filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else if (sort === "upvoted") {
+          filtered.sort((a, b) => {
+            const av = Number(a.upvotes ?? a.votes ?? a.likes ?? 0);
+            const bv = Number(b.upvotes ?? b.votes ?? b.likes ?? 0);
+            return bv - av;
+          });
+        } else if (sort === "answered") {
+          filtered.sort((a, b) => (b.total_answers ?? 0) - (a.total_answers ?? 0));
+        } else if (sort === "unanswered") {
+          filtered = filtered.filter(q => Number(q.total_answers ?? 0) === 0);
+          // show newest unanswered first
+          filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else { // popular or fallback
+          filtered.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+        }
+
+        renderQuestions(filtered);
+        updateFilterTags();
+    }
+
+    //--------------------------------------
+    // Render Questions
+    //--------------------------------------
+    function renderQuestions(list) {
+        listContainer.innerHTML = "";
+        if (!list.length) {
+            listContainer.innerHTML = "<p>No questions found.</p>";
+            return;
+        }
+
+        list.forEach(q => {
+            const shortText = q.article.split(" ").slice(0, 12).join(" ") + "…";
+            const category = q.category_names?.split(",")[0] || "General";
+            const subcategory = q.subcategory_names?.split(",")[0] || "General";
+            const authorDisplay = q.anonymous == 1
+                ? "Anonymous"
+                : ((q.first_name || "") + " " + (q.last_name || "")).trim() || "Unknown User";
+            const date = new Date(q.created_at).toDateString();
+
+            const card = document.createElement("div");
+            card.className = "col-lg-4 col-md-6";
+            card.innerHTML = `
+                <div class="course-card">
+                    <div class="course-content">
+                        <div class="course-meta">
+                            <span class="category">${category}</span>
+                            <span class="level">${subcategory}</span>
+                        </div>
+                        <h3 class="mb-2">${q.title}</h3>
+                        <p>${shortText}</p>
+                        <div class="mt-2 text-muted small">
+                            Asked by ${authorDisplay} on ${date}
+                        </div>
+                        <div class="mt-1 text-muted small">
+                            ${q.views ?? 0} Views | ${q.total_answers ?? 0} Answers
+                        </div>
+                        <a href="single-questions/${q.slug}" class="btn-course mt-2">
+                            View Question
+                        </a>
+                    </div>
+                </div>`;
+            listContainer.appendChild(card);
+        });
+    }
+
+    //--------------------------------------
+    // Event Listeners
+    //--------------------------------------
+    let typingTimer;
+    searchInput.addEventListener("keyup", () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(applyFilters, 300);
+    });
+
+    categorySelect.on("change", () => {
+        refreshSubcategories();
+        applyFilters();
+    });
+    subcategorySelect.on("change", applyFilters);
+    sortDropdown.addEventListener("change", applyFilters);
+
+    clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        categorySelect.val(null).trigger("change");
+        subcategorySelect.val(null).trigger("change");
+        sortDropdown.value = "popular";
+        applyFilters();
+    });
+});
+
+
+document.addEventListener('click', function (e) {
+  // share action
+  const target = e.target.closest('.share-action');
+  if (target) {
+    e.preventDefault();
+    const provider = target.dataset.provider;
+    const url = target.dataset.url;
+    const title = target.dataset.title;
+
+    if (provider === 'native' && navigator.share) {
+      navigator.share({ title: title, url: url }).catch(()=>{});
+      return;
+    }
+
+    let shareUrl = '';
+    if (provider === 'facebook') shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    else if (provider === 'twitter') shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url);
+    else if (provider === 'whatsapp') shareUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(title + ' ' + url);
+    else if (provider === 'linkedin') shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+
+    if (shareUrl) window.open(shareUrl, '_blank', 'noopener');
+  }
+
+  // copy link action
+  if (e.target.closest('.copy-link')) {
+    e.preventDefault();
+    const url = e.target.closest('.copy-link').dataset.url;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){
+        alert('Link copied to clipboard');
+      }).catch(function(){
+        // fallback
+        const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Link copied to clipboard');
+      });
+    } else {
+      const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Link copied to clipboard');
+    }
+  }
+});
+
+
+  (function () {
+        const btn = document.getElementById('toggleBlogFiltersBtn');
+        const block = document.getElementById('blogFilterBlock');
+        if (!btn || !block) return;
+
+        function applyInitial() {
+            if (window.innerWidth < 992) { // below lg
+                block.classList.add('d-none');
+                btn.textContent = 'Show filters';
+                btn.setAttribute('aria-expanded', 'false');
+                btn.style.display = '';
+            } else {
+                block.classList.remove('d-none');
+                btn.style.display = 'none';
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        btn.addEventListener('click', function () {
+            const hidden = block.classList.toggle('d-none');
+            btn.textContent = hidden ? 'Show filters' : 'Hide filters';
+            btn.setAttribute('aria-expanded', String(!hidden));
+            if (!hidden) block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        window.addEventListener('resize', applyInitial);
+        applyInitial();
+    })();

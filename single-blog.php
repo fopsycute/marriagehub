@@ -4,9 +4,25 @@
 <?php
 if (isset($_GET['slug'])) {
     $slug = $_GET['slug'];
-    $group_id = intval($_GET['group_id'] ?? 0);
+    $group_slug = $_GET['group_slug'];
 
     $sitelink = $siteurl . "script/";
+
+    $url = $sitelink . "admin.php?action=fetchgroupslug&group_slug=" . $group_slug;
+
+    // Fetch blog details via API
+    $data = curl_get_contents($url);
+
+    if ($data !== false) {
+        $groupdetails = json_decode($data);
+        if (!empty($groupdetails)) {
+            $groupdetail = $groupdetails[0]; 
+            $group_id  = $groupdetail->id ?? '';
+            $group_name  = $groupdetail->group_name ?? '';
+        }
+      }
+
+
     $shareUrl = $siteurl . 'blog-details/' . urlencode($slug);
 
     // ✅ Add view count

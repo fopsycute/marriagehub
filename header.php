@@ -50,6 +50,10 @@ if ($authentication) {
             $gender         = $buyerData->gender ?? '';
             $nationality    = $buyerData->nationality ?? '';
             $languages      = $buyerData->languages ?? '';
+            $total_articles = $buyerData->total_articles ?? 0;
+            $total_questions = $buyerData->total_questions ?? 0;
+            $total_answers  = $buyerData->total_answers ?? 0;
+            $best_answers   = $buyerData->best_answers ?? 0;
             $phone          = $buyerData->phone ?? '';
             $website        = $buyerData->website ?? '';
             $email          = $buyerData->email ?? '';
@@ -112,8 +116,8 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <meta name="keywords" content="">
 
   <!-- Favicons -->
-  <link href="<?php echo $siteurl; ?>assets/img/favicon.png" rel="icon">
-  <link href="<?php echo $siteurl; ?>assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <link href="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" rel="icon">
+  <link href="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" rel="apple-touch-icon">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -135,6 +139,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <!-- DataTables Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <?php include "script/tinymce.php"; ?>
   <!-- Main CSS File -->
@@ -152,20 +157,20 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 }
   ?>
 
-<!-- ======= Top Header ======= -->
-<div class="top-header bg-light py-2 border-bottom">
+<!-- ======= Top Header (visible on large screens and up only) ======= -->
+<div class="top-header bg-light py-2 border-bottom d-none d-lg-block">
   <div class="container d-flex justify-content-between align-items-center">
     <div class="top-links d-flex align-items-center gap-3 small">
-      <a href="<?php echo $siteurl; ?>find-therapist.php" class="text-dark text-decoration-none">
-        <i class="bi bi-person-heart me-1"></i> Find Therapists
+      <a href="<?php echo $siteurl; ?>register/therapist.php" class="text-dark text-decoration-none">
+        <i class="bi bi-person-heart me-1"></i> Get Listed (Therapists) 
       </a>
       <span class="text-secondary">|</span>
       <a href="<?php echo $siteurl; ?>create-tribes-group.php" class="text-dark text-decoration-none">
         <i class="bi bi-people me-1"></i> Create Tribes & Groups
       </a>
       <span class="text-secondary">|</span>
-      <a href="<?php echo $siteurl; ?>dashboard.php" class="text-dark text-decoration-none">
-        <i class="bi bi-journal-text me-1"></i> Submit Articles & Questions
+      <a href="<?php echo $siteurl; ?>register/vendor.php" class="text-dark text-decoration-none">
+        <i class="bi bi-people me-1"></i> Become a Vendor 
       </a>
 
       <span class="text-secondary">|</span>
@@ -176,13 +181,15 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   </div>
 </div>
   <header id="header" class="header d-flex align-items-center sticky-top">
-    <div class="container position-relative d-flex align-items-center justify-content-between">
+    <div class="container-fluid position-relative d-flex align-items-center justify-content-between px-1">
 
   <a href="<?php echo $siteurl; ?>index.php" class="logo d-flex align-items-center order-0 me-auto me-xl-0">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <img src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" alt="">
-       <!-- <h1 class="sitename">ZenBlog</h1> -->
-
+        <div class="d-flex flex-column align-items-start">
+          <!-- Image logo -->
+          <img src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" alt="<?php echo htmlspecialchars($sitename); ?> logo">
+          <!-- Small tagline under the logo -->
+        <small class="text-muted ms-0" style="font-size:0.78rem; display:block;">Nurturing Marriages, Enriching Families!</small>
+        </div>
       </a>
 
   <nav id="navmenu" class="navmenu order-1 flex-grow-1">
@@ -192,8 +199,10 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <li><a href="<?php echo $siteurl; ?>blog.php">Blogs</a></li>
           <li><a href="<?php echo $siteurl; ?>questions-answers.php">Q & A</a></li>
           <li><a href="<?php echo $siteurl; ?>marketplace.php">Marketplace</a></li>
-          <li><a href="<?php echo $siteurl; ?>event.php">Events</a></li>
+          <li><a href="<?php echo $siteurl; ?>services.php">Services</a></li>
+          <li><a href="<?php echo $siteurl; ?>events.php">Events</a></li>
           <li><a href="<?php echo $siteurl; ?>vendors.php">Vendors Directory</a></li>
+          <li><a href="<?php echo $siteurl; ?>advertise.php">Advertise with us</a></li>
           <a href="<?php echo $siteurl; ?>find-therapist" class="btn btn-primary text-white p-2" >Find a Therapists</a>
           <!---
           <li class="dropdown"><a href="#"><span>Categories</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>

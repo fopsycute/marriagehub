@@ -135,7 +135,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Upload Business Logo</label>
-                <input type="file" name="business_logo" class="form-control">
+                <input type="file" name="business_logo" class="form-control" >
               </div>
               <div class="mb-3">
                 <label class="form-label">Upload Sample Work or Portfolio</label>
@@ -326,7 +326,7 @@
 
             <div class="mb-3">
             <label class="form-label">Who do you work with? *</label>
-             <select name="work_with[]" id="workWith" class="form-control">
+             <select name="work_with" id="workWith" class="form-control">
               <option value="Individuals">Individuals</option>
               <option value="Couples">Couples</option>
               <option value="Family">Family</option>
@@ -405,7 +405,7 @@
               </div>
 
               <div class="text-center mt-4">
-                <button type="submit" class="btn btn-enroll w-100">
+                <button type="submit" class="btn btn-enroll btn-primary w-100">
                   <i class="bi bi-check-circle me-2"></i> Submit
                 </button>
               </div>

@@ -142,7 +142,7 @@ if (isset($_GET['blog_id'])) {
 
           <div class="form-group">
           <label for="status">Status</label>
-          <select name="status" class="form-control" id="statusSelect" required>
+          <select name="status" class="form-control" id="statusSelects" required>
             <option value="">Select Status</option>
             <option value="active" <?php echo ($status === 'active') ? 'selected' : ''; ?>>Published</option>
             <option value="pending" <?php echo ($status === 'pending') ? 'selected' : ''; ?>>Pending</option>

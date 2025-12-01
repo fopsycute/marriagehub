@@ -63,7 +63,7 @@
                               $source_amount = number_format((float) str_replace(',', '', $item['source_amount']), 2);
                               $earned_amount = number_format((float) str_replace(',', '', $item['earned_amount']), 2);
                               $type = htmlspecialchars($item['type']);
-                              $date = htmlspecialchars($item['date']);
+                              $date = formatDateTime($item['date']);
                               $id = htmlspecialchars($item['id'] ?? $count);
                               echo "
                               <tr>

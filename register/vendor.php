@@ -118,24 +118,34 @@
 
               <!-- Contact Info -->
               <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label">Phone Numbers</label>
                   <input type="text" name="phone" class="form-control" accept="image/*">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label">Website (Optional)</label>
                   <input type="url" name="website" class="form-control">
                 </div>
-              </div>
+         
 
-              <div class="row mb-3">
-                <div class="col-md-6">
+           
+                <div class="col-md-4">
                   <label class="form-label">Email Address</label>
                   <input type="email" name="email" class="form-control">
                 </div>
+              </div>
+                 <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label">State of Residence</label>
-                  <input type="text" name="state_residence" class="form-control" placeholder="LGA | State">
+              <select id="state" name="state" class="form-control" >
+              <option value="">-Select State-</option>
+            </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">LGA</label>
+             <select class="form-control" id="lga"  name="lga">
+            <option value="">-Select LGA-</option>
+          </select>
                 </div>
               </div>
 
@@ -260,10 +270,26 @@
                 </select>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label">Availability (Days & Times)</label>
-                <input type="text" name="availability" class="form-control" placeholder="e.g. Mon - Sat, 9AM - 6PM">
-              </div>
+              <div class="row mb-3">
+            <label class="form-label">Availability (Days & Times)(e.g. Monday - Friday, 9am - 5pm)</label>
+       <div class="col-md-4">
+          <select name="preferred_days[]" id="preferred_days" class="form-select select-multiple" required multiple>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+        </div>
+        <div class="col-md-4">
+            <input type="time" name="start_time" class="form-control" placeholder="Start Time" required>
+        </div>
+        <div class="col-md-4">
+            <input type="time" name="end_time" class="form-control" placeholder="End Time" required>
+      </div>
+      </div>
 
               <!-- Section 4 -->
           

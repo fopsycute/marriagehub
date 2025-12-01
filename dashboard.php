@@ -5,7 +5,13 @@ $requireLogin = true;
 include "header.php"; 
 
 ?>
+<?php
 
+// Get follower/following count
+$followerCount = getFollowerCount($buyerId);
+$followingCount = getFollowingCount($buyerId);
+
+?>
 <section id="instructor-profile" class="instructor-profile section">
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -42,6 +48,10 @@ include "header.php";
 
     <?php endif; ?>
 </p>
+
+  <p><?php echo $followerCount; ?> Followers | <?php echo $followingCount; ?> Following</p>
+  <p><strong>Articles:</strong> <?=$total_articles?> | <strong>Questions Asked:</strong> <?=$total_questions?> | <strong>Answers Given:</strong> <?=$total_answers?> | <strong>Best Answers:</strong> <?=$best_answers?></p>
+      
 
                 </div>
 				
@@ -115,6 +125,23 @@ include "header.php";
       <div class="dashboard-icon me-2"><i class="bi bi-star-fill"></i></div>
       <h4>My Reviews</h4>
     </a>
+
+    <a href="<?php echo $siteurl; ?>bookmarks.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-save"></i></div>
+      <h4>Bookmarked</h4>
+    </a>
+
+      <a href="<?php echo $siteurl; ?>my-events.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-calendar"></i></div>
+      <h4>My events & Programs</h4>
+    </a>
+
+
+      <a href="<?php echo $siteurl; ?>my-ads.php" class="dashboard-item">
+      <div class="dashboard-icon me-2"><i class="bi bi-megaphone"></i></div>
+      <h4>My Adverts</h4>
+    </a>
+
     <a href="settings.php" class="dashboard-item">
       <div class="dashboard-icon me-2"><i class="bi bi-gear"></i></div>
       <h4>Settings</h4>

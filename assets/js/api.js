@@ -57,6 +57,58 @@ $(document).ready(function() {
     });
 });
 
+
+//select multicategory
+  // when category changes
+  $(document).ready(function () {
+    $('#eventcategory').on('change', function () {
+        let selectedCategories = $(this).val(); // array of selected IDs
+        var siteUrl = $('#siteurl').val(); // hidden input holding your base URL
+        var ajaxUrl = siteUrl + "script/register.php"; // build full path
+
+        if (selectedCategories && selectedCategories.length > 0) {
+            $.ajax({
+                url: ajaxUrl,
+                method: "GET",
+                data: {
+                    action: "eventsubcategorieslists",
+                    parent_ids: selectedCategories.join(",") // send comma-separated IDs
+                },
+                dataType: "json",
+                success: function (response) {
+                    let $subcategory = $('#eventsubcategory');
+                    $subcategory.empty(); // clear old options
+
+                    if (response.length > 0) {
+                        $.each(response, function (index, subcat) {
+                            $subcategory.append(
+                                $('<option>', {
+                                    value: subcat.id,
+                                    text: subcat.category_name
+                                })
+                            );
+                        });
+                    } else {
+                        $subcategory.append('<option value="">No subcategories found</option>');
+                    }
+
+                    // refresh Select2 to update new options
+                    $subcategory.trigger('change');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching subcategories:", error);
+                }
+            });
+        } else {
+            $('#eventsubcategory').empty()
+                .append('<option value="">-- Select Sub-Category --</option>')
+                .trigger('change');
+        }
+    });
+});
+
+
+
 //specialization list
 $(document).ready(function () {
     $('#specializations').on('change', function () {
@@ -106,25 +158,66 @@ $(document).ready(function () {
 
 //filter
 $('#blogFilterForm #category').on('change', function () {
-    var selected = $(this).val();
+    var selected = $(this).val() || [];
     var siteUrl = $('#siteurl').val(); // hidden input holding your base URL
     var $subcat = $('#blogFilterForm #subcategory');
     $subcat.html('<option value="">Loading...</option>');
-    if (selected && selected.length > 0) {
-        $.get(siteUrl + 'script/register.php', {action: 'subcategorieslists', parent_ids: selected.join(',')}, function (data) {
-            var opts = '<option value="">-- Select Sub-Category --</option>';
-            var arr = [];
-            try { arr = JSON.parse(data); } catch(e) {}
-            if (arr.length) {
-                arr.forEach(function (s) {
-                    opts += '<option value="'+s.id+'">'+s.category_name+'</option>';
-                });
-            }
-            $subcat.html(opts);
-        });
-    } else {
-        $subcat.html('<option value="">-- Select Sub-Category --</option>');
+
+    if (!selected || selected.length === 0) {
+      $subcat.html('<option value="">-- Select Sub-Category --</option>');
+      return;
     }
+
+    // split numeric ids vs slugs
+    var numericParents = [];
+    var slugParents = [];
+    selected.forEach(function (val) {
+      if (/^\d+$/.test(val)) numericParents.push(val);
+      else if (val) slugParents.push(val);
+    });
+
+    // We'll gather all subcategories then render them once
+    var allSubcats = [];
+
+    // helper that tries to parse JSON text responses or arrays
+    function safeParse(data) {
+      if (Array.isArray(data)) return data;
+      try { return JSON.parse(data); } catch (e) { return []; }
+    }
+
+    var fetches = [];
+
+    if (numericParents.length) {
+      fetches.push(
+        $.get(siteUrl + 'script/register.php', { action: 'subcategorieslists', parent_ids: numericParents.join(',') })
+          .then(function (data) { allSubcats = allSubcats.concat(safeParse(data)); })
+          .catch(function () { /* ignore */ })
+      );
+    }
+
+    // For category slugs, use admin endpoint which accepts category_slug
+    slugParents.forEach(function (slug) {
+      fetches.push(
+        $.get(siteUrl + 'script/admin.php', { action: 'subcategory_list', category_slug: slug })
+          .then(function (data) { allSubcats = allSubcats.concat(safeParse(data)); })
+          .catch(function () { /* ignore */ })
+      );
+    });
+
+    // once all fetches complete, render options
+    $.when.apply($, fetches).always(function () {
+      var opts = '<option value="">-- Select Sub-Category --</option>';
+      // dedupe by id
+      var seen = {};
+      allSubcats.forEach(function (s) {
+        if (!s || !s.id || seen[s.id]) return;
+        seen[s.id] = true;
+        // prefer slug value when available (friendly URL), else id
+        var val = s.slug ? s.slug : s.id;
+        opts += '<option value="' + val + '">' + (s.category_name || s.name || '') + '</option>';
+      });
+      $subcat.html(opts);
+    });
 });
 
 
@@ -881,24 +974,29 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             dataType: 'json',
+
             success: function (response) {
                 console.log("Response:", response);
+
                 if (response.status === 'success') {
+
                     $('#messages')
                         .addClass('alert alert-success')
-                        .html(response.messages)
+                        .html(response.message)  // ✅ FIXED
                         .fadeIn();
 
                     form.reset();
 
                     setTimeout(() => {
-                        alert(response.messages || "Your booking request has been sent and is pending approval.");
-                        location.reload();
+                        if (response.redirect_url) {
+                            window.location.href = response.redirect_url;
+                        }
                     }, 1000);
+
                 } else {
                     $('#messages')
                         .addClass('alert alert-danger')
-                        .html(response.messages)
+                        .html(response.message)  // ✅ FIXED
                         .fadeIn();
 
                     $('html, body').animate({
@@ -906,19 +1004,16 @@ $(document).ready(function () {
                     }, 600);
                 }
             },
-            error: function (xhr) {
-                console.log("Raw Response:", xhr.responseText);
+
+            error: function () {
                 $('#messages')
                     .addClass('alert alert-danger')
-                    .text('An error occurred while submitting. Please try again.')
+                    .text('An error occurred. Please try again.')
                     .fadeIn();
-
-                $('html, body').animate({
-                    scrollTop: $('#messages').offset().top - 100
-                }, 600);
             },
+
             complete: function () {
-                $('#submitBtn').prop('disabled', false).text('Submit Blog');
+                $('#submitBtn').prop('disabled', false).text('Book Appointment'); // ✅ FIXED
             }
         });
     });
@@ -1466,6 +1561,72 @@ $(document).ready(function () {
   });
 });
 
+// post event review posteventreview
+
+$(document).ready(function () {
+  // ensure we only bind once
+  $('#posteventreview').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    var form = this;
+    var formData = new FormData(form);
+
+    // append the action expected by the API
+    formData.append('action', 'post_eventreview');
+
+    var siteUrl = $('#siteurl').val(); // make sure this hidden exists
+    var ajaxUrl = siteUrl + "script/user.php";
+
+    var $btn = $('#submit-btn'); // change to your submit button id if different
+    if ($btn.length === 0) $btn = $(form).find('button[type="submit"]');
+
+    $btn.prop('disabled', true).text('Submitting...');
+    $('#messages').hide().removeClass('alert-success alert-danger').html('');
+
+    $.ajax({
+      url: ajaxUrl,
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      success: function (response) {
+        var plainMsg = '';
+        if (response && response.messages) {
+          // strip HTML for alert box
+          plainMsg = $('<div>').html(response.messages).text();
+        } else {
+          plainMsg = response.message || 'No response message.';
+        }
+
+        if (response.status === 'success') {
+          // show alert and reload on OK
+          alert(plainMsg);
+          // optionally also set #messages area
+          $('#messages').addClass('alert alert-success').html(response.messages).show();
+          // reload
+          location.reload();
+        } else {
+          // show inline message and scroll to it
+          $('#messages').addClass('alert alert-danger').html(response.messages || plainMsg).show();
+          $('html,body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+        }
+      },
+      error: function (xhr, status, err) {
+        console.error(xhr.responseText || err);
+        var errMsg = 'An error occurred while submitting. Please try again.';
+        $('#messages').addClass('alert alert-danger').text(errMsg).show();
+        $('html,body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+      },
+      complete: function () {
+        $btn.prop('disabled', false).text('Post Comment');
+      }
+    });
+  });
+});
+
+
+
 $(document).ready(function () {
   // ensure we only bind once
   $('#postproductreview').off('submit').on('submit', function (e) {
@@ -1769,6 +1930,50 @@ $(document).ready(function () {
 });
 
 
+// reupload proof 
+$(document).ready(function () {
+    $('.reuploadproof-form').on('submit', function (e) {
+        e.preventDefault();
+
+        let form = this;
+        let formData = new FormData(form);
+
+        // Use site URL hidden input somewhere in page
+        let siteUrl = $('#siteurl').val();
+        if (!siteUrl) { alert("Site URL not found."); return; }
+
+        let ajaxUrl = siteUrl + "script/user.php";
+        let $btn = $(form).find('button[type="submit"]');
+        let $messages = $(form).find('.messages');
+
+        $btn.prop('disabled', true).text('Submitting...');
+        $messages.hide().removeClass('alert-success alert-danger').html('');
+
+        $.ajax({
+            url: ajaxUrl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    $messages.addClass('alert alert-success').html(response.messages).show();
+                    form.reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    $messages.addClass('alert alert-danger').html(response.messages).show();
+                }
+            },
+            error: function (xhr) {
+                $messages.addClass('alert alert-danger').text('An error occurred. Try again.').show();
+            },
+            complete: function () {
+                $btn.prop('disabled', false).text('Submit Proof');
+            }
+        });
+    });
+});
 
 
 $(document).ready(function () {
@@ -2216,6 +2421,36 @@ $(document).on('click', '.deleteblog', function(){
 });   
 
 
+// delete portfolio image or video
+$(document).on('click', '.remove-file', function() {
+
+    var parent = $(this).closest(".portfolio-item");
+    var file = parent.data("file");
+
+    var user_id = $("#user_id").val();
+    var siteUrl = $("#siteurl").val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+
+    if (!confirm("Remove this file permanently?")) return;
+
+    $.ajax({
+        url: ajaxUrl,
+        method: "POST",
+        dataType: "json",
+        data: {
+            action: "deletePortfolio",
+            file: file,
+            user_id: user_id
+        },
+        success: function(response) {
+            parent.remove(); // remove only the file badge
+            alert(response);
+        }
+    });
+
+});
+
+
 //
 $(document).on('click', '.deleteimage, .deletevideo', function(e){
     e.preventDefault();
@@ -2238,6 +2473,44 @@ $(document).on('click', '.deleteimage, .deletevideo', function(e){
         });
     }
 });
+
+
+$(document).on('click', '.deleteeventvideo, .delete-media, .deleteeventtext', function(e){
+    e.preventDefault();
+
+    var fileName = $(this).attr("id");
+    var btn = $(this);
+
+    // Assign action based on the class clicked
+    var action = "";
+
+    if (btn.hasClass('deleteeventvideo')) {
+        action = "deleteeventvideo";
+    }
+    else if (btn.hasClass('delete-media')) {
+        action = "deletemedia"; // <-- Use your real action name here
+    }
+    else if (btn.hasClass('deleteeventtext')) {
+        action = "deleteeventtext"; // <-- Use your real action name here
+    }
+
+    var siteUrl = $('#siteurl').val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+
+    if(confirm("Are you sure you want to delete this file permanently?")) {
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            data: { file_name: fileName, action: action },
+            success: function(response) {
+                btn.parent().remove();  
+                alert(response);
+            }
+        });
+    }
+});
+
+
 
 // delete listing
 
@@ -2330,6 +2603,74 @@ $(document).on('click', '.approve-booking', function() {
         return false;
     }
 });
+
+
+$(document).on('click', '.approveadvert', function() {
+    var image_id = $(this).attr("id");
+    var siteUrl = $('#siteurl').val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+    var clickedBtn = $(this);
+
+    if (confirm("Are you sure you want to approve this advert?")) {
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            dataType: "json", // ✅ Expect JSON
+            data: { image_id: image_id, action: "approve-advert" },
+            success: function(response) {
+                if (response.status === "success") {
+                    alert(response.message);
+                    clickedBtn.closest('tr').remove(); // ✅ safer way to remove row
+                } else {
+                    alert("Error: " + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("AJAX Error: " + error);
+            }
+        });
+    } else {
+        return false;
+    }
+});
+
+
+// REJECT ADVERT
+$(document).on('submit', '.reject-advert-form', function(e){
+    e.preventDefault();
+    var form = $(this);
+    var advertId = form.data('advert-id');
+    var reason = form.find('textarea[name="reject_reason"]').val();
+    var siteUrl = $('#siteurl').val();
+
+    if(reason.trim() === '') {
+        alert("Please enter a reason for rejection.");
+        return;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: siteUrl + 'script/admin.php',
+        data: {
+            action: 'reject-advert',
+            advert_id: advertId,
+            reject_reason: reason
+        },
+        dataType: 'json',
+        success: function(response){
+            if(response.status === 'success'){
+                alert(response.message);
+                location.reload(); // reload page to reflect changes
+            } else {
+                alert(response.message || "Failed to reject advert.");
+            }
+        },
+        error: function(){
+            alert("An error occurred. Please try again.");
+        }
+    });
+});
+
  
 
 //delete question
@@ -2396,6 +2737,43 @@ $(document).on('click', '.deletegroupmembers', function(){
         return false;
     }
 });   
+
+// download subscribers 
+$(document).on('click', '#downloadSubscribers', function(){
+    var action = "download_subscribers_csv";
+    var siteUrl = $('#siteurl').val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+
+    $.ajax({
+        url: ajaxUrl,
+        method: "POST",
+        data: { action: action },
+        xhrFields: {
+            responseType: 'blob' // important for file download
+        },
+        success: function(blob, status, xhr) {
+            // Get filename from header
+            var filename = "subscribers.csv";
+            var disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('filename=') !== -1) {
+                filename = disposition.split('filename=')[1].replace(/"/g, '');
+            }
+
+            // Create link to download
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        },
+        error: function(xhr) {
+            alert("Failed to download CSV.");
+            console.error(xhr.responseText);
+        }
+    });
+});
+
 
 $(document).on('click', '.deleteusers', function(){
     var image_id = $(this).attr("id");
@@ -2485,7 +2863,94 @@ $(document).on('click', '.deletelisting', function(){
     } else {  
         return false;
     }
-});   
+});  
+
+
+// delete event
+$(document).on('click', '.deleteevent', function(){
+    var image_id = $(this).attr("id");
+    var action = "deleteevents";
+    var siteUrl = $('#siteurl').val();
+     var ajaxUrl = siteUrl + "script/admin.php";
+    var clickedBtn = $(this); // save reference to clicked button
+    if(confirm("Are you sure you want to delete this event permanently?")) {
+        $.ajax({
+            url: ajaxUrl ,
+            method: "POST",
+            data: { image_id: image_id, action: action },
+            success: function(data) {
+                clickedBtn.parent().parent().remove(); // use saved reference to delete button
+                alert(data);
+            }  
+        });   
+    } else {  
+        return false;
+    }
+});  
+
+// accept as best
+
+$(document).on('click', '.acceptbest', function(){
+    var answerId = $(this).attr("id");
+    var siteUrl = $('#siteurl').val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+
+    var clickedBtn = $(this);
+
+    if(confirm("Are you sure you want to mark this answer as BEST?")) {
+
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            data: { image_id: answerId, action: "acceptbest" },
+            success: function(response) {
+
+                // Hide best button
+                clickedBtn.hide();
+
+                // Add BEST badge
+                clickedBtn.after("<span class='badge bg-warning text-dark ms-2'>Best</span>");
+
+                alert(response);
+            }
+        });
+
+    } else {
+        return false;
+    }
+});
+
+// accept answer
+$(document).on('click', '.acceptanswer', function(){
+    var answerId = $(this).attr("id");
+    var siteUrl = $('#siteurl').val();
+    var ajaxUrl = siteUrl + "script/admin.php";
+
+    var clickedBtn = $(this);
+
+    if(confirm("Are you sure you want to accept this answer?")) {
+
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            data: { image_id: answerId, action: "acceptanswer" },
+            success: function(response) {
+
+                // Hide the accept button
+                clickedBtn.hide();
+
+                // Add ACCEPTED badge next to it
+                clickedBtn.after("<span class='badge bg-success ms-2'>Accepted</span>");
+
+                alert(response);
+            }
+        });
+
+    } else {
+        return false;
+    }
+});
+
 
 // delete review
 $(document).on('click', '.deleteReview', function(){
@@ -2696,6 +3161,7 @@ $(document).on('click', '.approveManualPayment', function() {
 $(document).off('click', '.confirmReject').on('click', '.confirmReject', function() {
     var image_id = $(this).data("id");
     var reason = $('#rejectReason' + image_id).val().trim();
+    var statusbar = $('input[name="rejectAction' + image_id + '"]:checked').val();
     var siteUrl = $('#siteurl').val();
     var ajaxUrl = siteUrl + "script/admin.php";
     var action = "rejectmanual";
@@ -2710,7 +3176,7 @@ $(document).off('click', '.confirmReject').on('click', '.confirmReject', functio
     $.ajax({
         url: ajaxUrl,
         method: "POST",
-        data: { image_id: image_id, reason: reason, action: action },
+        data: { image_id: image_id, reason: reason, action: action, statusbar: statusbar },
         success: function(response) {
             let data;
             try {
@@ -3007,6 +3473,69 @@ $(document).ready(function(){
     });
 });
 
+// update therapist
+
+$(document).ready(function(){
+  $(document).off('submit', '.update-enrollment-therapist').on('submit', '.update-enrollment-therapist', function(event){
+    event.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/admin.php";
+
+    const $submitBtn = $('.btn-enroll', form);
+
+    $.ajax({
+      type: 'POST',
+      url: ajaxUrl,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      beforeSend: function(){
+        $submitBtn.html('Submitting...').prop('disabled', true);
+        $('#messages').hide().removeClass('alert-success alert-danger');
+      },
+      success: function(response){
+        if (response.status === 'success') {
+          $('#messages')
+            .addClass('alert alert-success')
+            .html(response.messages || 'Update successful!')
+            .show();
+
+          // Scroll to top and reload page after 5 seconds
+          $('html, body').animate({ scrollTop: 0 }, 500, function() {
+            setTimeout(function() {
+              location.reload();
+            }, 5000); // 5000ms = 5 seconds
+          });
+
+        } else {
+          $('#messages')
+            .addClass('alert alert-danger')
+            .html(response.messages || 'Submission failed. Please check your inputs.')
+            .show();
+          $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+        }
+      },
+      error: function(xhr){
+        $('#messages')
+          .addClass('alert alert-danger')
+          .text('An error occurred while submitting the form. Please try again.')
+          .show();
+        $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+        console.error(xhr.responseText);
+      },
+      complete: function(){
+        $submitBtn.html('<i class="bi bi-check-circle me-2"></i> Submit').prop('disabled', false);
+      }
+    });
+  });
+});
+
+
+
 
 //register therapist
 $(document).ready(function(){
@@ -3035,6 +3564,67 @@ $(document).ready(function(){
         if (response.status === 'success') {
           const msg = encodeURIComponent(response.messages || 'Registration successful!');
           window.location.href = siteUrl + "login.php?success=" + msg;
+        } else {
+          $('#messages')
+            .addClass('alert alert-danger')
+            .html(response.messages || 'Submission failed. Please check your inputs.')
+            .show();
+          $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+        }
+      },
+      error: function(xhr){
+        $('#messages')
+          .addClass('alert alert-danger')
+          .text('An error occurred while submitting the form. Please try again.')
+          .show();
+        $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 500);
+        console.error(xhr.responseText);
+      },
+      complete: function(){
+        $submitBtn.html('<i class="bi bi-check-circle me-2"></i> Submit').prop('disabled', false);
+      }
+    });
+  });
+});
+
+// update therapist
+
+$(document).ready(function(){
+  $(document).off('submit', '.editenrollment-therapist').on('submit', '.editenrollment-therapist', function(event){
+    event.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/admin.php";
+
+    const $submitBtn = $('.btn-enroll', form);
+
+    $.ajax({
+      type: 'POST',
+      url: ajaxUrl,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      beforeSend: function(){
+        $submitBtn.html('Submitting...').prop('disabled', true);
+        $('#messages').hide().removeClass('alert-success alert-danger');
+      },
+      success: function(response){
+        if (response.status === 'success') {
+          $('#messages')
+            .addClass('alert alert-success')
+            .html(response.messages || 'Update successful!')
+            .show();
+
+          // Scroll to top and reload page after 5 seconds
+          $('html, body').animate({ scrollTop: 0 }, 500, function() {
+            setTimeout(function() {
+              location.reload();
+            }, 5000); // 5000ms = 5 seconds
+          });
+
         } else {
           $('#messages')
             .addClass('alert alert-danger')
@@ -3116,6 +3706,8 @@ $(document).ready(function(){
         });
     });
 });
+
+
 
 
 //update plans
@@ -4502,8 +5094,8 @@ $(document).ready(function () {
 
 // add adverts
 $(document).ready(function () {
-  // Attach submit handler once
-  $('#advertsForm').off('submit').on('submit', function (e) {
+
+  $('#newsletterForm').off('submit').on('submit', function (e) {
     e.preventDefault();
 
     const form = this;
@@ -4512,8 +5104,8 @@ $(document).ready(function () {
     const ajaxUrl = siteUrl + "script/admin.php";
 
     // Prevent double click
-    $('#submitAdverts').prop('disabled', true).text('Submitting...');
-    $('#messages').removeClass('alert alert-success alert-danger').hide();
+    $('#submitNewsletter').prop('disabled', true).text('Submitting...');
+    $('#newsletter_message').removeClass('alert alert-success alert-danger').hide();
 
     $.ajax({
       type: 'POST',
@@ -4522,39 +5114,305 @@ $(document).ready(function () {
       processData: false,
       contentType: false,
       dataType: 'json',
+
       success: function (response) {
+        // extract only text from returned HTML
+        const cleanMessage = $(response.messages).text();
+
         if (response.status === 'success') {
-          $('#messages')
+          $('#newsletter_message')
+            .removeClass('alert-danger')
             .addClass('alert alert-success')
-            .html(response.messages)
+            .text(cleanMessage)
             .fadeIn();
+
           form.reset();
+
+          // Reload after 5 seconds
           setTimeout(() => {
-            alert(response.messages || "Adverts submitted successfully!");
             location.reload();
-          }, 800);
+          }, 5000);
+
         } else {
-          $('#messages')
+          $('#newsletter_message')
+            .removeClass('alert-success')
             .addClass('alert alert-danger')
-            .html(response.messages)
+            .text(cleanMessage)
             .fadeIn();
-          $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 600);
+
+          $('html, body').animate({
+            scrollTop: $('#newsletter_message').offset().top - 100
+          }, 600);
         }
       },
+
       error: function (xhr) {
-        console.error(xhr.responseText);
-        $('#messages')
+        $('#newsletter_message')
+          .removeClass('alert-success')
           .addClass('alert alert-danger')
           .text('An error occurred while submitting. Please try again.')
           .fadeIn();
-        $('html, body').animate({ scrollTop: $('#messages').offset().top - 100 }, 600);
+
+        $('html, body').animate({
+          scrollTop: $('#newsletter_message').offset().top - 100
+        }, 600);
       },
+
       complete: function () {
-        $('#submitAdverts').prop('disabled', false).text('Submit Adverts');
+        $('#submitNewsletter').prop('disabled', false).text('Submit Newsletter');
       }
     });
   });
+
 });
+
+
+// report itm
+$(document).ready(function () {
+
+  $('#reportitemForm').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/admin.php";
+
+    // Prevent double click
+    $('#submitReport').prop('disabled', true).text('Submitting...');
+    $('#report_message').removeClass('alert alert-success alert-danger').hide();
+
+    $.ajax({
+      type: 'POST',
+      url: ajaxUrl,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+
+      success: function (response) {
+        // extract only text from returned HTML
+        const cleanMessage = $(response.messages).text();
+
+        if (response.status === 'success') {
+          $('#report_message')
+            .removeClass('alert-danger')
+            .addClass('alert alert-success')
+            .text(cleanMessage)
+            .fadeIn();
+
+          form.reset();
+
+          // Reload after 5 seconds
+          setTimeout(() => {
+            location.reload();
+          }, 5000);
+
+        } else {
+          $('#report_message')
+            .removeClass('alert-success')
+            .addClass('alert alert-danger')
+            .text(cleanMessage)
+            .fadeIn();
+
+          $('html, body').animate({
+            scrollTop: $('#report_message').offset().top - 100
+          }, 600);
+        }
+      },
+
+      error: function (xhr) {
+        $('#report_message')
+          .removeClass('alert-success')
+          .addClass('alert alert-danger')
+          .text('An error occurred while submitting. Please try again.')
+          .fadeIn();
+
+        $('html, body').animate({
+          scrollTop: $('#report_message').offset().top - 100
+        }, 600);
+      },
+
+      complete: function () {
+        $('#submitReport').prop('disabled', false).text('Submit Report');
+      }
+    });
+  });
+
+});
+
+
+// report user
+$(document).ready(function () {
+
+  $('#reportblogForm').off('submit').on('submit', function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const siteUrl = $('#siteurl').val();
+    const ajaxUrl = siteUrl + "script/admin.php";
+
+    // Prevent double click
+    $('#submitReport').prop('disabled', true).text('Submitting...');
+    $('#report_message').removeClass('alert alert-success alert-danger').hide();
+
+    $.ajax({
+      type: 'POST',
+      url: ajaxUrl,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+
+      success: function (response) {
+        // extract only text from returned HTML
+        const cleanMessage = $(response.messages).text();
+
+        if (response.status === 'success') {
+          $('#report_message')
+            .removeClass('alert-danger')
+            .addClass('alert alert-success')
+            .text(cleanMessage)
+            .fadeIn();
+
+          form.reset();
+
+          // Reload after 5 seconds
+          setTimeout(() => {
+            location.reload();
+          }, 5000);
+
+        } else {
+          $('#report_message')
+            .removeClass('alert-success')
+            .addClass('alert alert-danger')
+            .text(cleanMessage)
+            .fadeIn();
+
+          $('html, body').animate({
+            scrollTop: $('#report_message').offset().top - 100
+          }, 600);
+        }
+      },
+
+      error: function (xhr) {
+        $('#report_message')
+          .removeClass('alert-success')
+          .addClass('alert alert-danger')
+          .text('An error occurred while submitting. Please try again.')
+          .fadeIn();
+
+        $('html, body').animate({
+          scrollTop: $('#report_message').offset().top - 100
+        }, 600);
+      },
+
+      complete: function () {
+        $('#submitReport').prop('disabled', false).text('Submit Report');
+      }
+    });
+  });
+
+});
+
+
+$(document).ready(function() {
+    $('#followBtn').on('click', function() {
+        var btn = $(this);
+
+        var authorId = btn.data('author-id');    // profile owner
+        var userId   = $('#user_id').val();      // logged-in user
+        var siteUrl  = $('#siteurl').val();
+        var ajaxUrl  = siteUrl + 'script/admin.php';
+
+        // ⛔ Redirect if not logged in
+        if (!userId || userId === "" || userId === "0") {
+            window.location.href = siteUrl + "login.php";
+            return;
+        }
+
+        var action = btn.text().trim() === 'Follow' ? 'follow' : 'unfollow';
+
+        btn.prop('disabled', true)
+           .text(action === 'follow' ? 'Following...' : 'Unfollowing...');
+
+        $.post(ajaxUrl, {
+            action: action,
+            author_id: authorId,
+            user_id: userId
+        }, function(response) {
+
+            if(response.status === 'success') {
+
+                // update button first
+                btn.removeClass('btn-primary btn-secondary')
+                    .addClass(action === 'follow' ? 'btn-secondary' : 'btn-primary')
+                    .text(action === 'follow' ? 'Unfollow' : 'Follow');
+
+                // 🔄 Reload page after action
+                setTimeout(function() {
+                    location.reload();
+                }, 500); // small delay for UI change
+
+            } else {
+                alert(response.messages);
+            }
+
+            btn.prop('disabled', false);
+
+        }, 'json');
+    });
+});
+
+// bookmark
+$('.bookmarkBtn').on('click', function() {
+    let itemId = $(this).data('item-id');
+    let itemType = $(this).data('item-type');
+    let userId = $('#user_id').val();
+    let siteUrl = $('#siteurl').val();
+
+    if (!userId) {
+        window.location.href = siteUrl + "login.php";
+        return;
+    }
+
+    $.post(siteUrl + "script/admin.php", {
+        action: "bookmark",
+        user_id: userId,
+        item_id: itemId,
+        item_type: itemType
+    }, function(res){
+        alert(res.messages);
+        location.reload();
+    }, 'json');
+});
+
+
+
+$(document).on('click', '.help-vote', function () {
+    let vote = $(this).data("vote");
+    let content_type = $(this).data("type");
+    let content_id = $(this).data("id");
+    let user_id = $(this).data("user");
+    let siteUrl = $("#siteurl").val();
+
+    $.ajax({
+        url: siteUrl + "script/admin.php",
+        method: "POST",
+        data: {
+            action: "articlefeedback",
+            vote: vote,
+            content_type: content_type,
+            content_id: content_id,
+            user_id: user_id
+        },
+        success: function(response) {
+            $("#feedback-response").html(response).show();
+        }
+    });
+});
+
 
 
 $(document).ready(function () {
@@ -4828,6 +5686,62 @@ $(document).ready(function () {
   });
 
 });
+
+//add to cart event
+$(document).ready(function(){
+    $("#addtoCart").click(function(){
+        var selectedIds = $('input[name="variation_ids[]"]:checked')
+                          .map(function(){ return $(this).val(); })
+                          .get()
+                          .join(',');
+
+        var event_id = $('#current_event_id').val();
+        var user_id = $('#user_id').val();
+        var order_id = $('#order_id').val();
+        var siteurl = $('#siteurl').val();
+        var pricing = $('#pricing').val();
+
+        if (!user_id) {
+            window.location.href = siteurl + 'login';
+            return;
+        }
+
+              if (pricing === 'paid') {
+        if (!selectedIds) {
+            showToast('Please select at least one variation.');
+            return;
+        }
+      }
+        $.ajax({
+            url:  siteurl + 'script/user.php',
+            type: 'POST',
+            data: {
+                action: 'addtoeventcart',
+                eventId: event_id,
+                userId: user_id,
+                orderId: order_id,
+                variation_ids: selectedIds
+            },
+            success: function(response){
+                let data = typeof response === 'string' ? JSON.parse(response) : response;
+                if (data.error) {
+                    showToast(data.error);
+                } else {
+                    showToast('Item added to cart successfully');
+                }
+                if (data.cartCount) {
+                    updateCartCount(data.cartCount);
+                }
+            },
+            error: function(){
+                showToast('Error adding to cart');
+            }
+        });
+    });
+});
+
+
+
 
 $(document).on('click', '.wishlist-btn', function (e) {
     e.preventDefault();

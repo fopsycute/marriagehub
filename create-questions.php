@@ -15,8 +15,8 @@ include "header.php";
         </div>
       </div><!-- End Section Title -->
 
-<div class="container-xxl flex-grow-1 container-p-y">
-  <div class="card">
+<div class="container-xxl flex-grow-1 container-p-y page-center">
+  <div class="card" style="max-width:900px; width:100%">
     <div class="card-body">
       <form method="POST" id="addQuestions" enctype="multipart/form-data">
         <div class="row">

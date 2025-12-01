@@ -7,7 +7,7 @@
         <h1 class="mb-2 mb-lg-0">Terms of Use</h1>
         <nav class="breadcrumbs">
           <ol>
-            <li><a href="index.html">Home</a></li>
+            <li><a href="<?php echo $siteurl; ?>index.php">Home</a></li>
             <li class="current">Terms of Use</li>
           </ol>
         </nav>

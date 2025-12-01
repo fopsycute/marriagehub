@@ -128,8 +128,6 @@ $description   = $advert->description;
         </div>
         </div>
     </div>
-<script>
 
-</script>
 
     <?php include "footer.php"; ?>

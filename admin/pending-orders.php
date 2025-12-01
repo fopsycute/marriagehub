@@ -140,10 +140,24 @@ if ($data !== false) {
         <h5 class="modal-title">Reject Manual Payment</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <p>Please provide a reason for rejecting this payment:</p>
-        <textarea class="form-control rejectReason" id="rejectReason<?php echo $walletId; ?>" rows="3" placeholder="Enter reason..."></textarea>
-      </div>
+       <div class="modal-body">
+    <p>Please provide a reason for rejecting this payment:</p>
+    <textarea class="form-control rejectReason" id="rejectReason<?php echo $walletId; ?>" rows="3" placeholder="Enter reason..."></textarea>
+
+    <p class="mt-3">Choose an action:</p>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="rejectAction<?php echo $walletId; ?>" id="resend<?php echo $walletId; ?>" value="resend" checked>
+        <label class="form-check-label" for="resend<?php echo $walletId; ?>">
+            Allow user to resend payment proof
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="rejectAction<?php echo $walletId; ?>" id="cancel<?php echo $walletId; ?>" value="cancel">
+        <label class="form-check-label" for="cancel<?php echo $walletId; ?>">
+            Cancel payment and restore slots
+        </label>
+    </div>
+</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-danger confirmReject" data-id="<?php echo $walletId; ?>">Reject Payment</button>

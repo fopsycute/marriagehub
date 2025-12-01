@@ -19,7 +19,61 @@ $order = $orders[0];
 $items = $order['items'];
 $buyer_name = $order['buyer_name'];
 $buyer_email = $order['buyer_email'];
-$order_date = date('Y-m-d H:i:s');
+$order_date = $order['date'] ?? date('Y-m-d H:i:s');
+
+// Normalize items locally (don't change admin.php). Ensure event rows include listing_id
+// and fill missing title/seller info where possible, then sort by item date DESC.
+if (is_array($items) && count($items) > 0) {
+    foreach ($items as &$it) {
+        // Mirror event_id into listing_id for event items if missing
+        if (($it['type'] ?? '') === 'event') {
+            if (empty($it['listing_id']) && !empty($it['event_id'])) {
+                $it['listing_id'] = $it['event_id'];
+            }
+        }
+
+        // Populate listing title/slug when missing
+        if (empty($it['listing_title']) && !empty($it['listing_id'])) {
+            $safeId = mysqli_real_escape_string($con, $it['listing_id']);
+            if (($it['type'] ?? '') === 'event') {
+                $q = "SELECT title, slug, user_id FROM {$siteprefix}events WHERE event_id='{$safeId}' LIMIT 1";
+            } else {
+                $q = "SELECT title, slug, user_id FROM {$siteprefix}listings WHERE listing_id='{$safeId}' LIMIT 1";
+            }
+            $r = mysqli_query($con, $q);
+            if ($r) {
+                $row = mysqli_fetch_assoc($r);
+                if ($row) {
+                    $it['listing_title'] = $row['title'] ?? ($it['listing_title'] ?? '');
+                    $it['listing_slug']  = $row['slug'] ?? ($it['listing_slug'] ?? '#');
+                    if (empty($it['seller_id']) && !empty($row['user_id'])) $it['seller_id'] = $row['user_id'];
+                }
+            }
+        }
+
+        // Populate seller name/email if missing
+        if ((empty($it['seller_name']) || empty($it['seller_email'])) && !empty($it['seller_id'])) {
+            $safeSeller = mysqli_real_escape_string($con, $it['seller_id']);
+            $qq = "SELECT first_name, email FROM {$siteprefix}users WHERE id='{$safeSeller}' LIMIT 1";
+            $rr = mysqli_query($con, $qq);
+            if ($rr) {
+                $srow = mysqli_fetch_assoc($rr);
+                if ($srow) {
+                    if (empty($it['seller_name'])) $it['seller_name'] = trim(($srow['first_name'] ?? ''));
+                    if (empty($it['seller_email'])) $it['seller_email'] = $srow['email'] ?? '';
+                }
+            }
+        }
+    }
+    unset($it);
+
+    // Sort by item date descending (newest first). Fallback to 0 when missing.
+    usort($items, function($a, $b){
+        $ta = isset($a['date']) ? strtotime($a['date']) : 0;
+        $tb = isset($b['date']) ? strtotime($b['date']) : 0;
+        return $tb <=> $ta; // desc
+    });
+}
 ?>
 
 
@@ -47,6 +101,7 @@ $order_date = date('Y-m-d H:i:s');
         <table class="table table-bordered">
             <thead>
                 <tr>
+                    <th>S/N</th>
                     <th>Listing</th>
                     <th>Variation</th>
                     <th>Seller</th>
@@ -55,8 +110,9 @@ $order_date = date('Y-m-d H:i:s');
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($items as $item): ?>
+                <?php $sn = 1; foreach ($items as $item): ?>
                 <tr>
+                    <td><?php echo $sn++; ?></td>
                     <td><?php echo htmlspecialchars($item['listing_title']); ?></td>
                     <td><?php echo htmlspecialchars($item['variation']); ?></td>
                     <td><?php echo htmlspecialchars($item['seller_name']); ?></td>

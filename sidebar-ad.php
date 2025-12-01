@@ -9,8 +9,7 @@ if (empty($banners)) return;
 <style>
 /*** Sticky Sidebar Ad (300x600) ***/
 .sidebar-sticky-ad {
-    width: 300px;
-    height: 600px;
+  
     position: fixed;
     right: 10px; /* change to left:10px for left side */
     top: 120px;
@@ -24,8 +23,7 @@ if (empty($banners)) return;
 
 /* Ad Image */
 .sidebar-sticky-ad img {
-    width: 100%;
-    height: 100%;
+ 
     object-fit: cover;
     display: block;
 }

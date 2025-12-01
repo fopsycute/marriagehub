@@ -6,7 +6,7 @@ include "header.php";
 ?>
 
 
-<div class="container">
+<div class="container page-center">
   <div class="page-inner">
 
     <div class="row">
@@ -22,13 +22,21 @@ include "header.php";
           <div class="card-body">
 		<form id="update-user" method="POST" enctype="multipart/form-data">
 
-    <div class="col-lg-12 text-center mt-1" id="messages"></div> 
+    <div class="col-lg-8 text-center mt-1 mx-auto" id="messages"></div> 
   <input type="hidden" name="user_id" value="<?= $buyerId; ?>">
 
   <div class="row mb-3">
     <div class="col-md-3">
       <label>Title</label>
-      <input type="text" name="title" value="<?= $title; ?>" class="form-control">
+     <select name="title" class="form-select" required>
+        <?php
+        $titles = ["Mr","Mrs","Miss","Ms","Mx","Sir","Dr","Lady","Lord","Professor","Esq.","Hon.","Messrs.","Msgr.","Prof.","Rev.","Rt. Hon.","Other"];
+        foreach ($titles as $t) {
+          $selected = ($title) === $t ? 'selected' : '';
+          echo "<option value='$t' $selected>$t</option>";
+        }
+        ?>
+      </select>
     </div>
     <div class="col-md-3">
       <label>First Name</label>
@@ -114,6 +122,8 @@ include "header.php";
     <label>Bio</label>
     <textarea name="bio" class="editor" rows="4"><?= $bio; ?></textarea>
   </div>
+
+
 
   <div class="mb-3">
     <label>Current Photo</label><br>

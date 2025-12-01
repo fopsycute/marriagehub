@@ -2,58 +2,19 @@
 <?php include "header.php"; ?>
 
 <?php
-// Admin dashboard statistics
-// Uses $con and $siteprefix from header/connect
-$total_users = 0;
-$total_vendors = 0;
-$total_therapists = 0;
-$new_registrations_today = 0;
-$bookings_today = 0;
-$gross_revenue_today = 0;
-$net_revenue_today = 0;
+// Fetch dashboard stats via API
+$apiUrl = $siteurl . "script/admin.php?action=dashboardstats";
+$statsData = curl_get_contents($apiUrl);
+$stats = $statsData ? json_decode($statsData, true) : [];
 
-// Safely run queries (no user input involved)
-$res = mysqli_query($con, "SELECT COUNT(*) AS cnt FROM {$siteprefix}users");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $total_users = intval($row['cnt'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT COUNT(*) AS cnt FROM {$siteprefix}users WHERE user_type = 'vendor'");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $total_vendors = intval($row['cnt'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT COUNT(*) AS cnt FROM {$siteprefix}users WHERE user_type = 'therapist'");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $total_therapists = intval($row['cnt'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT COUNT(*) AS cnt FROM {$siteprefix}users WHERE DATE(created_at) = CURDATE()");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $new_registrations_today = intval($row['cnt'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT COUNT(*) AS cnt FROM {$siteprefix}bookings WHERE DATE(created_at) = CURDATE()");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $bookings_today = intval($row['cnt'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT IFNULL(SUM(total_amount),0) AS sumtotal FROM {$siteprefix}orders WHERE DATE(date) = CURDATE()");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $gross_revenue_today = floatval($row['sumtotal'] ?? 0);
-}
-
-$res = mysqli_query($con, "SELECT IFNULL(SUM(amount),0) AS sumprofit FROM {$siteprefix}profits WHERE DATE(date) = CURDATE()");
-if ($res) {
-  $row = mysqli_fetch_assoc($res);
-  $net_revenue_today = floatval($row['sumprofit'] ?? 0);
-}
+// Assign variables safely
+$total_users = intval($stats['user_count'] ?? 0);
+$total_vendors = intval($stats['vendor_count'] ?? 0);
+$total_therapists = intval($stats['therapist_count'] ?? 0);
+$new_registrations_today = intval($stats['today_registrations'] ?? 0);
+$bookings_today = intval($stats['total_bookings_today'] ?? 0);
+$gross_revenue_today = floatval($stats['gross_revenue'] ?? 0);
+$net_revenue_today = floatval($stats['net_revenue'] ?? 0);
 ?>
 
   <div class="container">
@@ -85,7 +46,7 @@ if ($res) {
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
                           <p class="card-category">All Users</p>
-                          <h4 class="card-title"><?php echo number_format($total_users); ?></h4>
+                          <h4 class="card-title"><?php echo $total_users; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -104,7 +65,7 @@ if ($res) {
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
                           <p class="card-category">Vendors</p>
-                          <h4 class="card-title"><?php echo number_format($total_vendors); ?></h4>
+                          <h4 class="card-title"><?php echo $total_vendors; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -123,7 +84,7 @@ if ($res) {
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
                           <p class="card-category">Therapists</p>
-                          <h4 class="card-title"><?php echo number_format($total_therapists); ?></h4>
+                          <h4 class="card-title"><?php echo $total_therapists; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -142,7 +103,7 @@ if ($res) {
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
                           <p class="card-category">Total Bookings (today)</p>
-                          <h4 class="card-title"><?php echo number_format($bookings_today); ?></h4>
+                          <h4 class="card-title"><?php echo $bookings_today; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -155,12 +116,12 @@ if ($res) {
                     <div class="row align-items-center">
                       <div class="col-icon">
                         <div class="icon-big text-center icon-success bubble-shadow-small">
-                          <i class="fas fa-luggage-cart"></i>
+                          <i class="fas fa-coins"></i>
                         </div>
                       </div>
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
-                          <p class="card-category">Total revenue (today)</p>
+                          <p class="card-category">Total revenue</p>
                           <h4 class="card-title"><?php echo ($sitecurrency ?? '') . ' ' . number_format($gross_revenue_today, 2); ?>
                             <br>
                             <small class="text-muted">Net: <?php echo ($sitecurrency ?? '') . ' ' . number_format($net_revenue_today, 2); ?></small>
@@ -183,7 +144,7 @@ if ($res) {
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
                           <p class="card-category">New registrations (today)</p>
-                          <h4 class="card-title"><?php echo number_format($new_registrations_today); ?></h4>
+                          <h4 class="card-title"><?php echo $new_registrations_today; ?></h4>
                         </div>
                       </div>
                     </div>

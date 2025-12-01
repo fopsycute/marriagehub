@@ -110,15 +110,9 @@
               name="tags"
             >
           </div>
-          
-            <div class="form-group mb-2">
-              <label for="status">Status</label>
-             <select name="status" class="form-control" required>
-              <option> Select Status</option>
-              <option value="active"> Published</option>
-               <option value="pending"> pending</option>
-            </select>
-            </div>
+
+          <input type="hidden" name="status" value="pending">
+        
           <!-- Anonymous Option -->
             <div class="col-sm-12 mb-3">
               <div class="form-check">

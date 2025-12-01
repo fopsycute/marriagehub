@@ -22,6 +22,7 @@ if ($authentication) {
             $title = $buyerData->title ?? '';
             $wallet = $buyerData->wallet ?? '';
             $gender = $buyerData->gender ?? '';
+            $views = $buyerData->views ?? 0;
             $bank_accname = $buyerData->bank_accname ?? '';
             $bank_number = $buyerData->bank_number ?? '';
             $bank_name = $buyerData->bank_name ?? '';
@@ -30,6 +31,10 @@ if ($authentication) {
             $business_name = $buyerData->business_name;
             $registered_business_name = $buyerData->registered_business_name;
             $owner_name = $buyerData->owner_name;
+            $total_questions = $buyerData->total_questions ?? 0;
+            $total_articles = $buyerData->total_articles ?? 0;
+            $total_answers = $buyerData->total_answers ?? 0;
+            $total_earnings = $buyerData->total_earnings ?? 0;
             $dob = $buyerData->dob;
             $nationality = $buyerData->nationality;
             $languages = $buyerData->languages;
@@ -105,7 +110,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
     />
     <link
       rel="icon"
-      href="assets/img/kaiadmin/favicon.ico"
+      href="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
       type="image/x-icon"
     />
 
@@ -150,7 +155,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
             <a href="index.php" class="logo">
-            Marriage Hub Ng
+           <img src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>" alt="navbar brand" class="small-logo" />
             </a>
             <div class="nav-toggle">
               <button class="btn btn-toggle toggle-sidebar">
@@ -492,9 +497,9 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
           <div class="main-header-logo">
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="dark">
-              <a href="index.html" class="logo">
+              <a href="index.php" class="logo">
                 <img
-                  src="assets/img/kaiadmin/logo_light.svg"
+                  src="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
                   alt="navbar brand"
                   class="navbar-brand"
                   height="20"

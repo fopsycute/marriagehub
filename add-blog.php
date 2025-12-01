@@ -7,15 +7,19 @@ include "header.php";
 
 <section>
           <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+          
+      <div class="container page-center" data-aos="fade-up">
+        <div class="row">
+          <div class="col-md-8 mx-auto">
+        
         <div class="section-title-container d-flex align-items-center justify-content-between">
           <h2>Add Blog</h2>
           <a href="<?php echo $siteurl; ?>my-blog.php" class="btn btn-primary btn-sm"> <i class="bi bi-arrow-left"></i> Back to My Blogs</a>
         </div>
-      </div><!-- End Section Title -->
 
 
-<div class="container-xxl flex-grow-1 container-p-y">
+
+<div class="container-xxl flex-grow-1 container-p-y page-center">
     <div class="card">
         <div class="card-body">
    <form  method="POST" id="addForum" enctype="multipart/form-data">
@@ -102,7 +106,12 @@ include "header.php";
   <div class="col-lg-12 col-md-12 col-sm-12">
   <button type="submit" id="submitBtn"  class="btn btn-primary w-100" name="addforum">Create</button>
   </div></div>
-</form></div></div></div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
 </section>
 
 <?php include "footer.php"; ?>
