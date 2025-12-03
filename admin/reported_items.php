@@ -71,6 +71,7 @@
                               $report_id = $report->id ?? '';
                               $item_type = ucfirst($report->item_type ?? 'Unknown');
                               $item_title = $report->item_title ?? 'N/A';
+                              $item_slug = $report->item_slug ?? '';
                               $first_name = $report->first_name ?? '';
                               $last_name = $report->last_name ?? '';
                               $reporter_name = trim($first_name . ' ' . $last_name);
@@ -82,14 +83,14 @@
                               $item_id = $report->item_id ?? '';
                               $user_id = $report->user_id ?? '';
 
-                              // Create link based on item type
+                              // Create link based on item type using slug
                               $item_link = '#';
-                              if ($item_type == 'Blog' && $item_id) {
-                                  $item_link = $siteurl . "blog-details.php?id=" . $item_id;
-                              } elseif ($item_type == 'Question' && $item_id) {
-                                  $item_link = $siteurl . "single-questions.php?id=" . $item_id;
-                              } elseif ($item_type == 'Group' && $item_id) {
-                                  $item_link = $siteurl . "group.php?id=" . $item_id;
+                              if ($item_type == 'Blog' && $item_slug) {
+                                  $item_link = $siteurl . "blog-details/" . $item_slug;
+                              } elseif ($item_type == 'Question' && $item_slug) {
+                                  $item_link = $siteurl . "single-questions/" . $item_slug;
+                              } elseif ($item_type == 'Group' && $item_slug) {
+                                  $item_link = $siteurl . "group/" . $item_slug;
                               }
 
                               // Display reason with custom reason if available

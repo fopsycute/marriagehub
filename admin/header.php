@@ -89,6 +89,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
       });
     </script>
 
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- CSS Files -->
 <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
@@ -97,6 +102,22 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 <link rel="stylesheet" href="assets/css/kaiadmin.css" />
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+
+    <!-- Custom Font Override -->
+    <style>
+      * {
+        font-family: 'Poppins', sans-serif !important;
+      }
+      body, p, div, span, a, li, td, th, input, textarea, select, button, label {
+        font-size: 14px;
+      }
+      small, .small {
+        font-size: 12px;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif !important;
+      }
+    </style>
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="assets/css/demo.css" />

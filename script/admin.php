@@ -1218,7 +1218,7 @@ function getallreports($con)
 {
     global $siteprefix;
 
-    // Join reports with users table to get reporter info and fetch item details
+    // Join reports with users table to get reporter info and fetch item details including slug
     $query = "SELECT r.*, 
                      u.first_name, 
                      u.last_name, 
@@ -1228,7 +1228,13 @@ function getallreports($con)
                          WHEN r.item_type = 'question' THEN (SELECT title FROM {$siteprefix}questions WHERE id = r.item_id)
                          WHEN r.item_type = 'group' THEN (SELECT group_name FROM {$siteprefix}groups WHERE id = r.item_id)
                          ELSE 'Unknown'
-                     END as item_title
+                     END as item_title,
+                     CASE 
+                         WHEN r.item_type = 'blog' THEN (SELECT slug FROM {$siteprefix}forums WHERE id = r.item_id)
+                         WHEN r.item_type = 'question' THEN (SELECT slug FROM {$siteprefix}questions WHERE id = r.item_id)
+                         WHEN r.item_type = 'group' THEN (SELECT slug FROM {$siteprefix}groups WHERE id = r.item_id)
+                         ELSE NULL
+                     END as item_slug
               FROM {$siteprefix}reports r
               LEFT JOIN {$siteprefix}users u ON r.user_id = u.id
               ORDER BY r.created_at DESC";
@@ -3236,10 +3242,10 @@ function resolveReport($postData) {
     $report_id = intval($postData['report_id'] ?? 0);
 
     if (!$report_id) {
-        return json_encode([
+        return [
             'status' => 'error',
             'message' => 'Invalid report ID'
-        ]);
+        ];
     }
 
     // Update report status to 'resolved'
@@ -3248,17 +3254,17 @@ function resolveReport($postData) {
 
     if ($stmt->execute()) {
         $stmt->close();
-        return json_encode([
+        return [
             'status' => 'success',
             'message' => 'Report marked as resolved successfully'
-        ]);
+        ];
     }
 
     $stmt->close();
-    return json_encode([
+    return [
         'status' => 'error',
         'message' => 'Failed to resolve report'
-    ]);
+    ];
 }
 
 function deleteReport($postData) {
@@ -3267,10 +3273,10 @@ function deleteReport($postData) {
     $report_id = intval($postData['report_id'] ?? 0);
 
     if (!$report_id) {
-        return json_encode([
+        return [
             'status' => 'error',
             'message' => 'Invalid report ID'
-        ]);
+        ];
     }
 
     // Delete report from database
@@ -3279,17 +3285,17 @@ function deleteReport($postData) {
 
     if ($stmt->execute()) {
         $stmt->close();
-        return json_encode([
+        return [
             'status' => 'success',
             'message' => 'Report deleted successfully'
-        ]);
+        ];
     }
 
     $stmt->close();
-    return json_encode([
+    return [
         'status' => 'error',
         'message' => 'Failed to delete report'
-    ]);
+    ];
 }
 
 
