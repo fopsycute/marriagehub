@@ -38,7 +38,7 @@ if ($authentication) {
 // Redirect if the page requires login but user is not logged in
 if (!$authentication) {
     $_SESSION['previous_page'] = $_SERVER['REQUEST_URI'];
-    header("Location: ../login.php");
+    header("Location:" . $siteurl . "login.php");
     exit;
 }
 
