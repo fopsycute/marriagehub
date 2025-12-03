@@ -105,7 +105,8 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 
     <!-- Custom Font Override -->
     <style>
-      * {
+      body, p, div, span, a, li, td, th, input, textarea, select, button, label, 
+      h1, h2, h3, h4, h5, h6 {
         font-family: 'Poppins', sans-serif !important;
       }
       body, p, div, span, a, li, td, th, input, textarea, select, button, label {
@@ -140,6 +141,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
       }
       .nav-link {
         font-size: 11px !important;
+      }
+      /* Don't override icon fonts */
+      i, .icon, [class*="icon-"], [class*="fa-"], [class*="bi-"], 
+      .fas, .far, .fab, .fal, .fad {
+        font-family: inherit !important;
       }
     </style>
 
