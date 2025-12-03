@@ -222,6 +222,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                         <span class="sub-item">All Disputes</span>
                       </a>
                     </li>
+                    <li>
+                      <a href="reported_items.php">
+                        <span class="sub-item">Reported Items</span>
+                      </a>
+                    </li>
                   </ul>
                 </div>
               </li>
@@ -645,6 +650,12 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     <li>
                       <a href="ongoing-disputes.php">
                         <span class="sub-item">Ongoing Disputes</span>
+                      </a>
+                    </li>
+
+                    <li>
+                      <a href="reported_items.php">
+                        <span class="sub-item">Reported Items</span>
                       </a>
                     </li>
 
