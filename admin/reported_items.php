@@ -191,6 +191,11 @@
 
 <script>
 $(document).ready(function() {
+  // Check if DataTable is already initialized, if so, destroy it first
+  if ($.fn.DataTable.isDataTable('#multi-filter-select')) {
+    $('#multi-filter-select').DataTable().destroy();
+  }
+  
   // Initialize DataTable
   $("#multi-filter-select").DataTable({
     pageLength: 25,

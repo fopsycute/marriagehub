@@ -105,47 +105,46 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 
     <!-- Custom Font Override -->
     <style>
-      body, p, div, span, a, li, td, th, input, textarea, select, button, label, 
+      /* Apply Poppins to text elements only */
+      body, p, div:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      span:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      a:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      li, td, th, input, textarea, select, button, label, 
       h1, h2, h3, h4, h5, h6 {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Poppins', sans-serif;
       }
       body, p, div, span, a, li, td, th, input, textarea, select, button, label {
-        font-size: 11px !important;
+        font-size: 11px;
       }
       small, .small {
-        font-size: 10px !important;
+        font-size: 10px;
       }
       h1 {
-        font-size: 20px !important;
+        font-size: 20px;
       }
       h2 {
-        font-size: 18px !important;
+        font-size: 18px;
       }
       h3 {
-        font-size: 16px !important;
+        font-size: 16px;
       }
       h4 {
-        font-size: 14px !important;
+        font-size: 14px;
       }
       h5 {
-        font-size: 12px !important;
+        font-size: 12px;
       }
       h6 {
-        font-size: 11px !important;
+        font-size: 11px;
       }
       .card-title {
-        font-size: 14px !important;
+        font-size: 14px;
       }
       .btn {
-        font-size: 11px !important;
+        font-size: 11px;
       }
       .nav-link {
-        font-size: 11px !important;
-      }
-      /* Don't override icon fonts */
-      i, .icon, [class*="icon-"], [class*="fa-"], [class*="bi-"], 
-      .fas, .far, .fab, .fal, .fad {
-        font-family: inherit !important;
+        font-size: 11px;
       }
     </style>
 
