@@ -187,6 +187,8 @@
   </div>
 </div>
 
+<?php include "footer.php"; ?>
+
 <script>
 $(document).ready(function() {
   // Initialize DataTable
@@ -269,5 +271,3 @@ $(document).ready(function() {
   });
 });
 </script>
-
-<?php include "footer.php"; ?>

@@ -109,13 +109,37 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
         font-family: 'Poppins', sans-serif !important;
       }
       body, p, div, span, a, li, td, th, input, textarea, select, button, label {
-        font-size: 14px;
+        font-size: 11px !important;
       }
       small, .small {
-        font-size: 12px;
+        font-size: 10px !important;
       }
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Poppins', sans-serif !important;
+      h1 {
+        font-size: 20px !important;
+      }
+      h2 {
+        font-size: 18px !important;
+      }
+      h3 {
+        font-size: 16px !important;
+      }
+      h4 {
+        font-size: 14px !important;
+      }
+      h5 {
+        font-size: 12px !important;
+      }
+      h6 {
+        font-size: 11px !important;
+      }
+      .card-title {
+        font-size: 14px !important;
+      }
+      .btn {
+        font-size: 11px !important;
+      }
+      .nav-link {
+        font-size: 11px !important;
       }
     </style>
 
