@@ -38,7 +38,7 @@ if ($authentication) {
 // Redirect if the page requires login but user is not logged in
 if (!$authentication) {
     $_SESSION['previous_page'] = $_SERVER['REQUEST_URI'];
-    header("Location: ../login.php");
+    header("Location:" . $siteurl . "login.php");
     exit;
 }
 
@@ -89,6 +89,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
       });
     </script>
 
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- CSS Files -->
 <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
@@ -97,6 +102,51 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 <link rel="stylesheet" href="assets/css/kaiadmin.css" />
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+
+    <!-- Custom Font Override -->
+    <style>
+      /* Apply Poppins to text elements only */
+      body, p, div:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      span:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      a:not([class*="icon"]):not([class*="fa-"]):not([class*="bi-"]), 
+      li, td, th, input, textarea, select, button, label, 
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
+      }
+      body, p, div, span, a, li, td, th, input, textarea, select, button, label {
+        font-size: 11px;
+      }
+      small, .small {
+        font-size: 10px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+      h3 {
+        font-size: 16px;
+      }
+      h4 {
+        font-size: 14px;
+      }
+      h5 {
+        font-size: 12px;
+      }
+      h6 {
+        font-size: 11px;
+      }
+      .card-title {
+        font-size: 14px;
+      }
+      .btn {
+        font-size: 11px;
+      }
+      .nav-link {
+        font-size: 11px;
+      }
+    </style>
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="assets/css/demo.css" />
@@ -220,6 +270,11 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     <li>
                       <a href="all-disputes.php">
                         <span class="sub-item">All Disputes</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="reported_items.php">
+                        <span class="sub-item">Reported Items</span>
                       </a>
                     </li>
                   </ul>
@@ -645,6 +700,12 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                     <li>
                       <a href="ongoing-disputes.php">
                         <span class="sub-item">Ongoing Disputes</span>
+                      </a>
+                    </li>
+
+                    <li>
+                      <a href="reported_items.php">
+                        <span class="sub-item">Reported Items</span>
                       </a>
                     </li>
 

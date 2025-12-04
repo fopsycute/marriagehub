@@ -1623,6 +1623,44 @@ function getalldisputestickets($con)
     }
 }
 
+function getallreports($con)
+{
+    global $siteprefix;
+
+    // Join reports with users table to get reporter info and fetch item details including slug
+    $query = "SELECT r.*, 
+                     u.first_name, 
+                     u.last_name, 
+                     u.email,
+                     CASE 
+                         WHEN r.item_type = 'blog' THEN (SELECT title FROM {$siteprefix}forums WHERE id = r.item_id)
+                         WHEN r.item_type = 'question' THEN (SELECT title FROM {$siteprefix}questions WHERE id = r.item_id)
+                         WHEN r.item_type = 'group' THEN (SELECT group_name FROM {$siteprefix}groups WHERE id = r.item_id)
+                         ELSE 'Unknown'
+                     END as item_title,
+                     CASE 
+                         WHEN r.item_type = 'blog' THEN (SELECT slug FROM {$siteprefix}forums WHERE id = r.item_id)
+                         WHEN r.item_type = 'question' THEN (SELECT slug FROM {$siteprefix}questions WHERE id = r.item_id)
+                         WHEN r.item_type = 'group' THEN (SELECT slug FROM {$siteprefix}groups WHERE id = r.item_id)
+                         ELSE NULL
+                     END as item_slug
+              FROM {$siteprefix}reports r
+              LEFT JOIN {$siteprefix}users u ON r.user_id = u.id
+              ORDER BY r.created_at DESC";
+    
+    $result = mysqli_query($con, $query);
+
+    if ($result) {
+        $reportsData = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $reportsData[] = $row;
+        }
+        return $reportsData;
+    } else {
+        return ['error' => mysqli_error($con)];
+    }
+}
+
 function getalladplacements($con)
 {
     global $siteprefix;
@@ -3604,6 +3642,68 @@ function reportItem($postData) {
     return [
         'status' => 'error',
         'messages' => generateMessage("Something went wrong, please try again.", "red")
+    ];
+}
+
+function resolveReport($postData) {
+    global $con, $siteprefix;
+
+    $report_id = intval($postData['report_id'] ?? 0);
+
+    if (!$report_id) {
+        return [
+            'status' => 'error',
+            'message' => 'Invalid report ID'
+        ];
+    }
+
+    // Update report status to 'resolved'
+    $stmt = $con->prepare("UPDATE {$siteprefix}reports SET status = 'resolved' WHERE id = ?");
+    $stmt->bind_param("i", $report_id);
+
+    if ($stmt->execute()) {
+        $stmt->close();
+        return [
+            'status' => 'success',
+            'message' => 'Report marked as resolved successfully'
+        ];
+    }
+
+    $stmt->close();
+    return [
+        'status' => 'error',
+        'message' => 'Failed to resolve report'
+    ];
+}
+
+function deleteReport($postData) {
+    global $con, $siteprefix;
+
+    $report_id = intval($postData['report_id'] ?? 0);
+
+    if (!$report_id) {
+        return [
+            'status' => 'error',
+            'message' => 'Invalid report ID'
+        ];
+    }
+
+    // Delete report from database
+    $stmt = $con->prepare("DELETE FROM {$siteprefix}reports WHERE id = ?");
+    $stmt->bind_param("i", $report_id);
+
+    if ($stmt->execute()) {
+        $stmt->close();
+        return [
+            'status' => 'success',
+            'message' => 'Report deleted successfully'
+        ];
+    }
+
+    $stmt->close();
+    return [
+        'status' => 'error',
+        'message' => 'Failed to delete report'
     ];
 }
 
@@ -9754,6 +9854,10 @@ if ($_GET['action'] == 'disputeslists') {
     $response = getalldisputestickets($con);
  }
 
+if ($_GET['action'] == 'reportslists') {     
+    $response = getallreports($con);
+ }
+
               if ($_GET['action'] == 'categorylists') {
               $response = getallcategory($con);}
 
@@ -10005,6 +10109,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
      if($_POST['action'] == 'report_item'){
     $response = reportItem($_POST);}
+
+    if($_POST['action'] == 'resolve_report'){
+    $response = resolveReport($_POST);}
+
+    if($_POST['action'] == 'delete_report'){
+    $response = deleteReport($_POST);}
 
         if($_POST['action'] == 'deletereviews'){
     $response = deletereviewEndpoint($_POST);}

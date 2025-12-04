@@ -122,7 +122,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!---
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
 --->
@@ -142,6 +142,20 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <?php include "script/tinymce.php"; ?>
+  
+  <!-- Custom Font Override -->
+  <style>
+    * {
+      font-family: 'Poppins', sans-serif !important;
+    }
+    body, p, div, span, a, li, td, th, input, textarea, select, button {
+      font-size: 14px;
+    }
+    small, .small {
+      font-size: 12px;
+    }
+  </style>
+  
   <!-- Main CSS File -->
   <link href="<?php echo $siteurl; ?>assets/css/main.css" rel="stylesheet">
 </head>
