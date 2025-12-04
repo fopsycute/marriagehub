@@ -1016,7 +1016,7 @@ if ($data !== false) {
                 $title = htmlspecialchars($event->title ?? "Untitled");
                 $event_type = strtolower($event->event_type_name ?? "");
                 $slug = $event->slug ?? "";
-                $eventUrl = $siteurl . $slug;
+                $eventUrl = $siteurl .'event/' $slug;
 
                 // CATEGORY
                 $category = "General";
