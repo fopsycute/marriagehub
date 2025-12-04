@@ -7179,9 +7179,9 @@ function updateUserEndpoint($postData, $filesData)
     $bio          = mysqli_real_escape_string($con, trim($postData['bio'] ?? ''));
     $newStatus    = mysqli_real_escape_string($con, trim($postData['status'] ?? 'pending'));
     $suspendReason = mysqli_real_escape_string($con, trim($postData['suspend_reason'] ?? ''));
-    $bank_name = mysqli_real_escape_string($con, $_POST['bank_name']);
-    $bank_accname = mysqli_real_escape_string($con, $_POST['bank_accname']);
-    $bank_number = mysqli_real_escape_string($con, $_POST['bank_number']);
+    $bank_name = mysqli_real_escape_string($con, $_POST['bank_name'] ?? '');
+    $bank_accname = mysqli_real_escape_string($con, $_POST['bank_accname'] ?? '');
+    $bank_number = mysqli_real_escape_string($con, $_POST['bank_number'] ?? '');
 
     // ✅ Get old data
     $result = mysqli_query($con, "SELECT status, photo, email, first_name, last_name FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
