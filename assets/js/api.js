@@ -1369,6 +1369,72 @@ $(document).ready(function () {
     });
 });
 
+
+
+
+//update events
+$(document).ready(function () {
+    // Ensure handler attaches once
+    $('#eventForm').off('submit').on('submit', function (e) {
+        e.preventDefault();
+
+        const form = this;
+        const formData = new FormData(form);
+        const siteUrl = $('#siteurl').val();
+        const ajaxUrl = siteUrl + "script/admin.php";
+
+        $('#submitEventBtn').prop('disabled', true).text('Submitting...');
+        $('#messages').removeClass('alert alert-success alert-danger').hide();
+
+        $.ajax({
+            type: 'POST',
+            url: ajaxUrl,
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    $('#messages')
+                        .addClass('alert alert-success')
+                        .html(response.messages)
+                        .fadeIn();
+
+                    form.reset();
+
+                    setTimeout(() => {
+                        alert(response.messages || "Event updated successfully!");
+                        location.reload();
+                    }, 500);
+                } else {
+                    $('#messages')
+                        .addClass('alert alert-danger')
+                        .html(response.messages)
+                        .fadeIn();
+
+                    $('html, body').animate({
+                        scrollTop: $('#messages').offset().top - 100
+                    }, 600);
+                }
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                $('#messages')
+                    .addClass('alert alert-danger')
+                    .text('An error occurred while submitting. Please try again.')
+                    .fadeIn();
+
+                $('html, body').animate({
+                    scrollTop: $('#messages').offset().top - 100
+                }, 600);
+            },
+            complete: function () {
+                $('#submitEventBtn').prop('disabled', false).text('Update Event');
+            }
+        });
+    });
+});
+
 //create tribe
 
 $(document).ready(function () {

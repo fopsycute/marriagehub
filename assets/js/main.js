@@ -1542,6 +1542,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 document.addEventListener("DOMContentLoaded", function () {
+   const container = document.getElementById("questionscontainer");
+    if (!container) return;
     const siteurl = document.getElementById("siteurl").value; // your site URL
     const searchInput = document.getElementById("searchInput");
     const categorySelect = $("#category"); // Select2 instance (or native)

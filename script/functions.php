@@ -27,6 +27,27 @@ function generateMessage($message, $color) {
     return $hashedPassword;
 }
 
+function handleFileUpload($fileKey, $uploadDir, $fileName = null) {
+    if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
+        $fileExtension = pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION);
+        if ($fileName === null) {
+            $fileName = uniqid() . '.' . $fileExtension;
+        } else {
+            $fileName .= '.' . $fileExtension;
+        }
+
+        $uploadedFile = $uploadDir . $fileName;
+        if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $uploadedFile)) {
+            return $fileName; // Return the new file name
+        } else {
+            return "Failed to move the uploaded file.";
+        }
+    } else {
+        return "No file uploaded or an error occurred.";
+    }
+}
+
+
 
 function handleMultipleFileUpload($fileKey, $uploadDir) {
     $uploadedFiles = [];
@@ -56,6 +77,37 @@ function handleMultipleFileUpload($fileKey, $uploadDir) {
     return $uploadedFiles; // Return the array of uploaded file names or error messages
 }
 
+
+function handleSingleFileUpload($fileKey, $uploadDir)
+{
+    // Check if the file exists
+    if (!isset($_FILES[$fileKey])) {
+        return "";
+    }
+
+    $file = $_FILES[$fileKey];
+
+    // If file upload error
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return "";
+    }
+
+    // Make sure upload dir ends with slash
+    if (substr($uploadDir, -1) !== "/") {
+        $uploadDir .= "/";
+    }
+
+    // Generate unique file name
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $newName = uniqid() . "." . $ext;
+
+    // Save file
+    if (move_uploaded_file($file['tmp_name'], $uploadDir . $newName)) {
+        return $newName;
+    }
+
+    return "";
+}
 
 
 // uploadVideos.php or inside your functions.php

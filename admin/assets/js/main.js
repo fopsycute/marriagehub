@@ -188,6 +188,7 @@ function toggleSlotField(selectElement) {
         row.className = "row mb-2 dateTimeRow";
 
         row.innerHTML = `
+          <input type="hidden" name="date_id[]" value="">
             <div class="col">
                 <input type="date" class="form-control" name="event_dates[]" required>
             </div>
@@ -277,9 +278,6 @@ function toggleSlotField(selectElement) {
     });
 
 })();
-
-
-
 
 
   // Prevent multiple bindings (in case script runs again).

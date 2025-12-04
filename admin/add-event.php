@@ -51,11 +51,11 @@
                 $categories = json_decode($data);
                 if (!empty($categories)) {
                     foreach ($categories as $category) {
-                      foreach ($categories as $category) {
+                     
                           $categoryId = $category->id;
                           $name = $category->category_name; // adjust if DB column is different
                           echo "<option value='{$categoryId}'>{$name}</option>";
-                      }
+                      
                   }
               }
             }
@@ -89,11 +89,11 @@
                 $events = json_decode($data);
                 if (!empty($events)) {
                     foreach ($events as $event) {
-                      foreach ($events as $event) {
+                     
                           $Id = $event->s;
                           $name = $event->name; // adjust if DB column is different
                           echo "<option value='{$name}'>{$name}</option>";
-                      }
+                      
                   }
               }
             }
@@ -172,7 +172,7 @@
                 <option value="foreign">Foreign</option>
               </select>
               <div id="nigeriaAddress" style="display:none;">
-                <input type="text" class="form-control mb-2" placeholder="Address">
+                <input type="text" class="form-control mb-2" placeholder="Address" name="nigeria_address">
                 <select id="state" name="state" class="form-control" >
               <option value="">-Select State-</option>
             </select>
