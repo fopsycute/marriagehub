@@ -145,7 +145,7 @@
 
                         $title = htmlspecialchars($event->title ?? "Untitled");
                         $slug = $event->slug ?? "";
-                        $eventUrl = $siteurl .'event/' $slug;
+                        $eventUrl = $siteurl .'event/'. $slug;
                         $categorynames = $event->category_names ?? "General";
 
                         $categoryIds = $event->categories;
