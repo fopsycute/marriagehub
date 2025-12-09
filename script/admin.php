@@ -212,6 +212,400 @@ while (true) {
     }
 }
 
+
+// update event
+function userupdateeventsEndpoint($postData, $fileData)
+{
+    global $con, $siteprefix;
+
+    // EVENT ID REQUIRED
+    if (empty($postData['event_id'])) {
+        return ['status' => 'error', 'message' => 'Missing event_id'];
+    }
+
+    $event_id = mysqli_real_escape_string($con, $postData['event_id']);
+
+    /* ------------------------------
+        1. BASIC EVENT DETAILS
+    --------------------------------*/
+    $title = mysqli_real_escape_string($con, $postData['title']);
+    $description = mysqli_real_escape_string($con, $postData['description']);
+    $event_type = mysqli_real_escape_string($con, $postData['eventType']);
+
+    $categories = isset($postData['category']) ? implode(",", $postData['category']) : "";
+    $subcategories = isset($postData['subcategory']) ? implode(",", $postData['subcategory']) : "";
+    $target_audience = isset($postData['target_audience']) ? implode(",", $postData['target_audience']) : "";
+
+    $delivery_format = $postData['delivery_format'] ?? "";
+    $pricing_type = $postData['pricing_type'] ?? "free";
+    $status = $postData['status'] ?? "pending";
+
+    /* ------------------------------
+        2. DELIVERY FORMAT FIELDS
+    --------------------------------*/
+    $is_foreign = 0;
+    $address = "";
+    $state = "";
+    $lga = "";
+    $country = "";
+
+    if ($delivery_format == "physical") {
+
+        $locationType = $postData['physicalLocationType'];
+
+        if ($locationType == "nigeria") {
+            $is_foreign = 0;
+            $country = "Nigeria";
+            $address = $postData['nigeria_address'] ?? "";
+            $state = $postData['state'] ?? "";
+            $lga = $postData['lga'] ?? "";
+        } else {
+            $is_foreign = 1;
+            $country = $postData['foreign_country'] ?? "";
+            $address = $postData['foreign_address'] ?? "";
+        }
+    }
+
+    $online_link = ($delivery_format == "online") ? $postData['web_address'] : "";
+
+    $hybrid_physical_address = "";
+    $hybrid_web_address = "";
+    $hybrid_state = "";
+    $hybrid_lga = "";
+    $hybrid_country = "";
+    $hybrid_foreign_address = "";
+
+    if ($delivery_format == "hybrid") {
+
+        $hybrid_physical_address = $postData['hybrid_physical_address'] ?? "";
+        $hybrid_web_address = $postData['hybrid_web_address'] ?? "";
+
+        if ($postData["hybridLocationType"] == "nigeria") {
+            $hybrid_country = "Nigeria";
+            $hybrid_state = $postData["hybrid_state"];
+            $hybrid_lga = $postData["hybrid_lga"];
+        } else {
+            $hybrid_country = $postData["hybrid_country"] ?? "";
+            $hybrid_foreign_address = $postData["hybrid_foreign_address"] ?? "";
+        }
+    }
+
+    /* ------------------------------
+        UPDATE MAIN EVENTS TABLE
+    --------------------------------*/
+    $update = "
+        UPDATE {$siteprefix}events SET 
+            title='$title',
+            description='$description',
+            categories='$categories',
+            subcategories='$subcategories',
+            event_type='$event_type',
+            target_audience='$target_audience',
+            delivery_format='$delivery_format',
+            pricing_type='$pricing_type',
+            is_foreign='$is_foreign',
+            address='$address',
+            state='$state',
+            lga='$lga',
+            country='$country',
+            online_link='$online_link',
+            hybrid_physical_address='$hybrid_physical_address',
+            hybrid_web_address='$hybrid_web_address',
+            hybrid_state='$hybrid_state',
+            hybrid_lga='$hybrid_lga',
+            hybrid_country='$hybrid_country',
+            hybrid_foreign_address='$hybrid_foreign_address',
+            status='$status'
+        WHERE event_id='$event_id'
+    ";
+
+    mysqli_query($con, $update);
+
+    /* ------------------------------
+        3. HANDLE COVER IMAGES
+    --------------------------------*/
+    if (!empty($fileData['cover_image']['name'][0])) {
+
+        foreach ($fileData['cover_image']['name'] as $key => $name) {
+
+            $tmp = $fileData['cover_image']['tmp_name'][$key];
+            $file = uniqid() . "_" . basename($name);
+            move_uploaded_file($tmp, "../uploads/" . $file);
+
+            mysqli_query($con,
+                "INSERT INTO {$siteprefix}events_images (event_id, image_path)
+                 VALUES ('$event_id', '$file')"
+            );
+        }
+    }
+
+   /* ------------------------------
+    4. SMART UPDATE: EVENT DATES
+--------------------------------*/
+
+// Fetch old IDs
+$oldDates = [];
+$res = mysqli_query($con, "SELECT s FROM {$siteprefix}event_dates WHERE event_id='$event_id'");
+while ($r = mysqli_fetch_assoc($res)) {
+    $oldDates[] = $r['s'];
+}
+
+$newDateIds = $postData['date_id'] ?? [];
+
+foreach ($oldDates as $oldId) {
+    if (!in_array($oldId, $newDateIds)) {
+        mysqli_query($con, "DELETE FROM {$siteprefix}event_dates WHERE s ='$oldId'");
+    }
+}
+
+// Process new + existing
+foreach ($newDateIds as $i => $id) {
+
+    $date  = mysqli_real_escape_string($con, $postData['event_dates'][$i]);
+    $start = mysqli_real_escape_string($con, $postData['event_start_times'][$i]);
+    $end   = mysqli_real_escape_string($con, $postData['event_end_times'][$i]);
+
+    if ($id != "") {
+        mysqli_query($con,
+            "UPDATE {$siteprefix}event_dates
+             SET event_date='$date', start_time='$start', end_time='$end'
+             WHERE s='$id'"
+        );
+
+    } else {
+        mysqli_query($con,
+            "INSERT INTO {$siteprefix}event_dates(event_id, event_date, start_time, end_time)
+             VALUES('$event_id','$date','$start','$end')"
+        );
+    }
+}
+
+
+/* ------------------------------
+    5. SMART UPDATE: TICKETS
+--------------------------------*/
+$oldTickets = [];
+$res = mysqli_query($con, "SELECT id FROM {$siteprefix}event_tickets WHERE event_id='$event_id'");
+while ($r = mysqli_fetch_assoc($res)) {
+    $oldTickets[] = $r['id'];
+}
+
+// Must be FULL ARRAY — not $postData['ticket_id'][$i]
+$newTicketIds = $postData['ticket_id'] ?? [];
+
+// Delete removed tickets
+foreach ($oldTickets as $t) {
+    if (!in_array($t, $newTicketIds)) {
+        mysqli_query($con, "DELETE FROM {$siteprefix}event_tickets WHERE id='$t'");
+    }
+}
+
+if ($pricing_type === "paid" && !empty($postData['ticket_id']) && is_array($postData['ticket_id'])) {
+
+    foreach ($postData['ticket_id'] as $i => $id) {
+
+        $name     = mysqli_real_escape_string($con, $postData["ticket_name"][$i] ?? '');
+        $benefits = mysqli_real_escape_string($con, $postData["ticket_benefits"][$i] ?? '');
+        $price    = mysqli_real_escape_string($con, $postData["ticket_price"][$i] ?? '');
+        $seats    = mysqli_real_escape_string($con, $postData["ticket_seats"][$i] ?? '');
+
+        // Skip empty tickets
+        if ($name === "" && $price === "" && $seats === "") {
+            continue;
+        }
+
+        if (!empty($id)) {
+
+            mysqli_query($con,
+                "UPDATE {$siteprefix}event_tickets SET
+                    ticket_name='$name',
+                    benefits='$benefits',
+                    price='$price',
+                    seats='$seats'
+                WHERE id='$id'"
+            );
+
+        } else {
+
+            mysqli_query($con,
+                "INSERT INTO {$siteprefix}event_tickets(event_id, ticket_name, benefits, price, seats)
+                 VALUES ('$event_id', '$name', '$benefits', '$price', '$seats')"
+            );
+        }
+    }
+}
+
+
+
+/* ------------------------------
+    6. SMART UPDATE: VIDEO MODULES
+--------------------------------*/
+// 1. Load old videos
+$oldVideos = [];
+$res = mysqli_query($con, "SELECT id, file_path FROM {$siteprefix}event_video_modules WHERE event_id='$event_id'");
+while ($r = mysqli_fetch_assoc($res)) {
+    $oldVideos[$r['id']] = $r['file_path'];
+}
+
+$newVideoIds = $postData['video_id'] ?? [];
+
+
+// 2. Delete removed videos
+foreach ($oldVideos as $vid => $fp) {
+    if (!in_array($vid, $newVideoIds)) {
+        mysqli_query($con, "DELETE FROM {$siteprefix}event_video_modules WHERE id='$vid'");
+    }
+}
+
+
+// 3. Update / Insert
+if ($delivery_format == "video") {
+
+    foreach ($postData['video_id'] as $i => $id) {
+
+        $title    = mysqli_real_escape_string($con, $postData['video_module_title'][$i]);
+        $desc     = mysqli_real_escape_string($con, $postData['video_module_desc'][$i]);
+        $duration = mysqli_real_escape_string($con, $postData['video_duration'][$i]);
+
+        // FIXED — correct field name (remove $ sign)
+        $total_videos = mysqli_real_escape_string($con, $postData['total_videos'][$i]);
+
+        // Handles multiple qualities ("1080p,720p,480p")
+        $quality = isset($postData['video_quality'][$i]) 
+            ? implode(",", $postData['video_quality'][$i]) 
+            : "";
+
+        // Subtitles (checkbox or array or single value)
+        $subs = "";
+        if (isset($postData['video_subtitles'][$i])) {
+            $subs = is_array($postData['video_subtitles'][$i])
+                ? implode(",", $postData['video_subtitles'][$i])
+                : $postData['video_subtitles'][$i];
+        }
+
+        $link = mysqli_real_escape_string($con, $postData["video_link"][$i] ?? "");
+
+        // Keep old file path unless new file uploaded
+        $file_path = $oldVideos[$id] ?? "";
+
+        // NEW UPLOAD?
+        if (!empty($fileData['video_file']['name'][$i])) {
+            $tmp  = $fileData['video_file']['tmp_name'][$i];
+            $file = uniqid() . "_" . basename($fileData['video_file']['name'][$i]);
+
+            move_uploaded_file($tmp, "../secure/" . $file);
+
+            $file_path = $file;
+        }
+
+
+        // UPDATE EXISTING
+        if ($id != "") {
+
+            mysqli_query($con,
+                "UPDATE {$siteprefix}event_video_modules SET
+                    title='$title',
+                    module_number='$total_videos',
+                    description='$desc',
+                    duration='$duration',
+                    file_path='$file_path',
+                    video_link='$link',
+                    video_quality='$quality',
+                    subtitles='$subs'
+                WHERE id='$id'"
+            );
+
+        } 
+        
+        // INSERT NEW
+        else {
+
+            mysqli_query($con,
+                "INSERT INTO {$siteprefix}event_video_modules
+                (event_id, title, module_number, description, duration, file_path, video_link, video_quality, subtitles)
+                VALUES 
+                ('$event_id','$title','$total_videos','$desc','$duration','$file_path','$link','$quality','$subs')"
+            );
+        }
+    }
+}
+
+
+/* ------------------------------
+    7. SMART UPDATE: TEXT MODULES
+--------------------------------*/
+
+// OLD TEXTS
+$oldTexts = [];
+$res = mysqli_query($con, "SELECT id, file_path FROM {$siteprefix}event_text_modules WHERE event_id='$event_id'");
+while ($r = mysqli_fetch_assoc($res)) {
+    $oldTexts[$r['id']] = $r['file_path'];
+}
+
+$newTextIds = $postData['text_id'] ?? [];
+
+// DELETE removed items
+foreach ($oldTexts as $tid => $fp) {
+    if (!in_array($tid, $newTextIds)) {
+        mysqli_query($con, "DELETE FROM {$siteprefix}event_text_modules WHERE id='$tid'");
+    }
+}
+
+if ($delivery_format == "text") {
+
+    // 🔥 Upload all files once
+    $uploadedTextFiles = handleMultipleFileUpload('text_file', "../secure/");
+
+    foreach ($postData['text_id'] as $i => $id) {
+
+        $title = mysqli_real_escape_string($con, $postData['text_module_title'][$i]);
+        $desc  = mysqli_real_escape_string($con, $postData['text_module_desc'][$i]);
+        $read  = mysqli_real_escape_string($con, $postData['text_reading_time'][$i]); 
+        $module_number = mysqli_real_escape_string($con, $postData['total_lessons'][$i]); 
+
+        // Existing file if any
+        $file_path = $oldTexts[$id] ?? "";
+
+        // New file uploaded from helper function
+        if (!empty($uploadedTextFiles[$i]) && strpos($uploadedTextFiles[$i], "Failed") === false) {
+            $file_path = $uploadedTextFiles[$i];
+        }
+
+        // Skip empty module
+        if ($title == "" && empty($uploadedTextFiles[$i]) && $desc == "") {
+            continue;
+        }
+
+        if ($id != "") {
+
+            mysqli_query($con,
+                "UPDATE {$siteprefix}event_text_modules SET
+                    title='$title',
+                    description='$desc',
+                    reading_time='$read',
+                    file_path='$file_path',
+                    module_number = '$module_number'
+                WHERE id='$id'"
+            );
+
+        } else {
+
+            mysqli_query($con,
+                "INSERT INTO {$siteprefix}event_text_modules(event_id, module_number, title, description, reading_time, file_path)
+                 VALUES ('$event_id', '$module_number', '$title','$desc','$read','$file_path')"
+            );
+        }
+    }
+}
+
+
+    return [
+        'status' => 'success',
+        'message' => 'Event updated successfully!'
+    ];
+}
+
+
 //add events
 function usereventsEndpoint($postData, $fileData)
 {
@@ -346,91 +740,104 @@ $is_foreign = 0;
     $fileuploadDir = "../secure";
     if (!is_dir($fileuploadDir)) mkdir($fileuploadDir, 0755, true);
 
-    // If delivery includes videos
-    if ($delivery_format === 'video') {
-        foreach ($postData['video_module_title'] as $index => $titleVal) {
-            $desc = $postData['video_module_desc'][$index] ?? '';
-            $duration = $postData['video_duration'][$index] ?? '';
-            $videoLink = $postData['video_link'][$index] ?? '';
-            $qualities = isset($postData['video_quality'][$index]) ? implode(',', $postData['video_quality'][$index]) : '';
-            $subtitles = $postData['video_subtitles'][$index] ?? '';
-            $filePath = '';
+   // If delivery includes videos
+if ($delivery_format === 'video') {
+    foreach ($postData['video_module_title'] as $index => $titleVal) {
 
-            // Upload video file (optional)
-            if (!empty($fileData['video_file']['name'][$index])) {
-                $tmpKey = 'single_video_upload';
-                $_FILES[$tmpKey] = [
-                    'name' => $fileData['video_file']['name'][$index],
-                    'type' => $fileData['video_file']['type'][$index],
-                    'tmp_name' => $fileData['video_file']['tmp_name'][$index],
-                    'error' => $fileData['video_file']['error'][$index],
-                    'size' => $fileData['video_file']['size'][$index],
-                ];
-                $fileName = handleMultipleFileUpload($tmpKey, $fileuploadDir);
-                if ($fileName && strpos($fileName, 'Failed') === false) $filePath = $fileName;
-            }
+        $desc      = $postData['video_module_desc'][$index] ?? '';
+        $duration  = $postData['video_duration'][$index] ?? '';
+        $videoLink = $postData['video_link'][$index] ?? '';
+        $qualities = isset($postData['video_quality'][$index]) ? implode(',', $postData['video_quality'][$index]) : '';
+        $subtitles = $postData['video_subtitles'][$index] ?? '';
+        $filePath  = "";
 
-            $stmt = $con->prepare("
-                INSERT INTO {$siteprefix}event_video_modules
-                (event_id, module_number, title, description, duration, file_path, video_link, video_quality, subtitles, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-            $module_no = $index + 1;
-            $stmt->bind_param("iissssss", $event_id, $module_no, $titleVal, $desc, $duration, $filePath, $videoLink, $qualities, $subtitles);
-            $stmt->execute();
-            $stmt->close();
+        // Upload video file (optional)
+        if (!empty($fileData['video_file']['name'][$index])) {
+
+            $tmpKey = 'single_video_upload';
+            $_FILES[$tmpKey] = [
+                'name'     => $fileData['video_file']['name'][$index],
+                'type'     => $fileData['video_file']['type'][$index],
+                'tmp_name' => $fileData['video_file']['tmp_name'][$index],
+                'error'    => $fileData['video_file']['error'][$index],
+                'size'     => $fileData['video_file']['size'][$index],
+            ];
+
+            $filePath = handleSingleFileUpload($tmpKey, $fileuploadDir);
         }
+
+        $stmt = $con->prepare("
+            INSERT INTO {$siteprefix}event_video_modules
+            (event_id, module_number, title, description, duration, file_path, video_link, video_quality, subtitles, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        $module_no = $index + 1;
+        $stmt->bind_param(
+            "sisssssss",
+            $event_id, $module_no, $titleVal, $desc, $duration,
+            $filePath, $videoLink, $qualities, $subtitles
+        );
+        $stmt->execute();
+        $stmt->close();
     }
+}
+
 
     // If delivery includes text
-    if ($delivery_format === 'text') {
-        foreach ($postData['text_module_title'] as $index => $titleVal) {
-            $desc = $postData['text_module_desc'][$index] ?? '';
-            $readingTime = $postData['text_reading_time'][$index] ?? '';
-            $filePath = '';
+    // If delivery includes text
+if ($delivery_format === 'text') {
+    foreach ($postData['text_module_title'] as $index => $titleVal) {
 
-            // Upload text file (optional)
-            if (!empty($fileData['text_file']['name'][$index])) {
-                $tmpKey = 'single_text_upload';
-                $_FILES[$tmpKey] = [
-                    'name' => $fileData['text_file']['name'][$index],
-                    'type' => $fileData['text_file']['type'][$index],
-                    'tmp_name' => $fileData['text_file']['tmp_name'][$index],
-                    'error' => $fileData['text_file']['error'][$index],
-                    'size' => $fileData['text_file']['size'][$index],
-                ];
-                $fileName = handleMultipleFileUpload($tmpKey, $fileuploadDir);
-                if ($fileName && strpos($fileName, 'Failed') === false) $filePath = $fileName;
-            }
+        $desc        = $postData['text_module_desc'][$index] ?? '';
+        $readingTime = $postData['text_reading_time'][$index] ?? '';
+        $filePath    = "";
 
-            $stmt = $con->prepare("
-                INSERT INTO {$siteprefix}event_text_modules
-                (event_id, module_number, title, description, reading_time, file_path, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, NOW())
-            ");
-            $module_no = $index + 1;
-            $stmt->bind_param("iissss", $event_id, $module_no, $titleVal, $desc, $readingTime, $filePath);
-            $stmt->execute();
-            $stmt->close();
+        // Upload text file (optional)
+        if (!empty($fileData['text_file']['name'][$index])) {
+
+            $tmpKey = 'single_text_upload';
+            $_FILES[$tmpKey] = [
+                'name'     => $fileData['text_file']['name'][$index],
+                'type'     => $fileData['text_file']['type'][$index],
+                'tmp_name' => $fileData['text_file']['tmp_name'][$index],
+                'error'    => $fileData['text_file']['error'][$index],
+                'size'     => $fileData['text_file']['size'][$index],
+            ];
+
+            $filePath = handleSingleFileUpload($tmpKey, $fileuploadDir);
         }
+
+        $stmt = $con->prepare("
+            INSERT INTO {$siteprefix}event_text_modules
+            (event_id, module_number, title, description, reading_time, file_path, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        $module_no = $index + 1;
+        $stmt->bind_param("sissss", $event_id, $module_no, $titleVal, $desc, $readingTime, $filePath);
+        $stmt->execute();
+        $stmt->close();
     }
-// Insert Event First
+}
+
+
 $stmt = $con->prepare("
     INSERT INTO {$siteprefix}events
     (
         event_id,
         user_id,
         title,
+        slug,
         description,
         categories,
         subcategories,
         event_type,
         target_audience,
         delivery_format,
-        pricing_type,
+        is_foreign,
         address,
         state,
-        is_foreign,
         lga,
         country,
         online_link,
@@ -440,44 +847,46 @@ $stmt = $con->prepare("
         hybrid_lga,
         hybrid_country,
         hybrid_foreign_address,
-        slug,
+        pricing_type,
         status,
         created_at
-    ) 
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, NOW())
 ");
 
-// 24 placeholders = 24 bind params (all strings)
+
 $stmt->bind_param(
-    "ssssssssssssssssssssssss",  // 24 's'
-    $event_id,
-    $user_id,
-    $title,
-    $description,
-    $category,
-    $subcategory,
-    $event_type,
-    $target_audience,
-    $delivery_format,
-    $pricing_type,
-    $physical_address,
-    $physical_state,
-    $is_foreign,
-    $physical_lga,
-    $physical_country,
-    $web_address,
-    $hybrid_physical_address,
-    $hybrid_web_address,
-    $hybrid_state,
-    $hybrid_lga,
-    $hybrid_country,
-    $hybrid_foreign_address,
-    $slug,
-    $status
+    "sissssssssssssssssssssss",
+    $event_id,                   // 1
+    $user_id,                    // 2
+    $title,                      // 3
+    $slug,                       // 4
+    $description,                // 5
+    $category,                   // 6
+    $subcategory,                // 7
+    $event_type,                 // 8
+    $target_audience,            // 9
+    $delivery_format,            // 10
+    $is_foreign,                 // 11
+    $physical_address,           // 12 (address)
+    $physical_state,             // 13 (state)
+    $physical_lga,               // 14 (lga)
+    $physical_country,           // 15 (country)
+    $web_address,                // 16 (online_link)
+    $hybrid_physical_address,    // 17
+    $hybrid_web_address,         // 18
+    $hybrid_state,               // 19
+    $hybrid_lga,                 // 20
+    $hybrid_country,             // 21
+    $hybrid_foreign_address,     // 22
+    $pricing_type,               // 23
+    $status                      // 24
 );
+
 
 $stmt->execute();
 $stmt->close();
+
 
 return [
     'status' => 'success',
@@ -2420,7 +2829,7 @@ function deleteeventvideoEndpoint($postData) {
     $q = "
         UPDATE {$siteprefix}event_video_modules
         SET file_path = ''
-        WHERE id = '$fileName'
+        WHERE file_path = '$fileName'
         LIMIT 1
     ";
 
@@ -8272,9 +8681,9 @@ function updateUserEndpoint($postData, $filesData)
     $bio          = mysqli_real_escape_string($con, trim($postData['bio'] ?? ''));
     $newStatus    = mysqli_real_escape_string($con, trim($postData['status'] ?? 'pending'));
     $suspendReason = mysqli_real_escape_string($con, trim($postData['suspend_reason'] ?? ''));
-    $bank_name = mysqli_real_escape_string($con, $_POST['bank_name']);
-    $bank_accname = mysqli_real_escape_string($con, $_POST['bank_accname']);
-    $bank_number = mysqli_real_escape_string($con, $_POST['bank_number']);
+    $bank_name = mysqli_real_escape_string($con, $_POST['bank_name'] ?? '');
+    $bank_accname = mysqli_real_escape_string($con, $_POST['bank_accname'] ?? '');
+    $bank_number = mysqli_real_escape_string($con, $_POST['bank_number'] ?? '');
 
     // ✅ Get old data
     $result = mysqli_query($con, "SELECT status, photo, email, first_name, last_name FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
@@ -9228,7 +9637,7 @@ $event_id = mysqli_real_escape_string($con, $event_id);
     // DATES
     $dates = [];
     $dateQ = mysqli_query($con,
-        "SELECT event_date, start_time, end_time 
+        "SELECT s,event_date, start_time, end_time 
          FROM {$siteprefix}event_dates WHERE event_id='$event_id'"
     );
     while ($row = mysqli_fetch_assoc($dateQ)) {
@@ -9238,7 +9647,7 @@ $event_id = mysqli_real_escape_string($con, $event_id);
     // TICKETS
     $tickets = [];
     $ticketQ = mysqli_query($con,
-        "SELECT ticket_name, benefits, price, seats 
+        "SELECT id, ticket_name, benefits, price, seats 
          FROM {$siteprefix}event_tickets WHERE event_id='$event_id'"
     );
     while ($row = mysqli_fetch_assoc($ticketQ)) {
@@ -11544,6 +11953,12 @@ if($_POST['action'] == 'edit_newadmingroup'){
     if($_POST['action'] == 'send_group_message'){
         $response = sendGroupMessageEndpoint($_POST);
     }
+
+     if($_POST['action'] == 'update_event'){
+        $response = userupdateeventsEndpoint($_POST, $_FILES);
+    }
+
+    
 
     if($_POST['action'] == 'updateticketstatus'){
     $response = updateDisputeStatusHandler($_POST);

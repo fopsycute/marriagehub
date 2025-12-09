@@ -41,6 +41,7 @@ if (!empty($eventId)) {
         $event = array_merge($event, [
             'event_id' => $data['event_id'] ?? $eventId,
             'title' => $data['title'] ?? '',
+            'user_id' => $data['user_id'] ?? '',
             'description' => $data['description'] ?? '',
             'categories' => $data['categories'] ?? '',
             'subcategories' => $data['subcategories'] ?? '',
@@ -89,10 +90,10 @@ if (!empty($eventId)) {
 
     <div class="row">
       <div class="col-md-12">
-        <form id="eventForm" method="POST" enctype="multipart/form-data" action="<?= $siteurl ?>script/admin.php">
-          <input type="hidden" name="action" value="<?= !empty($eventId) ? 'updateEvent' : 'addevents' ?>">
+        <form id="eventForm" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="action" value="update_event">
           <input type="hidden" name="event_id" value="<?= htmlspecialchars($event['event_id'] ?: $eventId) ?>">
-          <input type="hidden" name="user" value="<?= htmlspecialchars($event['event_id'] ?: $eventId) ?>">
+          <input type="hidden" name="user" value="<?= htmlspecialchars($event['user_id'] ?: $eventId) ?>">
 
           <div class="text-center mt-1" id="messages"></div>
 
@@ -110,7 +111,7 @@ if (!empty($eventId)) {
               <!-- Event ID display (readonly) -->
               <div class="form-group mb-3">
                 <label for="event-id">Event ID</label>
-                <input type="text" id="event-id" name="event_id_display" class="form-control" value="<?= htmlspecialchars($event['event_id'] ?: 'EV' . sprintf('%06d', rand(1,999999))) ?>" readonly required>
+                <input type="text" id="event-id" name="event_id_display" class="form-control" value="<?= htmlspecialchars($event['event_id']) ?>" readonly required>
               </div>
 
               <!-- Existing Cover Images -->
@@ -137,7 +138,7 @@ if (!empty($eventId)) {
               <!-- Description -->
               <div class="form-group mb-3">
                 <label for="description">Description</label>
-                <textarea id="description" class="form-control" name="description" placeholder="Enter event description" rows="5"><?= htmlspecialchars($event['description'] ?? '') ?></textarea>
+                <textarea id="description" class="editor" name="description" placeholder="Enter event description"><?= $event['description'] ?? '' ?></textarea>
               </div>
 
               <!-- Categories -->
@@ -216,48 +217,73 @@ if (!empty($eventId)) {
               </div>
 
               <!-- Event Dates & Times -->
-              <div class="form-group mb-3">
-                <label>Date & Time</label>
-                <div id="dateTimeRepeater">
-                  <?php
-                  if (!empty($dates)) {
-                      foreach ($dates as $d) {
-                          // some endpoints used keys event_date, start_time, end_time; support both
-                          $dateVal = $d['event_date'] ?? $d['date'] ?? '';
-                          $start = $d['start_time'] ?? $d['start'] ?? '';
-                          $end = $d['end_time'] ?? $d['end'] ?? '';
-                          ?>
-                          <div class="row mb-2 dateTimeRow">
-                            <div class="col"><input type="date" class="form-control" name="event_dates[]" value="<?= htmlspecialchars($dateVal) ?>" required></div>
-                            <div class="col"><input type="time" class="form-control" name="event_start_times[]" value="<?= htmlspecialchars($start) ?>" required></div>
-                            <div class="col"><input type="time" class="form-control" name="event_end_times[]" value="<?= htmlspecialchars($end) ?>" required></div>
-                            <div class="col-auto">
-                              <button type="button" class="btn btn-success btn-sm addDate"><i class="fa fa-plus"></i></button>
-                              <button type="button" class="btn btn-danger btn-sm removeDate"><i class="fa fa-trash"></i></button>
-                            </div>
-                          </div>
-                          <?php
-                      }
-                  } else {
-                      // empty row
-                      ?>
-                      <div class="row mb-2 dateTimeRow">
-                        <div class="col"><input type="date" class="form-control" name="event_dates[]" required></div>
-                        <div class="col"><input type="time" class="form-control" name="event_start_times[]" required></div>
-                        <div class="col"><input type="time" class="form-control" name="event_end_times[]" required></div>
-                        <div class="col-auto">
-                          <button type="button" class="btn btn-success btn-sm addDate"><i class="fa fa-plus"></i></button>
-                          <button type="button" class="btn btn-danger btn-sm removeDate"><i class="fa fa-trash"></i></button>
-                        </div>
-                      </div>
-                      <?php
-                  }
-                  ?>
-                </div>
+<div class="form-group mb-3">
+  <label>Date & Time</label>
+  <div id="dateTimeRepeater">
+     <button type="button" class="btn btn-success btn-sm addDate"><i class="fa fa-plus"></i></button>
+
+    <?php
+    if (!empty($dates)) {
+
+        foreach ($dates as $d) {
+            $date_id = $d['s']; // primary key
+            $dateVal = $d['event_date'] ?? $d['date'] ?? '';
+            $start   = $d['start_time'] ?? $d['start'] ?? '';
+            $end     = $d['end_time'] ?? $d['end'] ?? '';
+            ?>
+
+            <div class="row mb-2 dateTimeRow">
+              <input type="hidden" name="date_id[]" value="<?= $date_id ?>">
+
+              <div class="col">
+                <input type="date" class="form-control" name="event_dates[]" value="<?= htmlspecialchars($dateVal) ?>" required>
               </div>
 
+              <div class="col">
+                <input type="time" class="form-control" name="event_start_times[]" value="<?= htmlspecialchars($start) ?>" required>
+              </div>
+
+              <div class="col">
+                <input type="time" class="form-control" name="event_end_times[]" value="<?= htmlspecialchars($end) ?>" required>
+              </div>
+
+              <div class="col-auto">
+               
+               <button type="button" class="btn btn-danger btn-sm removeRowBtn" onclick="this.closest('.dateTimeRow').remove()">-</button>
+              </div>
             </div>
+
+        <?php
+        }
+
+    } else { 
+        // EMPTY DEFAULT ROW
+        ?>
+
+        <div class="row mb-2 dateTimeRow">
+          <input type="hidden" name="date_id[]" value="">
+
+          <div class="col">
+            <input type="date" class="form-control" name="event_dates[]" required>
           </div>
+
+          <div class="col">
+            <input type="time" class="form-control" name="event_start_times[]" required>
+          </div>
+
+          <div class="col">
+            <input type="time" class="form-control" name="event_end_times[]" required>
+          </div>
+
+          <div class="col-auto">
+           
+          </div>
+        </div>
+
+    <?php } ?>
+
+  </div>
+</div>
 
           <!-- Delivery Format Card -->
           <div class="card mt-4">
@@ -338,174 +364,212 @@ if (!empty($eventId)) {
               </div>
 
               <!-- Video -->
-              <div id="videoFields" style="display:<?= ($event['delivery_format']=='video') ? 'block' : 'none' ?>;">
-                <label>Total Number of Videos:</label>
-                <input type="number" class="form-control mb-2" name="total_videos" min="1" value="<?= count($videoModules) ?>">
+<!-- Video Modules -->
+<div id="videoFields" style="display:<?= ($event['delivery_format']=='video' || $event['delivery_format']=='hybrid')?'block':'none' ?>;">
+  
+  <h6 class="mt-2 mb-2">Video Modules</h6>
 
-                <div id="videoModules">
-                  <?php
-                 if (!empty($videoModules)) {
-    foreach ($videoModules as $i => $vm) {
-        $title = $vm['title'] ?? $vm['module_title'] ?? '';
-        $desc = $vm['description'] ?? $vm['module_description'] ?? $vm['desc'] ?? '';
-        $duration = $vm['duration'] ?? '';
-        $link = $vm['video_link'] ?? '';
-        $file_path = $vm['file_path'] ?? '';
-        $videofiles = !empty($file_path) ? $siteurl . $documentpath . '/' . rawurlencode($file_path) : '';
-        $qualityRaw = $vm['video_quality'] ?? '';
-        $qualities = is_string($qualityRaw) ? explode(',', $qualityRaw) : (array)$qualityRaw;
-        $subs = $vm['subtitles'] ?? '';
-        $vid = $vm['id'] ?? ''; // unique ID for delete button
+
+
+  <div id="videoModules">
+
+    <?php if (!empty($videoModules)) : ?>
+        <?php foreach ($videoModules as $i => $vm): ?>
+        <?php 
+            $vid      = $vm['id'] ?? '';
+            $title    = $vm['title'] ?? '';
+            $desc     = $vm['description'] ?? '';
+            $duration = $vm['duration'] ?? '';
+            $link     = $vm['video_link'] ?? '';
+            $module_number = $vm['module_number'] ?? '';
+            $qualities = explode(',', $vm['video_quality'] ?? '');
+            $subtitle = $vm['subtitles'] ?? '';
         ?>
+
+          <label>Total Number of Videos:</label>
+  <input type="number" class="form-control" name="total_videos[]" min="1" value="<?php echo $module_number; ?>">
+        
         <div class="video-module mb-3" data-module-index="<?= $i ?>">
-            <h6 class="mb-2">Module <?= $i + 1 ?></h6>
+          
+          <span class="module-number">Module<?= $i+1 ?></span>
 
-            <!-- Title -->
-            <input type="text" class="form-control mb-2" name="video_module_title[]" value="<?= htmlspecialchars($title) ?>" placeholder="Lesson / Module Title">
+          <input type="hidden" name="video_id[]" value="<?= $vid ?>">
 
-            <!-- Description -->
-            <textarea class="form-control mb-2" name="video_module_desc[]" placeholder="Description/Notes"><?= htmlspecialchars($desc) ?></textarea>
+          <input type="text" class="form-control mb-2" 
+                 name="video_module_title[]" 
+                 value="<?= htmlspecialchars($title) ?>" 
+                 placeholder="Lesson / Module Title">
 
-            <!-- Duration -->
-            <input type="text" class="form-control mb-2" name="video_duration[]" value="<?= htmlspecialchars($duration) ?>" placeholder="Total Duration">
+          <textarea class="editor mb-2" name="video_module_desc[]" placeholder="Description/Notes"><?= $desc ?></textarea>
 
-            <!-- Existing Video Preview -->
-            <?php if ($videofiles): ?>
-                <div class="position-relative m-1" style="width:180px;height:100px;">
-                    <video src="<?= htmlspecialchars($videofiles) ?>" class="img-thumbnail" style="width:100%;height:100%;object-fit:cover;" controls></video>
-                    <a href="#" id="video-<?= htmlspecialchars($vid) ?>" class="btn btn-danger btn-sm deleteeventvideo" style="position:absolute;top:2px;right:2px;">
-                        <i class="fa fa-trash"></i>
-                    </a>
-                </div>
-            <?php endif; ?>
-
-            <!-- Upload / Link -->
-            <input type="file" name="video_file[]" class="form-control mb-2" accept="video/*">
-            <input type="url" class="form-control mb-2" name="video_link[]" value="<?= htmlspecialchars($link) ?>" placeholder="Or paste link">
-
-            <!-- Video Quality -->
-            <div class="mb-2">
-                <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="720p" <?= in_array('720p', $qualities) ? 'checked' : '' ?>> 720p</label>
-                <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="1080p" <?= in_array('1080p', $qualities) ? 'checked' : '' ?>> 1080p</label>
-                <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="4K" <?= in_array('4K', $qualities) ? 'checked' : '' ?>> 4K</label>
-            </div>
-
-            <!-- Subtitles -->
-            <div class="mb-2">
-                <label>Include Subtitles?</label>
-                <label><input type="radio" name="video_subtitles[<?= $i ?>]" value="Yes" <?= ($subs == 'Yes') ? 'checked' : '' ?>> Yes</label>
-                <label><input type="radio" name="video_subtitles[<?= $i ?>]" value="No" <?= ($subs == 'No') ? 'checked' : '' ?>> No</label>
-            </div>
-
-            <!-- Remove Button -->
-            <button type="button" class="btn btn-danger btn-sm removeVideoModule">Remove</button>
+          <input type="text" class="form-control mb-2" 
+                 name="video_duration[]" 
+                 value="<?= htmlspecialchars($duration) ?>" 
+                 placeholder="Total Duration">
+                   <?php if (!empty($vm['file_path'])): ?>
+        <div class="position-relative d-flex gap-2">
+          <a href="<?php echo $siteurl . $documentPath . $vm['file_path']; ?>" class="btn btn-primary" > view </a>        
+            <a href="#" id="<?= $vm['file_path'] ?>"
+               class="btn btn-danger btn-sm deleteeventvideo">
+               <i class="fa fa-trash"></i>
+            </a>
         </div>
-        <?php
-    }
-} else {
-                      // empty template row
-                      ?>
-                      <div class="video-module mb-3">
-                        <h6 class="mb-2">Module 1</h6>
-                        <input type="text" class="form-control mb-2" name="video_module_title[]" placeholder="Title">
-                        <textarea class="form-control mb-2" name="video_module_desc[]" placeholder="Description"></textarea>
-                        <input type="text" class="form-control mb-2" name="video_duration[]" placeholder="Duration">
-                        <input type="file" name="video_file[]" class="form-control mb-2" accept="video/*">
-                        <input type="url" class="form-control mb-2" name="video_link[]" placeholder="Or paste link">
-                        <div class="mb-2">
-                          <label><input type="checkbox" name="video_quality[0][]" value="720p"> 720p</label>
-                          <label><input type="checkbox" name="video_quality[0][]" value="1080p"> 1080p</label>
-                          <label><input type="checkbox" name="video_quality[0][]" value="4K"> 4K</label>
-                        </div>
-                        <div class="mb-2">
-                          <label>Include Subtitles?</label>
-                          <label><input type="checkbox" name="video_subtitles[0]" value="Yes"> Yes</label>
-                          <label><input type="checkbox" name="video_subtitles[0]" value="No"> No</label>
-                        </div>
-                      </div>
-                      <?php
-                  }
-                  ?>
-                </div>
-                <button type="button" class="btn btn-secondary mt-3 mb-2" id="addVideoModule">ADD MORE</button>
-              </div>
+    <?php endif; ?>
 
-              <!-- Text Modules -->
-          <!-- TEXT MODULES -->
-<div id="textFields" style="display:<?= ($event['delivery_format']=='text') ? 'block' : 'none' ?>;">
-    <h6 class="mt-2 mb-2">Text Modules</h6>
+          <input type="file" name="video_file[]" class="form-control mb-2" accept="video/*">
 
-    <label>Number of Lessons/Modules:</label>
-    <input type="number" class="form-control mb-2" name="total_lessons" min="1" value="<?= count($textModules) ?>">
+          <input type="url" class="form-control mb-2" 
+                 name="video_link[]" 
+                 value="<?= htmlspecialchars($link) ?>" 
+                 placeholder="Or paste link">
 
-    <div id="textModules">
-        <?php
-        if (!empty($textModules)) {
-            foreach ($textModules as $i => $tm) {
-                $tTitle  = $tm['title'] ?? '';
-                $tDesc   = $tm['description'] ?? $tm['desc'] ?? '';
-                $reading = $tm['reading_time'] ?? '';
-                $file_path = $tm['file_path'] ?? '';        // stored filename/path
-                $tid = $tm['id'] ?? $i;                    // unique id for delete link/button
-                $fileUrl = !empty($file_path) ? $siteurl . $documentpath . '/' . rawurlencode($file_path) : '';
-                ?>
-                <div class="text-module mb-3" data-module-index="<?= $i ?>">
-                    <h6 class="mb-2">Module <?= $i + 1 ?></h6>
+          <label>Video Quality</label><br>
+          <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="720p" <?= in_array('720p',$qualities) ? 'checked' : '' ?>> 720p</label>
+          <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="1080p" <?= in_array('1080p',$qualities) ? 'checked' : '' ?>> 1080p</label>
+          <label><input type="checkbox" name="video_quality[<?= $i ?>][]" value="4K" <?= in_array('4K',$qualities) ? 'checked' : '' ?>> 4K</label>
 
-                    <input type="text" class="form-control mb-2" name="text_module_title[]" value="<?= htmlspecialchars($tTitle) ?>" placeholder="Lesson / Module Title">
-
-                    <textarea class="editor mb-2" name="text_module_desc[]" placeholder="Description/Notes"><?= htmlspecialchars($tDesc) ?></textarea>
-
-                    <input type="text" class="form-control mb-2" name="text_reading_time[]" value="<?= htmlspecialchars($reading) ?>" placeholder="Estimated reading time">
-
-                    <?php if ($fileUrl): ?>
-                        <div class="d-flex align-items-center mb-2" style="gap:8px;">
-                            <a href="<?= htmlspecialchars($fileUrl) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="fa fa-file-pdf-o"></i> View / Download
-                            </a>
-
-                            <!-- show file name -->
-                            <span class="text-muted small"><a href="<?= htmlspecialchars($fileUrl) ?>" target="_blank">View</a></span>
-
-                            <!-- delete button for existing text file -->
-                            <a href="#" id="text-<?= htmlspecialchars($tid) ?>" class="btn btn-danger btn-sm ms-auto deleteeventtext" title="Delete file">
-                                <i class="fa fa-trash"></i>
-                            </a>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- always allow upload to replace or add new -->
-                    <input type="file" name="text_file[]" class="form-control mb-2" accept=".pdf,.txt,.doc,.docx">
-
-                    <button type="button" class="btn btn-danger btn-sm removeTextModule">Remove</button>
-                </div>
-                <?php
-            }
-        } else {
-            // empty template
-            ?>
-            <div class="text-module mb-3" data-module-index="0">
-                <h6 class="mb-2">Module 1</h6>
-
-                <input type="text" class="form-control mb-2" name="text_module_title[]" placeholder="Title">
-
-                <textarea class="editor mb-2" name="text_module_desc[]"></textarea>
-
-                <input type="text" class="form-control mb-2" name="text_reading_time[]" placeholder="Reading time">
-
-                <input type="file" name="text_file[]" class="form-control mb-2" accept=".pdf,.txt,.doc,.docx">
-            </div>
-            <?php
-        }
-        ?>
-    </div>
-
-    <button type="button" class="btn btn-secondary mb-3" id="addTextModule">ADD MORE</button>
+          <div class="mt-2">
+  <label>Include Subtitles?</label><br>
+  <label><input type="radio" name="video_subtitles[<?= $i ?>]" value="Yes" <?= $subtitle=='Yes'?'checked':'' ?>> Yes</label>
+  <label><input type="radio" name="video_subtitles[<?= $i ?>]" value="No"  <?= $subtitle=='No'?'checked':'' ?>> No</label>
 </div>
 
 
+          <button type="button" class="btn btn-danger btn-sm removeVideoModule mt-2">Remove</button>
+
+        </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+
+    <!-- DEFAULT EMPTY MODULE -->
+    <div class="video-module mb-3" data-module-index="0">
+
+      <span class="module-number">module 1</span>
+
+      <input type="hidden" name="video_id[]" value="">
+        <label>Total Number of Videos:</label>
+  <input type="number" class="form-control" name="total_videos[]" min="1">
+
+      <input type="text" class="form-control mb-2" name="video_module_title[]" placeholder="Lesson / Module Title">
+      <textarea class="editor mb-2" name="video_module_desc[]" placeholder="Description/Notes"></textarea>
+      <input type="text" class="form-control mb-2" name="video_duration[]" placeholder="Total Duration">
+      <input type="file" name="video_file[]" class="form-control mb-2" accept="video/*">
+      <input type="url" class="form-control mb-2" name="video_link[]" placeholder="Or paste link">
+
+      <label>Video Quality</label><br>
+      <label><input type="checkbox" name="video_quality[0][]" value="720p"> 720p</label>
+      <label><input type="checkbox" name="video_quality[0][]" value="1080p"> 1080p</label>
+      <label><input type="checkbox" name="video_quality[0][]" value="4K"> 4K</label>
+
+      <div class="mt-2">
+        <label>Include Subtitles?</label><br>
+        <label><input type="radio" name="video_subtitles[0]" value="Yes"> Yes</label>
+        <label><input type="radio" name="video_subtitles[0]" value="No"> No</label>
+      </div>
+
+      <button type="button" class="btn btn-danger btn-sm removeVideoModule mt-2">Remove</button>
+
+    </div>
+    <?php endif; ?>
+  </div>
+
+  <button type="button" class="btn btn-secondary mt-2 mb-3" onclick="addVideoModule()">Add More</button>
+</div>
+
+<!-- TEXT MODULES -->
+<div id="textFields" style="display:<?= ($event['delivery_format']=='text' || $event['delivery_format']=='hybrid')?'block':'none' ?>;">
+    <h6 class="mt-2 mb-2">Text Modules</h6>
+    <div id="textModules">
+
+        <?php if (!empty($textModules)): ?>
+            <?php foreach ($textModules as $i => $tm): ?>
+                <?php 
+                    $tid      = $tm['id'] ?? ''; 
+                    $tTitle   = $tm['title'] ?? ''; 
+                    $tDesc    = $tm['description'] ?? ''; 
+                    $reading  = $tm['reading_time'] ?? ''; 
+                    $filepath = $tm['file_path'] ?? ''; 
+                    $total_lessons = $tm['module_number'] ?? ''; 
+                ?>
+
+                <div class="text-module mb-3" data-module-index="<?= $i ?>">
+
+                    <span class="module-number">Module <?= $i+1 ?></span>
+
+                       <input type="number" class="form-control mb-2" 
+           name="total_lessons[]" 
+           value="<?= $total_lessons ?>">
+
+                    <input type="hidden" name="text_id[]" value="<?= $tid ?>">
+
+                    <input type="text" class="form-control mb-2"
+                        name="text_module_title[]" 
+                        value="<?= htmlspecialchars($tTitle) ?>" 
+                        placeholder="Lesson Title">
+
+                    <textarea class="editor mb-2" 
+                        name="text_module_desc[]" 
+                        placeholder="Description/Notes"><?= $tDesc ?></textarea>
+
+                    <input type="text" class="form-control mb-2" 
+                        name="text_reading_time[]" 
+                        value="<?= htmlspecialchars($reading) ?>" 
+                        placeholder="Estimated Reading Time">
+
+                    <?php if (!empty($filepath)): ?>
+                        <a href="../secure/<?= htmlspecialchars($filepath) ?>" 
+                           target="_blank" 
+                           class="d-block mb-2 text-primary">
+                           📄 View Current File
+                        </a>
+
+                  <a href="#" id="<?= $filepath ?>" class="btn btn-danger btn-sm ms-auto deleteeventtext" title="Delete file"> <i class="fa fa-trash"></i> </a>
+                    <?php endif; ?>
+
+                    <input type="file" name="text_file[]" 
+                           class="form-control mb-2"
+                           accept=".pdf,.txt,.doc,.docx">
+
+
+                </div>
+
+            <?php endforeach; ?>
+        <?php else: ?>
+
+            <!-- DEFAULT EMPTY TEXT MODULE -->
+            <div class="text-module mb-3" data-module-index="0">
+
+                <span class="module-number">Module 1</span>
+
+                <input type="hidden" name="text_id[]" value="">
+
+                <input type="text" class="form-control mb-2"
+                    name="text_module_title[]" 
+                    placeholder="Lesson Title">
+
+                <textarea class="editor mb-2" 
+                    name="text_module_desc[]" 
+                    placeholder="Description/Notes"></textarea>
+
+                <input type="text" class="form-control mb-2" 
+                    name="text_reading_time[]" 
+                    placeholder="Estimated Reading Time">
+
+                <input type="file" name="text_file[]" 
+                       class="form-control mb-2"
+                       accept=".pdf,.txt,.doc,.docx">
+
             </div>
-          </div>
+
+        <?php endif; ?>
+
+    </div>
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="addTextModule()">
+        Add More
+    </button>
+
+</div>
 
           <!-- Pricing Card -->
           <div class="card mt-4">
@@ -531,14 +595,16 @@ if (!empty($eventId)) {
                   <?php
                   if (!empty($tickets)) {
                       foreach ($tickets as $i => $t) {
+                          $id = $t['id'];
                           $tname = $t['ticket_name'] ?? $t['name'] ?? '';
                           $tbenefits = $t['benefits'] ?? '';
                           $tprice = $t['price'] ?? '';
                           $tseats = $t['seats'] ?? '';
                           ?>
                           <div class="ticketBox border p-3 mb-3 position-relative">
+                           <input type="hidden" name="ticket_id[]" value="<?= $id ?>">
                             <input type="text" class="form-control mb-2 ticket_name" name="ticket_name[]" value="<?= htmlspecialchars($tname) ?>" placeholder="Ticket Name">
-                            <textarea class="form-control mb-2 ticket_benefits" name="ticket_benefits[]" placeholder="Benefits"><?= htmlspecialchars($tbenefits) ?></textarea>
+                            <textarea class="editor mb-2 ticket_benefits" name="ticket_benefits[]" placeholder="Benefits"><?= $tbenefits ?></textarea>
                             <input type="number" class="form-control mb-2 ticket_price" name="ticket_price[]" value="<?= htmlspecialchars($tprice) ?>" placeholder="Price (NGN)">
                             <input type="number" class="form-control mb-2 ticket_seats" name="ticket_seats[]" value="<?= htmlspecialchars($tseats) ?>" placeholder="Number of Seats Available">
                             <button type="button" class="btn btn-danger btn-sm removeTicket">Remove</button>
@@ -549,8 +615,9 @@ if (!empty($eventId)) {
                       // empty ticket template
                       ?>
                       <div class="ticketBox border p-3 mb-3 position-relative">
+                        <input type="hidden" name="ticket_id[]">
                         <input type="text" class="form-control mb-2 ticket_name" name="ticket_name[]" placeholder="Ticket Name">
-                        <textarea class="form-control mb-2 ticket_benefits" name="ticket_benefits[]" placeholder="Benefits"></textarea>
+                        <textarea class="editor mb-2 ticket_benefits" name="ticket_benefits[]" placeholder="Benefits"></textarea>
                         <input type="number" class="form-control mb-2 ticket_price" name="ticket_price[]" placeholder="Price (NGN)">
                         <input type="number" class="form-control mb-2 ticket_seats" name="ticket_seats[]" placeholder="Number of Seats Available">
                         <button type="button" class="btn btn-danger btn-sm removeTicket">Remove</button>
@@ -571,7 +638,7 @@ if (!empty($eventId)) {
                 </select>
               </div>
 
-              <button type="submit" id="submitEventBtn" class="btn btn-primary mt-3"><?= !empty($eventId) ? 'Update Event' : 'Submit' ?></button>
+              <button type="submit" id="submitEventBtn" class="btn btn-primary mt-3"> Update Event </button>
             </div>
           </div>
 

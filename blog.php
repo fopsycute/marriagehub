@@ -73,7 +73,7 @@ include "header.php";
                             if (is_numeric($catVal) && intval($catVal) > 0) {
                                 $parentIds = intval($catVal);
                                 $url = $siteurl . "script/register.php?action=subcategorieslists&parent_ids=" . $parentIds;
-                                $data = @curl_get_contents($url);
+                                $data = curl_get_contents($url);
                                 if ($data !== false) {
                                     $decoded = json_decode($data);
                                     if (is_array($decoded)) $subitems = array_merge($subitems, $decoded);
@@ -81,7 +81,7 @@ include "header.php";
                             } else {
                                 // try fetching by slug using admin endpoint
                                 $url = $siteurl . "script/admin.php?action=subcategory_list&category_slug=" . rawurlencode($catVal);
-                                $data = @curl_get_contents($url);
+                                $data = curl_get_contents($url);
                                 if ($data !== false) {
                                     $decoded = json_decode($data);
                                     if (is_array($decoded)) $subitems = array_merge($subitems, $decoded);

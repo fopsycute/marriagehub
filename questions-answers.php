@@ -1,5 +1,5 @@
 <?php include "header.php"; ?>
-
+<div id="questionscontainer">
 <main class="main">
 
   <!-- Page Title -->
@@ -299,7 +299,7 @@
     </div>
   </section>
 </main>
-
+                  </div>
 
 
 <section id="trending-category" class="trending-category section">

@@ -18,8 +18,17 @@ if ($authentication) {
         $buyerData = json_decode($data);
         if ($buyerData && empty($buyerData->error)) {
             $buyerId = $buyerData->id ?? '';
+            $website = $buyerData->website ?? '';
             $buyerfirstName = $buyerData->first_name;
             $email = $buyerData->email;
+            $first_name = $buyerData->first_name;
+            $last_name = $buyerData->last_name;
+            $middle_name =  $buyerData->middle_name;
+            $facebook = $buyerData->facebook;
+            $twitter = $buyerData->twitter;
+            $bio = $buyerData->bio;
+            $instagram = $buyerData->instagram;
+            $linkedin = $buyerData->linkedin;
             $logo = $siteurl.$imagePath.$buyerData->photo;
             $buyerName = $buyerData->first_name . " " . $buyerData->last_name;
             $buyerEmail = $buyerData->email ?? '';
@@ -65,7 +74,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
     />
     <link
       rel="icon"
-      href="assets/img/kaiadmin/favicon.ico"
+      href="<?php echo $siteurl; ?>assets/img/<?php echo $siteimg; ?>"
       type="image/x-icon"
     />
 
@@ -1192,7 +1201,7 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
                             <h4><?php echo $buyerfirstName; ?></h4>
                             <p class="text-muted"><?php echo $email; ?></p>
                             <a
-                              href="settings.php"
+                              href="profile.php"
                               class="btn btn-xs btn-secondary btn-sm"
                               >View Profile</a
                             >
