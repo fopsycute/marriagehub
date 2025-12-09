@@ -41,7 +41,10 @@ $count = 1;
 if ($data !== false) {
     $wallets = json_decode($data, true);
 
-    if (!empty($wallets)) {
+    // Check if response contains an error
+    if (isset($wallets['error'])) {
+        echo '<tr><td colspan="5" class="text-center text-danger">Error: ' . htmlspecialchars($wallets['error']) . '</td></tr>';
+    } elseif (!empty($wallets) && is_array($wallets)) {
         foreach ($wallets as $wallet) {
             $date   = $wallet['date'] ?? '';
             $amount = $wallet['amount'] ?? '0';
@@ -85,7 +88,11 @@ if ($data !== false) {
             </tr>";
             $count++;
         }
+    } else {
+        echo '<tr><td colspan="5" class="text-center text-muted">No wallet transactions found.</td></tr>';
     }
+} else {
+    echo '<tr><td colspan="5" class="text-center text-danger">Error fetching wallet data.</td></tr>';
 }
 ?>
 </tbody>

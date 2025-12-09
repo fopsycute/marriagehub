@@ -3,7 +3,8 @@ $(document).ready(function() {
     $('.select-multiple').select2({
         placeholder: "Select an option",
         allowClear: true,
-        width: '100%'
+        width: '100%',
+        closeOnSelect: false  // Keep dropdown open for multiple selections
     });
 });
 
@@ -17,6 +18,10 @@ $(document).ready(function() {
         var ajaxUrl = siteUrl + "script/register.php"; // build full path
 
         if (selectedCategories && selectedCategories.length > 0) {
+            // Store currently selected subcategories before clearing
+            let $subcategory = $('#subcategory');
+            let currentlySelected = $subcategory.val() || [];
+            
             $.ajax({
                 url: ajaxUrl,
                 method: "GET",
@@ -26,7 +31,6 @@ $(document).ready(function() {
                 },
                 dataType: "json",
                 success: function (response) {
-                    let $subcategory = $('#subcategory');
                     $subcategory.empty(); // clear old options
 
                     if (response.length > 0) {
@@ -38,6 +42,14 @@ $(document).ready(function() {
                                 })
                             );
                         });
+                        
+                        // Restore previously selected values that still exist in new options
+                        let validSelections = currentlySelected.filter(val => 
+                            response.some(subcat => subcat.id == val)
+                        );
+                        if (validSelections.length > 0) {
+                            $subcategory.val(validSelections);
+                        }
                     } else {
                         $subcategory.append('<option value="">No subcategories found</option>');
                     }

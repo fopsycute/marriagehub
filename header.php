@@ -161,6 +161,9 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 </head>
 
 <body class="index-page">
+  <!-- Hidden input for JavaScript -->
+  <input type="hidden" value="<?php echo $siteurl; ?>" id="siteurl">
+  
   <?php 
   if (basename($_SERVER['PHP_SELF']) == 'index.php') {
     include "top-banner.php";

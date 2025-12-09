@@ -166,18 +166,12 @@ if (isset($_GET['slug'])) {
                 $categories = json_decode($data);
                 if (!empty($categories)) {
                     foreach ($categories as $category) {
-                      foreach ($categories as $category) {
                           $categoryId = $category->id;
                           $name = $category->category_name; // adjust if DB column is different
                           echo "<option value='{$categoryId}'>{$name}</option>";
-                      }
-                  }
-              }
+                    }
+                }
             }
-
-            else {
-                   echo "Error fetching data: " . curl_error($ch);
-                      }
               ?>
           </select>
             </div>

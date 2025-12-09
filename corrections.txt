@@ -1,0 +1,269 @@
+	•	Under the questions and articles submission page, when I selected a category and entered the sub-categories.  When I go back to add another category, the first sub-categories selected would be deleted.
+	•	Without been approved, questions are displaying here https://www.marriagehub.ng/
+	•	On this page https://www.marriagehub.ng/advertise and under Create Your Free Profile, change Review Hub NG TO Marriage Hub NG
+	•	On this page https://www.marriagehub.ng/register/user, fix the State of Residence (LGA, STATE)
+	•	On this page https://www.marriagehub.ng/blog-details/4-reasons-why-couples-grow-apart-and-what-causes-hatred, I clicked on the Tribes & Groups but it is displaying error
+	•	On this page https://www.marriagehub.ng/group/advertise-with-us and under the questions, questions not listed the group owner is displaying
+	•	On this page https://www.marriagehub.ng/group/advertise-with-us and under the articles, I clicked on the VIEW ALL but it is displaying error
+	•	On this page https://www.marriagehub.ng/wallet, the WITHDRAW button is not working
+	•	When the clients submits an advert, the message displayed should be that the ADVERT WOULD BE REVIEWED BY THE ADMIN AND ONCE APPROVED, THE AADVERT WOULD START DISPLAYING. 
+	•	On this page https://www.marriagehub.ng/therapist/oladunni-bade-1, display profile view count
+	•	 I signed in as a vendor but i can't post articles and questions. i think it is better to have a unified DASHBOARD for the buyer, vendor and therapist accounts
+	•	ON this page https://www.marriagehub.ng/blog, selecting the categories is not working well
+	•	While creating a group, I selected PAID and entered the 4 packages but when I tried approving the group here https://www.marriagehub.ng/admin/edit-group?group_id=13, it does not have the packages
+	•	This article posted on group/tribe https://www.marriagehub.ng/single-blog/in-laws-and-extended-family-influence/open-a-and-cnn-newspaper, is displaying error
+	•	In the mail sent to users when they create a group, the VIEW GROUP LINK is wrong https://www.marriagehub.ng/groups. Please correct
+
+
+6. On this page https://www.marriagehub.ng/ and between the checkout box and ACCOUNT, display a notification box for 1 - Direct Messages and 2 - Notification for Updates on Articles and Questions that the user is following.
+When clicked they should take the user to the direct message or articles and questions.
+On the Notification Messages, display the following
+A – Article, Question, Group, Products, Therapist Profile and Events Approvals 
+B – Article, Question, Group, Products, Therapist Profile and Events Denials
+C – Payment earnings for the groups, payment requestions and payment granted
+7.  On this page https://www.marriagehub.ng/ and at the footer, Create a new header - Our Services and list the following
+Blog
+Questions & Answers 
+Groups & Tribes
+Events & Programs
+Marketplace 
+Vendor Directory 
+Find Therapists & Counselors
+Advertise With Us
+9. On this page https://www.marriagehub.ng/ and at the footer, after the Useful Links and Company Contents, create a Subscribe to Our Newsletter box and make provision for entering email and SUBMIT button. Display the subscribers list on the admin side. The admin should be able to download the link.
+COMMENT: Created not working. I entered an email and clicked submit, but it is displaying this - An error occurred while submitting. Please try again.
+11. On this page MarriageHub.ng and after Latest Blogs, Tribes & Groups, Question and Answer and Therapists, display the website adverts as seen here https://www.dairyreporter.com/.
+13. The question author or community should be able to mark an answer as “Accepted” or “Best.”
+14. This page https://www.marriagehub.ng/transaction-history is displaying error. Because of this I can’t verify if the earnings is working for the groups, payment requestions and payment granted.
+15. On this page https://www.marriagehub.ng/blog and before the last roll of the articles, display the website advert. After the page counter/number, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Q and A
+- Display 4 related Events
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Tribes and Groups 
+- Display 4 related Products and Services
+16. Users should be able to follow and unfollow a category, sub-category, articles, question and user. They should receive alerts when the category, sub-category, articles, question and user they are following makes a post
+COMMENT: Users can only follow others users now. Meaning the follow button is there but it is not there for the category and sub-category. I followed a user and the user posted an article but I did not get an update.
+18. Users should be able to send Private Messages to each other.
+19. Users should be able to Save drafts and edit questions, articles or answers after posting.
+22. On these pages https://www.marriagehub.ng/questions-answers and https://www.marriagehub.ng/blog, display the numbers of articles and questions
+23. On these pages https://www.marriagehub.ng/blog, https://www.marriagehub.ng/all-groups, https://www.marriagehub.ng/vendors, https://www.marriagehub.ng/find-therapist, https://www.marriagehub.ng/blog?search=&category%5B%5D=2, https://www.marriagehub.ng/blog?search=&category%5B%5D=2&subcategory%5B%5D=29 and https://www.marriagehub.ng/questions-answers, display the search bar as seen here https://www.marriagehub.ng/marketplace 
+25. On this page https://www.marriagehub.ng/find-therapist, create a become a therapists link
+26. Change these urls https://www.marriagehub.ng/blog?category=4, https://www.marriagehub.ng/blog?search=&category%5B%5D=2 and https://www.marriagehub.ng/blog?search=&category%5B%5D=2&subcategory%5B%5D=29 to reflect the name of the categories and sub-categories
+30. On this page https://www.marriagehub.ng/therapist/oladunni-bade and after the profile, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display Website Advert
+- Display 4 related Products and Services
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Q and A
+- Display Classic Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+31. On this page https://www.marriagehub.ng/find-therapist and before the last roll of the therapist profile, display the website advert. After the page counter/number, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Products and Services
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Q and A
+- Display Classic Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+32. On this page https://www.marriagehub.ng/marketplace and before the last roll of the products, display the website advert. After the page counter/number, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Tribes and Groups 
+- Display Classic Banner Ads (Therapists & Vendors)
+- Display 4 related Products and Services
+34. On this page https://www.marriagehub.ng/vendor-profile/olakunle-ayo and after the products, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display Website Advert
+- Display 4 related Products and Services
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display Classic Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+35. Articles and questions created in the groups should also be available on the general website. However, if it is a paid group/content, the users should be asked to pay before they can access the content
+37. On this page https://www.marriagehub.ng/single-questions/what-is-love and before comments, display the website advert. After the comments, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display 4 related Events
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Tribes and Groups 
+- Display 4 related Products and Services
+38. On this page https://www.marriagehub.ng/group/relationship-growth, display the following
+A. Whether the group is close or open
+B. Paid or free. If Paid, state the price and check-out button
+C. Number of Article
+39. On this page https://www.marriagehub.ng/questions-answers and before the last roll of the questions, display the website advert. After the page counter/number, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+- Display 4 related Tribes and Groups 
+- Display 4 related Products and Services
+41. Please display the therapist profile box as seen here https://www.marriagehub.ng/ to https://www.marriagehub.ng/find-therapist
+42. Users should be able to Tag or Mention other users and Make provision for Typing & Online Status Indicators
+43. Admins of groups should be able to make Pinned Posts or questions
+44. Users should be able to post articles anonymously
+45. On this page https://www.marriagehub.ng/group/marriage-is-the-key and under BLOG, the create blog and all blog links is not working. Thess pages https://www.marriagehub.ng/create-group-blog/amebo and https://www.marriagehub.ng/all-group-blog/amebo are displaying error
+48. For every articles and questions on the platform, display - Was this comment helpful?” Feedback button: (Yes / No). The admin should be able to see this feedback (Numbers of Yes or No answers on each article on the backend). This would help us tailor future content.
+COMMENTS: I clicked on YES but this error is displaying. Fatal error: Uncaught mysqli_sql_exception: Table 'marriage_hub.ma_feedback' doesn't exist in /home/marriage/public_html/script/admin.php:8732 Stack trace: #0 /home/marriage/public_html/script/admin.php(8732): mysqli_query() #1 /home/marriage/public_html/script/admin.php(9920): saveArticleFeedback() #2 {main} thrown in /home/marriage/public_html/script/admin.php on line 8732
+49. The area of Specializations and Sub-Specializations selected by the therapist while registering on the website should be displayed any time the therapist makes a post, submit an article, ask a question and make a comment / answer a question
+50. When an article, question, event, products/services, group or therapist is approved by the admin, display the article, questions, event, products/services, group or therapist PENDING pages
+51. When an article, question, event, https://www.marriagehub.ng/create-group-question/amebo, https://www.marriagehub.ng/create-group-blog/amebo, products/services, group or therapist is submitted by the user, display the article, question, event, products/services, group or therapist PENDING of the user
+52. Users should be able to submit only one therapist profile
+53. The user request and group members should not be displayed here https://www.marriagehub.ng/group/relationship-growth. They should be displayed on the DASHBOARD of the group/tribe creator under the group/tribe of the user/group creator
+55. On this page https://www.marriagehub.ng/admin, the admin should be able to edit, change categories and sub-categories of 
+A. Blogs
+B. Q and A
+C. Events
+D. Market Place
+E. Therapists
+59. Display websites adverts in-between comments and answers on articles and questions
+60. On this page https://www.marriagehub.ng  (at the header/top of the website) and on the top left-hand side where you have the following, Find Therapists | Create Tribes & Groups | Submit Articles & Questions
+Change to 
+| Get Listed (Therapists) | Create Tribes & Groups | List Events | Become a Vendor | Advertise With Us |
+Use this links 
+Get Listed (Therapists) | https://www.marriagehub.ng/register/therapist
+Create Tribes & Groups | https://www.marriagehub.ng/create-tribes-group
+List Events | https://www.marriagehub.ng/vendor/add-event 
+Become a Vendor | https://www.marriagehub.ng/register/vendor
+If they are not registered, they would be required to register on the website. When registered and verified, they should be directed to the link above.
+
+COMMENTS: The List Events link was not captures.
+61. On this page https://www.marriagehub.ng/products/classy-rosey-bridal-bouquet-for-weddings-white and After the description, display the following
+- Display Website Advert
+- Display 4 related Products and Services
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+- Display Classic Banner Ads (Therapists & Vendors)
+62. On this page https://www.marriagehub.ng/blog-details/what-love-bombing-looks-like-in-marriage-and-how-to-stop-it and before comments, display the website advert. After the comments, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Q and A
+- Display 4 related Events
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Tribes and Groups 
+- Display 4 related Products and Services
+63. The profile of the therapist’s should be approved by the admin before it becomes live on the website
+64. On this page https://www.marriagehub.ng and where you have the following, Home | About | Blogs | Q & A | Find Therapists
+Change to 
+| Home | Blogs | Q & A | Find Therapists | Tribes & Groups | Events | Marketplace | Vendor Directory |
+Put the Tribes & Groups | Events | Marketplace | Vendor Directory | in a orange box just like the Find Therapists.
+COMMENT: It is not done properly. The Tribes & Groups is not displayed. Remove the Advertise With Us since it is already up there and replace with Tribes & Groups.
+65. On this page https://www.marriagehub.ng/create-tribes-group, after submitting the required detailed and clicking on SUBMIT, display this page https://www.marriagehub.ng/my-group
+66. On this page https://www.marriagehub.ng/admin/edit-group?group_id=12 and after approving the group, display https://www.marriagehub.ng/admin/approved-groups
+67. On this page https://www.marriagehub.ng/add-blog and when the user fills all the details and click on SUBMIT, display https://www.marriagehub.ng/my-blog
+68. On this page https://www.marriagehub.ng/admin/edit-blog?blog_id=15, when the admin clicks on APPROVED, display this page https://www.marriagehub.ng/admin/approved-blog
+69. This page https://www.marriagehub.ng/admin/approved-blo is displaying error
+70.  On this page https://www.marriagehub.ng/create-questions, when the details are filled and the user clicks on SUBMIT, display this url https://www.marriagehub.ng/my-q-a
+71. On this page https://www.marriagehub.ng/admin/edit-question?question_id=12 and when the admin approves a question, display this page https://www.marriagehub.ng/admin/approved-questions
+72. I submitted some questions and articles and I can see some text characters like <p>SKY NEWS 123</p>. Please fix it
+73. On these pages https://www.marriagehub.ng/single-questions/sky-news-123 and https://www.marriagehub.ng/blog-details/don-t-take-your-spouse-for-granted-4-things-to-say-1, when I click on the categories and sub-categories in the questions and article text box, it should be directed to the right link/page
+74. Users should be able to add multiple images to articles and photos to questions
+75. On these pages https://www.marriagehub.ng/vendor-profile/olakunle-ayo and https://www.marriagehub.ng/therapist/olakemi-ajoke, when the users click on CONTACT, they should be able to send a direct message to the therapists and vendor
+76. On this page https://www.marriagehub.ng/register/therapist and under Who do you work with? *, the user should be able to selected options
+77. On this page https://www.marriagehub.ng/register/therapist, display Institution Attended just like Professional Bio
+80. On these pages https://www.marriagehub.ng/terms, https://www.marriagehub.ng/about, https://www.marriagehub.ng/privacy and https://www.marriagehub.ng/why-us, place the contents seen here https://www.marriagehub.ng/blog-details/what-to-do-when-you-feel-no-emotional-connection-with-your-husband-3
+83. When the users fills and clicks on BOOK REQUEST on this page https://www.marriagehub.ng/book-appointment/oladunni-bade-1, the book request should be sent to the therapist (email and in-website), once approved, the users should be able to pay and booking confirmed (email and in-website). The platform should take 20% of the amount.
+84. On this page https://www.marriagehub.ng/vendor/add-blog, the vendor should not have the option is marking the article as published. That function is that of the admin only.
+85. On this page https://www.marriagehub.ng/vendor/add-blog, after clicking on submit, display this page https://www.marriagehub.ng/vendor/
+87. On this page https://www.marriagehub.ng/vendor/chat, there are 2 CHATS tabs/links and I tried sending messages but it is not working
+88. On this page https://www.marriagehub.ng/vendor/index, change Therapist Dashboard, All Users - 1,294, vendors - 1303 and Therapists - 1403 links to Number of Articles, Number of Questions, Number of Answer, Number of Events, Number of Tribes/ Groups, Number of Products & Services, Earning, Withdrawal Request and Payouts
+89. On this page https://www.marriagehub.ng/vendor/add-event, the vendor should not have the option is marking the article as published. That function is that of the admin only.
+90. On this page https://www.marriagehub.ng/vendor/add-event and on the pricing, when I clicked on PAID, it does not make provision for entering the amount
+91. On this page https://www.marriagehub.ng/vendor/add-event and on the Description, implement TINYMCE
+92. On this page https://www.marriagehub.ng/vendor/add-event and on Delivery Format, when I select Physical (In-person), display box where the user would enter the physical address.
+Nigeria or Foreign
+Nigerian Address
+Address:
+State | LGA | Country
+Foreign Address
+Address:
+Online (Webinar/Virtual) – When selected, display box where the user would enter the web address (zoom, youtube)
+Hybrid (Physical & Online) – When selected, display box where the user would enter the physical and web address.
+Nigeria or Foreign
+Nigerian Address
+Address:
+State | LGA | Country
+Foreign Address
+Address: 
+Video – When selected, display the course contents and other details
+Text – When selected, display the course contents and other details
+93. On this page https://www.marriagehub.ng/vendor/add-event, the correct categories and sub-categories is 
+Marriage Enrichment
+	•	Marriage Bootcamps
+	•	Couples’ Retreats
+	•	Marriage Renewal Programs
+	•	Communication & Conflict Resolution Workshops
+	•	Intimacy & Romance Seminars
+	•	Love Language Events
+Relationship & Courtship
+	•	Dating & Relationship Masterclasses
+	•	Pre-marital Counseling Workshops
+	•	Courtship Etiquette Programs
+	•	Singles’ Relationship Forums
+	•	Choosing the Right Partner Sessions
+Parenting & Family Life
+	•	Parenting Skills Workshops
+	•	Fatherhood & Motherhood Seminars
+	•	Blended Family Coaching Sessions
+	•	Teen Parenting Programs
+	•	Family Bonding Events
+Faith-Based Programs
+	•	Christian Marriage Retreats
+	•	Islamic Relationship Conferences
+	•	Interfaith Relationship Dialogues
+	•	Spiritual Growth for Couples
+	•	Marriage Altar Counseling Events
+Mental & Emotional Wellness
+	•	Marriage & Mental Health Webinars
+	•	Trauma Healing Retreats
+	•	Self-Care & Emotional Resilience Workshops
+	•	Grief, Loss & Relationship Recovery Programs
+	•	Anger & Stress Management Events
+Personal Development & Life Skills
+	•	Conflict & Communication Skills
+	•	Financial Planning for Couples
+	•	Emotional Intelligence in Relationships
+	•	Time Management for Family Balance
+	•	Building Trust & Self-Esteem
+Legal & Rights Education
+	•	Marriage Law in Nigeria
+	•	Divorce & Separation Legal Seminars
+	•	Property & Custody Rights Awareness
+	•	Child Protection & Family Law Events
+Professional & Counselor Events
+	•	Therapist Training Workshops
+	•	Marriage Counselor Conferences
+	•	Relationship Coaching Certification
+	•	Peer Group Supervision for Counselors
+	•	Mental Health First Aid Training
+Special Interest Events
+	•	Widows/Widowers Support Events
+	•	Second Marriage Programs
+	•	Events for People with Disabilities & Relationships
+	•	Marrying Across Cultures Seminars
+Youth & Teen Programs
+	•	Healthy Relationships for Teens
+	•	Preparing for Future Marriage (Faith & Life Skills)
+	•	Abstinence & Boundaries Programs
+	•	Teenage Parenting Forums
+94. On this page https://www.marriagehub.ng/marketplace and under the SEARCH PRODUCTS, display | Lagos | Federal Capital Territory (Abuja) | Rivers | Oyo | Anambra | Delta | Enugu | Kano |
+95. I can’t find the Vendor Subscription Plans – Feature Comparison Table (Marriage.NG). 
+COMMENT: I have seen the page https://www.marriagehub.ng/vendor-pricing/ikechukwu-anaekwe. Please confirm if the features – RANKING OF SUBSCIPTION PLANS, Number of Product/Service Listings, Access to Lead Requests / Client Inquiries, Areas of Specialization: , Number of Articles: , Highlighted Listings in Category Pages  and Upload Portfolio Images (Photos & Flyers) etc are working?
+98. On this page https://www.marriagehub.ng/vendor-profile/olakunle-ayo, display other vendors from the same category and sub-category. Display the website adverts and articles
+100. On this page https://www.marriagehub.ng/products/imeless-moments-photography-professional-wedding-family-shoots, display the contents (Description) as seen here https://www.marriagehub.ng/blog-details/don-t-take-your-spouse-for-granted-4-things-to-say
+101. On this page https://www.marriagehub.ng/vendors and before the last roll of the vendor profile, display the website advert. After the page counter/number, display the following
+- Display Premium Banner Ads (Therapists & Vendors)
+- Display 4 related Products and Services
+- Display Enterprise Banner Ads (Therapists & Vendors)
+- Display 4 related Articles
+- Display Classic Banner Ads (Therapists & Vendors)
+- Display 4 related Events
+104. I just paid for an advert but I can't find where it is displaying
+105. On this page https://www.marriagehub.ng/event, I clicked on the events tab but it is displaying the products/service link
+106. On this page https://www.marriagehub.ng/event, create the register as a trainer link. If the user is already signed-in, display the List My training link
+107. On this page https://www.marriagehub.ng/marketplace, create the register as a vendor link. If the user is already signed-in, display the List My product link
+108. On this page https://www.marriagehub.ng/vendors, create the register as a vendor link. If the user is already signed-in, display the List My product link
+110. On this page https://www.marriagehub.ng/event, display the total number of products and services
+111. On this page https://www.marriagehub.ng/dashboard, users should be able to see their adverts. On each adverts placed, date and time the advert was placed, time remaining for the advert to elapse, amount paid etc
