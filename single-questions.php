@@ -505,7 +505,6 @@ $followingCount = getFollowingCount($user_id);
       $isTruncated = (str_word_count(strip_tags($bio)) > 10);
     ?>
   <p><?php echo $followerCount; ?> Followers | <?php echo $followingCount; ?> Following</p>
-<<<<<<< HEAD
          <div class="mt-3 text-center bio-text">
   
   <!-- Short Bio: OK to stay as span -->
@@ -521,16 +520,6 @@ $followingCount = getFollowingCount($user_id);
   <?php endif; ?>
 
 </div>
-=======
-    <p class="mt-3 text-center bio-text">
-      <span class="bio-short"><?php echo $shortBio; ?></span>
-      <?php if ($isTruncated): ?>
-        <span class="bio-full d-none"><?php echo $bio; ?></span>
-        <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-      <?php endif; ?>
-    </p>
-  </div>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 </div><!--/Blog Author Widget -->
 
 <?php 

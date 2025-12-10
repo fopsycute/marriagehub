@@ -752,7 +752,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', function() {
     const statusSelect = document.getElementById('statusSelects');
     const reasonBox = document.getElementById('rejectReasonBox');
@@ -762,8 +761,6 @@ document.addEventListener('DOMContentLoaded', function() {
     statusSelect.addEventListener('change', toggleReason);
     toggleReason(); // initial check
   });
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1296,7 +1293,6 @@ document.addEventListener("click", function (e) {
 });
 
 
-<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", function() {
     const wrapper = document.getElementById("groupblogFilterWrappers");
     if (!wrapper) return; // safety
@@ -1375,8 +1371,6 @@ function runBlogFilter() {
     });
 
 });
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('eventmarketplace');
@@ -2041,13 +2035,10 @@ document.addEventListener('click', function (e) {
 });
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
   (function () {
         const btn = document.getElementById('toggleBlogFiltersBtn');
         const block = document.getElementById('blogFilterBlock');

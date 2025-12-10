@@ -258,11 +258,7 @@ function posttherapistReviewEndpoint($postData)
 
 function postAnswerEndpoint($postData)
 {
-<<<<<<< HEAD
     global $con, $siteprefix;
-=======
-    global $con, $siteprefix, $sitename, $sitemail, $siteurl;
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     $userId = intval($postData['user_id'] ?? 0);
     $slug = mysqli_real_escape_string($con, trim($postData['question_id'] ?? ''));
@@ -280,49 +276,6 @@ function postAnswerEndpoint($postData)
     $stmt->bind_param("issi", $userId, $slug, $comment, $parentId);
 
     if ($stmt->execute()) {
-<<<<<<< HEAD
-=======
-        // Get question author details to send email notification
-        $questionQuery = mysqli_query($con, "
-            SELECT q.title, q.user_id, u.email, u.first_name 
-            FROM {$siteprefix}forums q 
-            LEFT JOIN {$siteprefix}users u ON q.user_id = u.id 
-            WHERE q.slug = '$slug' LIMIT 1
-        ");
-        
-        if ($questionData = mysqli_fetch_assoc($questionQuery)) {
-            $questionAuthorId = $questionData['user_id'];
-            
-            // Only send email if answerer is not the question author
-            if ($questionAuthorId != $userId) {
-                $questionTitle = $questionData['title'];
-                $authorEmail = $questionData['email'];
-                $authorName = $questionData['first_name'];
-                
-                // Get answerer details
-                $answererQuery = mysqli_query($con, "SELECT first_name, last_name FROM {$siteprefix}users WHERE id = '$userId' LIMIT 1");
-                $answererData = mysqli_fetch_assoc($answererQuery);
-                $answererName = trim(($answererData['first_name'] ?? '') . ' ' . ($answererData['last_name'] ?? ''));
-                
-                // Send email notification
-                $emailSubject = "New Answer to Your Question: {$questionTitle}";
-                $questionUrl = $siteurl . "question/{$slug}";
-                $emailMessage = "
-                    <p>Hi {$authorName},</p>
-                    <p><strong>{$answererName}</strong> has answered your question: <strong>{$questionTitle}</strong></p>
-                    <p><strong>Answer:</strong></p>
-                    <div style='background:#f5f5f5; padding:15px; border-left:4px solid #007bff; margin:15px 0;'>
-                        " . nl2br(htmlspecialchars(substr($comment, 0, 200))) . (strlen($comment) > 200 ? '...' : '') . "
-                    </div>
-                    <p><a href='{$questionUrl}' style='display:inline-block; padding:10px 20px; background:#007bff; color:#fff; text-decoration:none; border-radius:5px;'>View Full Answer</a></p>
-                    <p>Thank you for being part of {$sitename}!</p>
-                ";
-                
-                sendEmail($authorEmail, $sitename, $sitemail, $authorName, $emailMessage, $emailSubject);
-            }
-        }
-        
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         return ['status' => 'success', 'messages' => 'Answer posted successfully!'];
     } else {
         return ['status' => 'error', 'messages' => 'Database error: ' . $stmt->error];
@@ -1702,7 +1655,6 @@ function createQuestionEndpoint($postData)
 }
 
 
-<<<<<<< HEAD
 function creategroupQuestionEndpoint($postData)
 {
     global $con, $siteprefix, $siteName, $siteMail, $siteurl;
@@ -2118,8 +2070,6 @@ function updateGroupQuestionEndpoint($postData)
 
 
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 //update question
 function updateQuestionEndpoint($postData)
 {
@@ -2965,7 +2915,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $response =  createQuestionEndpoint($_POST);
     }
 
-<<<<<<< HEAD
 
          if ($_POST['action'] == 'creategroupQuestion') {
         $response =  creategroupQuestionEndpoint($_POST);
@@ -2974,8 +2923,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
     
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     
     if ($_POST['action'] == 'paymanual') {
         $response = manualPaymentEndpoint($_POST, $_FILES);
@@ -3003,15 +2950,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $response = removeCartItemEndpoint($_POST);
     }
 
-<<<<<<< HEAD
         if ($_POST['action'] == 'update_group_question') {
             $response =  updateGroupQuestionEndpoint($_POST);
         }
 
    
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     if (isset($_POST['action']) && $_POST['action'] == 'addtocart') {
     $response = addToCartEndpoint($_POST);
     }

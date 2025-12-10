@@ -2,21 +2,13 @@
 <?php include "header.php"; ?>
 
 <?php
-<<<<<<< HEAD
 if (isset($_GET['slug']) || !isset($_GET['group_slug'])) {
-=======
-if (isset($_GET['slug'])) {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     $slug = $_GET['slug'];
     $group_slug = $_GET['group_slug'];
 
     $sitelink = $siteurl . "script/";
 
-<<<<<<< HEAD
     $url = $sitelink . "admin.php?action=fetchallgroupslug&group_slug=" . $group_slug;
-=======
-    $url = $sitelink . "admin.php?action=fetchgroupslug&group_slug=" . $group_slug;
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     // Fetch blog details via API
     $data = curl_get_contents($url);
@@ -172,17 +164,12 @@ if (isset($_GET['slug'])) {
     <div class="container">
       <div class="row">
 
-<<<<<<< HEAD
  <div class="col-lg-8">
           
-=======
-        <div class="col-lg-8">
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
           <!-- Blog Details Section -->
           <section id="blog-details" class="blog-details section">
             <div class="container">
-<<<<<<< HEAD
               <div class=" d-flex justify-content-between align-items-center">
                 <?php 
                 $item_type = 'blog';
@@ -206,9 +193,6 @@ if (isset($_GET['slug'])) {
             ?>
             </div>
               
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
               <article class="article">
 
                 <div class="post-img">
@@ -250,11 +234,7 @@ if (isset($_GET['slug'])) {
               data-like-url="<?php echo $sitelink; ?>user.php">
         <i class="bi bi-hand-thumbs-up"></i>
         <span id="likeCount"><?php echo $like_count; ?></span> Likes
-<<<<<<< HEAD
       </button> 
-=======
-      </button>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     </div>
 
           <div class="article-share mt-2">
@@ -279,7 +259,6 @@ if (isset($_GET['slug'])) {
           <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php  echo urlencode($shareUrl); ?>&title=<?php echo urlencode($title); ?>" target="_blank" rel="noopener" title="Share on LinkedIn">
             <i class="bi bi-linkedin"></i>
           </a>
-<<<<<<< HEAD
 
           
          <?php if ($activeLog == 1): ?>
@@ -288,8 +267,6 @@ if (isset($_GET['slug'])) {
                       </a>
 
                     <?php endif; ?>
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
           </div>
         
           </div><!-- End meta bottom -->
@@ -299,7 +276,6 @@ if (isset($_GET['slug'])) {
 
             </div>
           </section><!-- /Blog Details Section -->
-<<<<<<< HEAD
 
    <div class="mt-4 p-3 border rounded">
     <h6>Was this helpful?</h6>
@@ -323,8 +299,6 @@ if (isset($_GET['slug'])) {
     <div id="feedback-response" class="mt-2 text-info" style="display:none;"></div>
 </div>
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
            <!-- Blog Comments Section -->
 <section id="blog-comments" class="blog-comments section">
   <div class="container">
@@ -341,11 +315,7 @@ if (isset($_GET['slug'])) {
             foreach ($comments as $comment) {
                 $username = trim(($comment->first_name ?? '') . ' ' . ($comment->last_name ?? ''));
                 $avatar = $siteurl . $imagePath . ($comment->photo ?? 'default.png');
-<<<<<<< HEAD
                 $commentText = $comment->comment;
-=======
-                $commentText = htmlspecialchars($comment->comment);
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 $commentID = $comment->id;
                 $user_id = $comment->user_id;
                 $created_date = date('F d, Y \a\t h:i A', strtotime($comment->created_at));
@@ -411,10 +381,6 @@ if (isset($_GET['slug'])) {
     }
     ?>
   </div>
-<<<<<<< HEAD
-=======
-  
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 </section>
 
               
@@ -465,10 +431,6 @@ if (isset($_GET['slug'])) {
 
 </div>
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         <div class="col-lg-4 sidebar">
 
           <div class="widgets-container">
@@ -506,7 +468,6 @@ if (isset($_GET['slug'])) {
       $isTruncated = (str_word_count(strip_tags($bio)) > 10);
     ?>
 
-<<<<<<< HEAD
     <div class="mt-3 text-center bio-text">
   
   <!-- Short Bio: OK to stay as span -->
@@ -522,31 +483,16 @@ if (isset($_GET['slug'])) {
   <?php endif; ?>
 
 </div>
-=======
-    <p class="mt-3 text-center bio-text">
-      <span class="bio-short"><?php echo $shortBio; ?></span>
-      <?php if ($isTruncated): ?>
-        <span class="bio-full d-none"><?php echo $bio; ?></span>
-        <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-      <?php endif; ?>
-    </p>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
   </div>
 </div><!--/Blog Author Widget -->
 
             <!-- Search Widget -->
-<<<<<<< HEAD
              <!---
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             <div class="search-widget widget-item">
 
               <h3 class="widget-title">Categories</h3>
              <?php
-<<<<<<< HEAD
              /*
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         $url = $siteurl . "script/user.php?action=categorieslistbygroup&group_id=" . $group_id;
         $data = curl_get_contents($url);
 
@@ -567,15 +513,10 @@ if (isset($_GET['slug'])) {
         } else {
             echo '<li>Unable to load categories.</li>';
         }
-<<<<<<< HEAD
             */
         ?>
 
             </div>Search Widget -->
-=======
-        ?>
-            </div><!--/Search Widget -->
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
             <!-- Recent Posts Widget -->
             <div class="recent-posts-widget widget-item">
@@ -593,11 +534,7 @@ if ($data !== false) {
         $count = 0; // counter
         foreach ($blogs as $blog) {
             // ✅ Only display blogs where status is "active"
-<<<<<<< HEAD
             if (isset($blog->status) && strtolower($blog->status) === 'active' && $blog->group_id === $group_id) {
-=======
-            if (isset($blog->status) && strtolower($blog->status) === 'active') {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 $blogId = $blog->id;
                 $title = $blog->title;
                 $category = $blog->category_names;
@@ -606,11 +543,7 @@ if ($data !== false) {
                 $content = limitWords($blog->article, 5);
                 $date = date('M d, Y', strtotime($blog->created_at));
                 $blogimage = $siteurl . $imagePath . $blog->featured_image;
-<<<<<<< HEAD
                 $blogslug = $blog->slug;
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 // Display your blog HTML here
                 ?>
 
@@ -619,11 +552,7 @@ if ($data !== false) {
               <div class="post-item">
                 <img src="<?php echo $blogimage; ?>" alt="" class="flex-shrink-0">
                 <div>
-<<<<<<< HEAD
                   <h4><a href="<?php echo $siteurl. 'single-blog/' . $blogslug . '/' . $group_slug ; ?>"><?php echo $title; ?></a></h4>
-=======
-                  <h4><a href="blog-details.html"><?php echo $title; ?></a></h4>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                   <time datetime="2020-01-01"><?php echo $date; ?> </time>
                 </div>
               </div><!-- End recent post item-->

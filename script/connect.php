@@ -12,11 +12,6 @@ ini_set('log_errors', 1);
 $db_username = "marriage_project"; 
 $db_pass = ")s2bF7dP]VB1w3"; 
 $db_name = "marriage_hub";
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 $db_name = "marriage_hub_ng";
 $db_username = "root"; 
 $db_pass = ""; 
@@ -40,18 +35,10 @@ $db_username = "root";
 
 */
 
-<<<<<<< HEAD
 $db_host = "localhost";
 $db_name = "marriage_hub_ng";
 $db_username = "root"; 
 $db_pass = ""; 
-=======
-// ✅ Database credentials
-$db_host = "localhost";
-$db_username = "marriage_project"; 
-$db_pass = ")s2bF7dP]VB1w3"; 
-$db_name = "marriage_hub";
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 // ✅ Avoid multiple connections
 if (!isset($con) || !$con instanceof mysqli || !$con->ping()) {
@@ -112,11 +99,7 @@ if ($sql2 && mysqli_num_rows($sql2) > 0) {
     $minimum_withdrawal  = $row["minimum_withdrawal"];
     $google_map    = $row["google_map"];
     $site_address = $row["site_address"];
-<<<<<<< HEAD
     $brevokey = $row["brevo_key"];
-=======
-  //  $brevokey = $row["brevo_key"];
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     $sitekeywords = $row["site_keywords"];
 }
 

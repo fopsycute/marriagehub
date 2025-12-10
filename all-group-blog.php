@@ -173,11 +173,7 @@ if ($data !== false) {
   <td><?php echo $date; ?></td>
   <td><span class="badge bg-<?php echo $statuslog; ?>"><?php echo ucfirst($status); ?></span></td>
   <td>
-<<<<<<< HEAD
     <a href='<?php echo $siteurl; ?>edit-group-blog.php?blog_id=<?php echo $blogId; ?>' class='btn btn-link btn-primary btn-lg' title='Edit'>
-=======
-    <a href='edit-group-blog.php?blog_id=<?php echo $blogId; ?>' class='btn btn-link btn-primary btn-lg' title='Edit'>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
       <i class='bi bi-pencil'></i>
     </a>
     <a href='#' id='<?php echo $blogId; ?>' class='btn btn-link btn-danger deleteblog' title='Delete'>

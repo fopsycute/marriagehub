@@ -3,12 +3,7 @@ $(document).ready(function() {
     $('.select-multiple').select2({
         placeholder: "Select an option",
         allowClear: true,
-<<<<<<< HEAD
         width: '100%'
-=======
-        width: '100%',
-        closeOnSelect: false  // Keep dropdown open for multiple selections
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     });
 });
 
@@ -22,13 +17,6 @@ $(document).ready(function() {
         var ajaxUrl = siteUrl + "script/register.php"; // build full path
 
         if (selectedCategories && selectedCategories.length > 0) {
-<<<<<<< HEAD
-=======
-            // Store currently selected subcategories before clearing
-            let $subcategory = $('#subcategory');
-            let currentlySelected = $subcategory.val() || [];
-            
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             $.ajax({
                 url: ajaxUrl,
                 method: "GET",
@@ -38,10 +26,7 @@ $(document).ready(function() {
                 },
                 dataType: "json",
                 success: function (response) {
-<<<<<<< HEAD
                     let $subcategory = $('#subcategory');
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                     $subcategory.empty(); // clear old options
 
                     if (response.length > 0) {
@@ -53,17 +38,6 @@ $(document).ready(function() {
                                 })
                             );
                         });
-<<<<<<< HEAD
-=======
-                        
-                        // Restore previously selected values that still exist in new options
-                        let validSelections = currentlySelected.filter(val => 
-                            response.some(subcat => subcat.id == val)
-                        );
-                        if (validSelections.length > 0) {
-                            $subcategory.val(validSelections);
-                        }
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                     } else {
                         $subcategory.append('<option value="">No subcategories found</option>');
                     }
@@ -724,7 +698,6 @@ $(document).ready(function () {
 });
 
 
-<<<<<<< HEAD
 
 $(document).ready(function () {
     $('#groupeditForum').off('submit').on('submit', function (e) {
@@ -789,8 +762,6 @@ $(document).ready(function () {
 });
 
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 // update booking
 
 

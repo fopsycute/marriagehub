@@ -3,10 +3,6 @@ $requireLogin = true;
 include "header.php"; 
 ?>
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 <section>
           <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">

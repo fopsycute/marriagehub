@@ -30,12 +30,8 @@ if (isset($_GET['slug'])) {
     header("Location: $siteurl");
     exit;
 }
-<<<<<<< HEAD
 // Determine if user can manage blog status
 $canManageStatus = false;
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 // Your site API URL
  $sitelink = $siteurl . "script/";
             // ✅ Get Group Slug & Creator ID from groups table
@@ -72,35 +68,23 @@ $canManageStatus = false;
                 // ✅ CASE 1: Admin — always has access
                 if ($adminAuth) {
                     $buyerId = $adminAuth;
-<<<<<<< HEAD
                     $canManageStatus = true; // Creato
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 2: Vendor — if the vendor is the group creator
                 elseif ($vendorAuth == $groupCreatorId) {
                     $buyerId = $vendorAuth;
-<<<<<<< HEAD
                        $canManageStatus = true; // Creato
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 3: Regular user — if the user is the group creator
                 elseif ($userAuth == $groupCreatorId) {
                     $buyerId = $userAuth;
-<<<<<<< HEAD
                        $canManageStatus = true; // Creato
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 
                 elseif ($therapistAuth == $groupCreatorId) {
                     $buyerId = $therapistAuth;
-<<<<<<< HEAD
                        $canManageStatus = true; // Creato
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 $activeLog = 1;
@@ -116,13 +100,10 @@ $canManageStatus = false;
                         $memberResult = json_decode($memberData, true);
                         if (!empty($memberResult[0]) && strtolower($memberResult[0]['status']) === 'active' && ($memberResult[0]['role'] == 'admin' || $memberResult[0]['role'] == 'subadmin')) {
                             $canAccess = true;
-<<<<<<< HEAD
                             $userRole = $memberResult[0]['role'];
                     if ($userRole == "admin" || $userRole == "subadmin") {
                 $canManageStatus = true;
                   }   
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                         }
                     }
                 }
@@ -232,7 +213,6 @@ $canManageStatus = false;
               <label for="blogTags">Tags</label>
               <input type="text"name="tags" id="tags" class="form-control" placeholder="Add tags (comma separated)">
             </div>
-<<<<<<< HEAD
             <?php if ($canManageStatus): ?>
     <!-- Show dropdown only for creator/admin/subadmin -->
           <div class="form-group mb-2">
@@ -246,9 +226,6 @@ $canManageStatus = false;
           <!-- Regular members → always pending -->
           <input type="hidden" name="status" value="pending">
       <?php endif; ?>
-=======
-            <input type="hidden" name="status" value="pending">
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
               <input type="hidden" name="user" value="<?php echo $buyerId; ?>">
               <div class="form-group">

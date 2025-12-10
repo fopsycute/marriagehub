@@ -1,8 +1,4 @@
 <?php
-<<<<<<< HEAD
-=======
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 include "connect.php";
 
 
@@ -109,7 +105,6 @@ while (true) {
     }
 }
 
-<<<<<<< HEAD
 function updategroupBlogEndpoint($postData, $fileData)
 {
     global $con, $siteprefix, $siteName, $siteurl, $siteMail;
@@ -328,24 +323,17 @@ function updategroupBlogEndpoint($postData, $fileData)
     // ---------------------------------------------------
     return ['status' => 'success', 'messages' => "Blog updated successfully!"];
 }
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 
 
 function groupforumEndpoint($postData, $fileData)
 {
-<<<<<<< HEAD
     global $con, $siteprefix, $siteName, $siteMail, $siteurl;
-=======
-    global $con, $siteprefix;
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     // Sanitize inputs
     $title         = mysqli_real_escape_string($con, trim($postData['title'] ?? ''));
     $article       = mysqli_real_escape_string($con, trim($postData['article'] ?? ''));
     $tags          = mysqli_real_escape_string($con, trim($postData['tags'] ?? ''));
-<<<<<<< HEAD
     $status        = mysqli_real_escape_string($con, trim($postData['status'] ?? ''));
     $user          = intval($postData['user'] ?? 0);
     $group_id      = intval($postData['group_id'] ?? 0);
@@ -379,43 +367,6 @@ function groupforumEndpoint($postData, $fileData)
 
     // Validation
     if (empty($title)  || $user == 0 || $group_id == 0) {
-=======
-    $status         = mysqli_real_escape_string($con, trim($postData['status'] ?? ''));
-    $user          = intval($postData['user'] ?? 0);
-    $group_id      = $postData['group_id'];
-    $categories    = isset($postData['category']) && is_array($postData['category']) ? implode(',', $postData['category']) : '';
-    $subcategories = isset($postData['subcategory']) && is_array($postData['subcategory']) ? implode(',', $postData['subcategory']) : '';
-
-
-// Replace spaces with hyphens and convert to lowercase
-$baseSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $title), '-'));
-
-
-// Start with the cleaned slug
-$alt_title = $baseSlug;
-$counter = 1;
-
-// Ensure the alt_title is unique
-while (true) {
-    $query = "SELECT COUNT(*) AS count FROM " . $siteprefix . "forums WHERE slug = ?";
-    $stmt = $con->prepare($query);
-    $stmt->bind_param("s", $alt_title);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-
-    if ($row['count'] == 0) {
-        break; // alt_title is unique
-    }
-
-    // Append counter to baseSlug if not unique
-    $alt_title = $baseSlug . '-' . $counter;
-    $counter++;
-}
-  
-    // Validation
-    if (empty($title) || empty($article) || $user == 0) {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         return ['status' => 'error', 'messages' => generateMessage("All required fields must be filled.", "red")];
     }
 
@@ -427,11 +378,7 @@ while (true) {
         AND created_at >= (NOW() - INTERVAL 10 SECOND)
         LIMIT 1
     ");
-<<<<<<< HEAD
     if ($duplicateCheck && mysqli_num_rows($duplicateCheck) > 0) {
-=======
-    if (mysqli_num_rows($duplicateCheck) > 0) {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         return ['status' => 'error', 'messages' => generateMessage("Duplicate submission detected. Please wait a few seconds before trying again.", "red")];
     }
 
@@ -457,15 +404,9 @@ while (true) {
     }
 
     // Insert into DB
-<<<<<<< HEAD
     $insertQuery = "
         INSERT INTO {$siteprefix}forums 
         (user_id, title, article, featured_image, tags, categories, subcategories, group_id, created_at, slug, status)
-=======
-    $query = "
-        INSERT INTO {$siteprefix}forums 
-        (user_id, title, article, featured_image, tags, categories, subcategories, group_id, created_at,slug,status)
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         VALUES (
             '$user',
             '$title',
@@ -475,7 +416,6 @@ while (true) {
             '$categories',
             '$subcategories',
             '$group_id',
-<<<<<<< HEAD
             NOW(),
             '$alt_title',
             '$status'
@@ -663,20 +603,6 @@ while (true) {
     return ['status' => 'success', 'messages' => "Forum post created successfully!"];
 }
 
-=======
-            NOW(),'$alt_title','$status'
-        )
-    ";
-
-    if (mysqli_query($con, $query)) {
-        return ['status' => 'success', 'messages' => "Forum post created successfully!"];
-    } else {
-        return ['status' => 'error', 'messages' => generateMessage("Database error: " . mysqli_error($con), "red")];
-    }
-}
-
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 // update event
 function userupdateeventsEndpoint($postData, $fileData)
 {
@@ -1083,13 +1009,8 @@ function usereventsEndpoint($postData, $fileData)
     $subcategory = isset($postData['subcategory']) && is_array($postData['subcategory']) ? implode(',', $postData['subcategory']) : '';
     $delivery_format = mysqli_real_escape_string($con, trim($postData['delivery_format'] ?? ''));
     $pricing_type    = mysqli_real_escape_string($con, trim($postData['pricing_type'] ?? ''));
-<<<<<<< HEAD
     $status          = mysqli_real_escape_string($con, trim($postData['status'] ?? 'active'));
     $event_id = mysqli_real_escape_string($con, trim($postData['event_id']));
-=======
-    $status          = mysqli_real_escape_string($con, trim($postData['status'] ?? 'pending')); // Default to pending for admin approval
-    $event_id         = mysqli_real_escape_string($con, trim($postData['event_id']));
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     $user_id         = intval($postData['user'] ?? 0);
     
 
@@ -2034,10 +1955,6 @@ function getallblog($con)
 
     // ✅ Join forums with users table
     // ✅ Fetch all matching category/subcategory names using GROUP_CONCAT
-<<<<<<< HEAD
-=======
-    // ✅ Only return approved blogs for public display
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     $query = "
         SELECT 
             f.*, 
@@ -2058,10 +1975,6 @@ function getallblog($con)
         FROM {$siteprefix}forums AS f
         LEFT JOIN {$siteprefix}users AS u 
             ON f.user_id = u.id
-<<<<<<< HEAD
-=======
-        WHERE f.status = 'approved'
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         ORDER BY f.created_at DESC
     ";
 
@@ -2313,723 +2226,6 @@ function getDashboardStats($con) {
     ];
 }
 
-<<<<<<< HEAD
-=======
-/**
- * Get comprehensive analytics for admin dashboard
- */
-function getAdvancedAnalyticsEndpoint($period = '30') {
-    global $con, $siteprefix;
-    
-    $days = intval($period);
-    $startDate = date('Y-m-d', strtotime("-{$days} days"));
-    
-    // User growth analytics
-    $userGrowthQuery = "
-        SELECT 
-            DATE(created_at) as date,
-            COUNT(*) as count,
-            user_type
-        FROM {$siteprefix}users 
-        WHERE DATE(created_at) >= '$startDate'
-        GROUP BY DATE(created_at), user_type
-        ORDER BY DATE(created_at) ASC
-    ";
-    $userGrowthResult = mysqli_query($con, $userGrowthQuery);
-    $userGrowth = [];
-    while ($row = mysqli_fetch_assoc($userGrowthResult)) {
-        $userGrowth[] = $row;
-    }
-    
-    // Revenue analytics
-    $revenueQuery = "
-        SELECT 
-            DATE(date) as date,
-            SUM(total_amount) as revenue,
-            COUNT(*) as order_count
-        FROM {$siteprefix}orders 
-        WHERE status = 'paid' AND DATE(date) >= '$startDate'
-        GROUP BY DATE(date)
-        ORDER BY DATE(date) ASC
-    ";
-    $revenueResult = mysqli_query($con, $revenueQuery);
-    $revenue = [];
-    while ($row = mysqli_fetch_assoc($revenueResult)) {
-        $revenue[] = $row;
-    }
-    
-    // Popular content (most viewed blogs)
-    $popularBlogsQuery = "
-        SELECT 
-            f.id, 
-            f.title, 
-            f.views, 
-            f.slug,
-            u.first_name,
-            u.last_name,
-            (SELECT COUNT(*) FROM {$siteprefix}likes WHERE content_id = f.id AND content_type = 'blog') as likes
-        FROM {$siteprefix}forums f
-        LEFT JOIN {$siteprefix}users u ON f.user_id = u.id
-        WHERE f.status = 'active'
-        ORDER BY f.views DESC
-        LIMIT 10
-    ";
-    $popularBlogs = [];
-    $result = mysqli_query($con, $popularBlogsQuery);
-    while ($row = mysqli_fetch_assoc($result)) {
-        $popularBlogs[] = $row;
-    }
-    
-    // Popular questions
-    $popularQuestionsQuery = "
-        SELECT 
-            f.id, 
-            f.title, 
-            f.views, 
-            f.slug,
-            u.first_name,
-            u.last_name,
-            (SELECT COUNT(*) FROM {$siteprefix}answers WHERE question_id = f.slug) as answer_count
-        FROM {$siteprefix}forums f
-        LEFT JOIN {$siteprefix}users u ON f.user_id = u.id
-        WHERE f.status = 'approved'
-        ORDER BY f.views DESC
-        LIMIT 10
-    ";
-    $popularQuestions = [];
-    $result = mysqli_query($con, $popularQuestionsQuery);
-    while ($row = mysqli_fetch_assoc($result)) {
-        $popularQuestions[] = $row;
-    }
-    
-    // Booking statistics
-    $bookingStatsQuery = "
-        SELECT 
-            booking_status as status,
-            COUNT(*) as count,
-            SUM(amount) as total_amount
-        FROM {$siteprefix}bookings
-        WHERE DATE(created_at) >= '$startDate'
-        GROUP BY booking_status
-    ";
-    $bookingStats = [];
-    $result = mysqli_query($con, $bookingStatsQuery);
-    while ($row = mysqli_fetch_assoc($result)) {
-        $bookingStats[] = $row;
-    }
-    
-    // Top therapists by bookings
-    $topTherapistsQuery = "
-        SELECT 
-            u.id,
-            u.first_name,
-            u.last_name,
-            u.photo,
-            COUNT(b.id) as booking_count,
-            SUM(b.amount) as total_earnings
-        FROM {$siteprefix}users u
-        LEFT JOIN {$siteprefix}bookings b ON u.id = b.therapist_id
-        WHERE u.user_type = 'therapist' AND DATE(b.created_at) >= '$startDate'
-        GROUP BY u.id
-        ORDER BY booking_count DESC
-        LIMIT 10
-    ";
-    $topTherapists = [];
-    $result = mysqli_query($con, $topTherapistsQuery);
-    while ($row = mysqli_fetch_assoc($result)) {
-        $topTherapists[] = $row;
-    }
-    
-    // Top vendors by sales
-    $topVendorsQuery = "
-        SELECT 
-            u.id,
-            u.first_name,
-            u.last_name,
-            u.photo,
-            COUNT(DISTINCT o.order_id) as order_count,
-            SUM(o.total_amount) as total_sales
-        FROM {$siteprefix}users u
-        LEFT JOIN {$siteprefix}orders o ON u.id = o.user
-        WHERE u.user_type = 'vendor' AND o.status = 'paid' AND DATE(o.date) >= '$startDate'
-        GROUP BY u.id
-        ORDER BY total_sales DESC
-        LIMIT 10
-    ";
-    $topVendors = [];
-    $result = mysqli_query($con, $topVendorsQuery);
-    while ($row = mysqli_fetch_assoc($result)) {
-        $topVendors[] = $row;
-    }
-    
-    // Engagement metrics
-    $engagementQuery = "
-        SELECT 
-            (SELECT COUNT(*) FROM {$siteprefix}forums WHERE DATE(created_at) >= '$startDate') as new_blogs,
-            (SELECT COUNT(*) FROM {$siteprefix}forums WHERE status = 'approved' AND DATE(created_at) >= '$startDate') as new_questions,
-            (SELECT COUNT(*) FROM {$siteprefix}answers WHERE DATE(created_at) >= '$startDate') as new_answers,
-            (SELECT COUNT(*) FROM {$siteprefix}reviews WHERE DATE(created_at) >= '$startDate') as new_reviews,
-            (SELECT COUNT(*) FROM {$siteprefix}likes WHERE DATE(created_at) >= '$startDate') as new_likes
-    ";
-    $engagement = mysqli_fetch_assoc(mysqli_query($con, $engagementQuery));
-    
-    return [
-        'status' => 'success',
-        'period_days' => $days,
-        'start_date' => $startDate,
-        'user_growth' => $userGrowth,
-        'revenue_trend' => $revenue,
-        'popular_blogs' => $popularBlogs,
-        'popular_questions' => $popularQuestions,
-        'booking_stats' => $bookingStats,
-        'top_therapists' => $topTherapists,
-        'top_vendors' => $topVendors,
-        'engagement_metrics' => $engagement
-    ];
-}
-
-/**
- * Advanced search for therapists with filters
- */
-function searchTherapistsAdvancedEndpoint($filters) {
-    global $con, $siteprefix;
-    
-    $conditions = ["u.user_type = 'therapist'", "u.status = 'active'"];
-    
-    // Specialization filter
-    if (!empty($filters['specialization'])) {
-        $spec = mysqli_real_escape_string($con, $filters['specialization']);
-        $conditions[] = "FIND_IN_SET('$spec', u.specializations)";
-    }
-    
-    // Rate range filter
-    if (!empty($filters['min_rate'])) {
-        $minRate = floatval($filters['min_rate']);
-        $conditions[] = "CAST(u.rate AS DECIMAL(10,2)) >= $minRate";
-    }
-    if (!empty($filters['max_rate'])) {
-        $maxRate = floatval($filters['max_rate']);
-        $conditions[] = "CAST(u.rate AS DECIMAL(10,2)) <= $maxRate";
-    }
-    
-    // Location filter
-    if (!empty($filters['location'])) {
-        $location = mysqli_real_escape_string($con, $filters['location']);
-        $conditions[] = "u.address LIKE '%$location%'";
-    }
-    
-    // Availability filter (has no unavailable dates in next 7 days)
-    if (isset($filters['available_now']) && $filters['available_now'] == '1') {
-        $conditions[] = "u.id NOT IN (
-            SELECT therapist_id FROM {$siteprefix}therapist_unavailable 
-            WHERE unavailable_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-        )";
-    }
-    
-    // Rating filter
-    if (!empty($filters['min_rating'])) {
-        $minRating = floatval($filters['min_rating']);
-        // This assumes avg_rating is calculated and stored
-        $conditions[] = "(
-            SELECT IFNULL(ROUND(AVG(CAST(rating AS DECIMAL(5,2))),2),0) 
-            FROM {$siteprefix}reviews 
-            WHERE therapist_id = u.id
-        ) >= $minRating";
-    }
-    
-    // Experience years filter
-    if (!empty($filters['min_experience'])) {
-        $minExp = intval($filters['min_experience']);
-        $conditions[] = "CAST(u.experience_years AS UNSIGNED) >= $minExp";
-    }
-    
-    $whereClause = implode(' AND ', $conditions);
-    
-    // Order by
-    $orderBy = "u.created_at DESC";
-    if (!empty($filters['sort_by'])) {
-        switch ($filters['sort_by']) {
-            case 'rate_low':
-                $orderBy = "CAST(u.rate AS DECIMAL(10,2)) ASC";
-                break;
-            case 'rate_high':
-                $orderBy = "CAST(u.rate AS DECIMAL(10,2)) DESC";
-                break;
-            case 'rating':
-                $orderBy = "avg_rating DESC";
-                break;
-            case 'experience':
-                $orderBy = "CAST(u.experience_years AS UNSIGNED) DESC";
-                break;
-        }
-    }
-    
-    $query = "
-        SELECT 
-            u.*,
-            (
-                SELECT IFNULL(ROUND(AVG(CAST(rating AS DECIMAL(5,2))),2),0) 
-                FROM {$siteprefix}reviews 
-                WHERE therapist_id = u.id
-            ) as avg_rating,
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}reviews 
-                WHERE therapist_id = u.id
-            ) as review_count
-        FROM {$siteprefix}users u
-        WHERE $whereClause
-        ORDER BY $orderBy
-        LIMIT 50
-    ";
-    
-    $result = mysqli_query($con, $query);
-    $therapists = [];
-    
-    while ($row = mysqli_fetch_assoc($result)) {
-        $therapists[] = $row;
-    }
-    
-    return ['status' => 'success', 'results' => $therapists, 'count' => count($therapists)];
-}
-
-/**
- * Advanced search for products with filters
- */
-function searchProductsAdvancedEndpoint($filters) {
-    global $con, $siteprefix;
-    
-    $conditions = ["p.status = 'active'"];
-    
-    // Price range filter
-    if (!empty($filters['min_price'])) {
-        $minPrice = floatval($filters['min_price']);
-        $conditions[] = "CAST(p.price AS DECIMAL(10,2)) >= $minPrice";
-    }
-    if (!empty($filters['max_price'])) {
-        $maxPrice = floatval($filters['max_price']);
-        $conditions[] = "CAST(p.price AS DECIMAL(10,2)) <= $maxPrice";
-    }
-    
-    // Category filter
-    if (!empty($filters['category'])) {
-        $category = mysqli_real_escape_string($con, $filters['category']);
-        $conditions[] = "FIND_IN_SET('$category', p.categories)";
-    }
-    
-    // Rating filter
-    if (!empty($filters['min_rating'])) {
-        $minRating = floatval($filters['min_rating']);
-        $conditions[] = "(
-            SELECT IFNULL(ROUND(AVG(CAST(rating AS DECIMAL(5,2))),2),0) 
-            FROM {$siteprefix}reviews 
-            WHERE product_id = p.id
-        ) >= $minRating";
-    }
-    
-    // Vendor filter
-    if (!empty($filters['vendor_id'])) {
-        $vendorId = intval($filters['vendor_id']);
-        $conditions[] = "p.user_id = $vendorId";
-    }
-    
-    // In stock filter
-    if (isset($filters['in_stock']) && $filters['in_stock'] == '1') {
-        $conditions[] = "(p.stock IS NULL OR CAST(p.stock AS UNSIGNED) > 0)";
-    }
-    
-    // Search query
-    if (!empty($filters['search'])) {
-        $search = mysqli_real_escape_string($con, $filters['search']);
-        $conditions[] = "(p.title LIKE '%$search%' OR p.description LIKE '%$search%')";
-    }
-    
-    $whereClause = implode(' AND ', $conditions);
-    
-    // Order by
-    $orderBy = "p.created_at DESC";
-    if (!empty($filters['sort_by'])) {
-        switch ($filters['sort_by']) {
-            case 'price_low':
-                $orderBy = "CAST(p.price AS DECIMAL(10,2)) ASC";
-                break;
-            case 'price_high':
-                $orderBy = "CAST(p.price AS DECIMAL(10,2)) DESC";
-                break;
-            case 'rating':
-                $orderBy = "avg_rating DESC";
-                break;
-            case 'popular':
-                $orderBy = "p.views DESC";
-                break;
-        }
-    }
-    
-    $query = "
-        SELECT 
-            p.*,
-            u.first_name,
-            u.last_name,
-            (
-                SELECT IFNULL(ROUND(AVG(CAST(rating AS DECIMAL(5,2))),2),0) 
-                FROM {$siteprefix}reviews 
-                WHERE product_id = p.id
-            ) as avg_rating,
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}reviews 
-                WHERE product_id = p.id
-            ) as review_count
-        FROM {$siteprefix}products p
-        LEFT JOIN {$siteprefix}users u ON p.user_id = u.id
-        WHERE $whereClause
-        ORDER BY $orderBy
-        LIMIT 50
-    ";
-    
-    $result = mysqli_query($con, $query);
-    $products = [];
-    
-    while ($row = mysqli_fetch_assoc($result)) {
-        $products[] = $row;
-    }
-    
-    return ['status' => 'success', 'results' => $products, 'count' => count($products)];
-}
-
-/**
- * Advanced search for content (blogs/questions) with filters
- */
-function searchContentAdvancedEndpoint($filters) {
-    global $con, $siteprefix;
-    
-    $type = $filters['type'] ?? 'all'; // 'blog', 'question', or 'all'
-    $conditions = [];
-    
-    // Type filter
-    if ($type === 'blog') {
-        $conditions[] = "f.status = 'active'";
-    } elseif ($type === 'question') {
-        $conditions[] = "f.status = 'approved'";
-    }
-    
-    // Date range filter
-    if (!empty($filters['from_date'])) {
-        $fromDate = mysqli_real_escape_string($con, $filters['from_date']);
-        $conditions[] = "DATE(f.created_at) >= '$fromDate'";
-    }
-    if (!empty($filters['to_date'])) {
-        $toDate = mysqli_real_escape_string($con, $filters['to_date']);
-        $conditions[] = "DATE(f.created_at) <= '$toDate'";
-    }
-    
-    // Category filter
-    if (!empty($filters['category'])) {
-        $category = mysqli_real_escape_string($con, $filters['category']);
-        $conditions[] = "FIND_IN_SET('$category', f.categories)";
-    }
-    
-    // Author filter
-    if (!empty($filters['author_id'])) {
-        $authorId = intval($filters['author_id']);
-        $conditions[] = "f.user_id = $authorId";
-    }
-    
-    // Search query
-    if (!empty($filters['search'])) {
-        $search = mysqli_real_escape_string($con, $filters['search']);
-        $conditions[] = "(f.title LIKE '%$search%' OR f.article LIKE '%$search%')";
-    }
-    
-    // Minimum views filter
-    if (!empty($filters['min_views'])) {
-        $minViews = intval($filters['min_views']);
-        $conditions[] = "CAST(f.views AS UNSIGNED) >= $minViews";
-    }
-    
-    $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
-    
-    // Order by
-    $orderBy = "f.created_at DESC";
-    if (!empty($filters['sort_by'])) {
-        switch ($filters['sort_by']) {
-            case 'views':
-                $orderBy = "CAST(f.views AS UNSIGNED) DESC";
-                break;
-            case 'likes':
-                $orderBy = "like_count DESC";
-                break;
-            case 'oldest':
-                $orderBy = "f.created_at ASC";
-                break;
-            case 'title':
-                $orderBy = "f.title ASC";
-                break;
-        }
-    }
-    
-    $query = "
-        SELECT 
-            f.*,
-            u.first_name,
-            u.last_name,
-            u.photo,
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}likes 
-                WHERE content_id = f.id AND content_type = 'blog'
-            ) as like_count,
-            (
-                SELECT COUNT(*) 
-                FROM {$siteprefix}answers 
-                WHERE question_id = f.slug
-            ) as answer_count
-        FROM {$siteprefix}forums f
-        LEFT JOIN {$siteprefix}users u ON f.user_id = u.id
-        $whereClause
-        ORDER BY $orderBy
-        LIMIT 50
-    ";
-    
-    $result = mysqli_query($con, $query);
-    $content = [];
-    
-    while ($row = mysqli_fetch_assoc($result)) {
-        $content[] = $row;
-    }
-    
-    return ['status' => 'success', 'results' => $content, 'count' => count($content)];
-}
-
-/**
- * Create promotional code
- */
-function createPromoCodeEndpoint($postData) {
-    global $con, $siteprefix;
-    
-    $code = strtoupper(mysqli_real_escape_string($con, trim($postData['code'] ?? '')));
-    $vendor_id = intval($postData['vendor_id'] ?? 0);
-    $discount_type = mysqli_real_escape_string($con, $postData['discount_type'] ?? 'percentage');
-    $discount_value = floatval($postData['discount_value'] ?? 0);
-    $min_purchase = floatval($postData['min_purchase'] ?? 0);
-    $max_discount = !empty($postData['max_discount']) ? floatval($postData['max_discount']) : 'NULL';
-    $usage_limit = !empty($postData['usage_limit']) ? intval($postData['usage_limit']) : 'NULL';
-    $valid_from = mysqli_real_escape_string($con, $postData['valid_from'] ?? date('Y-m-d H:i:s'));
-    $valid_until = mysqli_real_escape_string($con, $postData['valid_until'] ?? '');
-    $description = mysqli_real_escape_string($con, trim($postData['description'] ?? ''));
-    $applicable_to = mysqli_real_escape_string($con, $postData['applicable_to'] ?? 'all');
-    
-    // Validation
-    if (empty($code) || !$vendor_id || !$discount_value || empty($valid_until)) {
-        return ['status' => 'error', 'message' => 'Code, vendor, discount value, and expiry date are required'];
-    }
-    
-    if (!in_array($discount_type, ['percentage', 'fixed'])) {
-        return ['status' => 'error', 'message' => 'Invalid discount type'];
-    }
-    
-    if ($discount_type === 'percentage' && ($discount_value < 1 || $discount_value > 100)) {
-        return ['status' => 'error', 'message' => 'Percentage discount must be between 1 and 100'];
-    }
-    
-    // Check if code already exists
-    $checkQuery = "SELECT id FROM {$siteprefix}promo_codes WHERE code = '$code'";
-    if (mysqli_num_rows(mysqli_query($con, $checkQuery)) > 0) {
-        return ['status' => 'error', 'message' => 'Promo code already exists'];
-    }
-    
-    // Insert promo code
-    $insertQuery = "
-        INSERT INTO {$siteprefix}promo_codes 
-        (code, vendor_id, discount_type, discount_value, min_purchase, max_discount, 
-         usage_limit, valid_from, valid_until, description, applicable_to, created_at)
-        VALUES 
-        ('$code', '$vendor_id', '$discount_type', '$discount_value', '$min_purchase', 
-         $max_discount, $usage_limit, '$valid_from', '$valid_until', '$description', '$applicable_to', NOW())
-    ";
-    
-    if (mysqli_query($con, $insertQuery)) {
-        return [
-            'status' => 'success',
-            'message' => 'Promo code created successfully',
-            'promo_id' => mysqli_insert_id($con),
-            'code' => $code
-        ];
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
-/**
- * Validate and apply promo code
- */
-function validatePromoCodeEndpoint($postData) {
-    global $con, $siteprefix;
-    
-    $code = strtoupper(mysqli_real_escape_string($con, trim($postData['code'] ?? '')));
-    $user_id = intval($postData['user_id'] ?? 0);
-    $order_amount = floatval($postData['order_amount'] ?? 0);
-    $order_type = mysqli_real_escape_string($con, $postData['order_type'] ?? 'all');
-    
-    if (empty($code) || !$user_id || !$order_amount) {
-        return ['status' => 'error', 'message' => 'Code, user, and order amount are required'];
-    }
-    
-    // Get promo code details
-    $query = "SELECT * FROM {$siteprefix}promo_codes WHERE code = '$code' LIMIT 1";
-    $result = mysqli_query($con, $query);
-    
-    if (mysqli_num_rows($result) == 0) {
-        return ['status' => 'error', 'message' => 'Invalid promo code'];
-    }
-    
-    $promo = mysqli_fetch_assoc($result);
-    
-    // Check if active
-    if ($promo['status'] !== 'active') {
-        return ['status' => 'error', 'message' => 'Promo code is not active'];
-    }
-    
-    // Check validity dates
-    $now = date('Y-m-d H:i:s');
-    if ($now < $promo['valid_from']) {
-        return ['status' => 'error', 'message' => 'Promo code is not yet valid'];
-    }
-    if ($now > $promo['valid_until']) {
-        return ['status' => 'error', 'message' => 'Promo code has expired'];
-    }
-    
-    // Check usage limit
-    if ($promo['usage_limit'] !== null && $promo['usage_count'] >= $promo['usage_limit']) {
-        return ['status' => 'error', 'message' => 'Promo code usage limit reached'];
-    }
-    
-    // Check minimum purchase
-    if ($order_amount < $promo['min_purchase']) {
-        return [
-            'status' => 'error',
-            'message' => 'Minimum purchase of ₦' . number_format($promo['min_purchase'], 2) . ' required'
-        ];
-    }
-    
-    // Check applicable type
-    if ($promo['applicable_to'] !== 'all' && $promo['applicable_to'] !== $order_type) {
-        return [
-            'status' => 'error',
-            'message' => 'Promo code only applicable to ' . $promo['applicable_to']
-        ];
-    }
-    
-    // Calculate discount
-    $discount_amount = 0;
-    if ($promo['discount_type'] === 'percentage') {
-        $discount_amount = ($order_amount * $promo['discount_value']) / 100;
-        
-        // Apply max discount cap if set
-        if ($promo['max_discount'] !== null && $discount_amount > $promo['max_discount']) {
-            $discount_amount = $promo['max_discount'];
-        }
-    } else {
-        $discount_amount = $promo['discount_value'];
-    }
-    
-    // Ensure discount doesn't exceed order amount
-    if ($discount_amount > $order_amount) {
-        $discount_amount = $order_amount;
-    }
-    
-    $final_amount = $order_amount - $discount_amount;
-    
-    return [
-        'status' => 'success',
-        'message' => 'Promo code applied successfully',
-        'promo_id' => $promo['id'],
-        'code' => $code,
-        'discount_type' => $promo['discount_type'],
-        'discount_value' => $promo['discount_value'],
-        'discount_amount' => round($discount_amount, 2),
-        'original_amount' => round($order_amount, 2),
-        'final_amount' => round($final_amount, 2),
-        'savings' => round($discount_amount, 2)
-    ];
-}
-
-/**
- * Record promo code usage after successful order
- */
-function recordPromoUsageEndpoint($postData) {
-    global $con, $siteprefix;
-    
-    $promo_code_id = intval($postData['promo_code_id'] ?? 0);
-    $user_id = intval($postData['user_id'] ?? 0);
-    $order_id = mysqli_real_escape_string($con, trim($postData['order_id'] ?? ''));
-    $discount_amount = floatval($postData['discount_amount'] ?? 0);
-    $order_amount = floatval($postData['order_amount'] ?? 0);
-    
-    if (!$promo_code_id || !$user_id || empty($order_id)) {
-        return ['status' => 'error', 'message' => 'Promo ID, user, and order ID are required'];
-    }
-    
-    // Record usage
-    $insertQuery = "
-        INSERT INTO {$siteprefix}promo_usage 
-        (promo_code_id, user_id, order_id, discount_amount, order_amount, used_at)
-        VALUES 
-        ('$promo_code_id', '$user_id', '$order_id', '$discount_amount', '$order_amount', NOW())
-    ";
-    
-    if (mysqli_query($con, $insertQuery)) {
-        // Increment usage count
-        $updateQuery = "UPDATE {$siteprefix}promo_codes 
-                        SET usage_count = usage_count + 1 
-                        WHERE id = '$promo_code_id'";
-        mysqli_query($con, $updateQuery);
-        
-        return ['status' => 'success', 'message' => 'Promo usage recorded'];
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
-/**
- * Get vendor's promo codes
- */
-function getVendorPromoCodesEndpoint($vendor_id) {
-    global $con, $siteprefix;
-    
-    $vendor_id = intval($vendor_id);
-    if (!$vendor_id) {
-        return ['status' => 'error', 'message' => 'Vendor ID is required'];
-    }
-    
-    $query = "
-        SELECT 
-            pc.*,
-            (SELECT COUNT(*) FROM {$siteprefix}promo_usage WHERE promo_code_id = pc.id) as total_uses,
-            (SELECT COALESCE(SUM(discount_amount), 0) FROM {$siteprefix}promo_usage WHERE promo_code_id = pc.id) as total_discount_given
-        FROM {$siteprefix}promo_codes pc
-        WHERE pc.vendor_id = '$vendor_id'
-        ORDER BY pc.created_at DESC
-    ";
-    
-    $result = mysqli_query($con, $query);
-    $promoCodes = [];
-    
-    while ($row = mysqli_fetch_assoc($result)) {
-        // Auto-update expired status
-        if ($row['status'] === 'active' && $row['valid_until'] < date('Y-m-d H:i:s')) {
-            mysqli_query($con, "UPDATE {$siteprefix}promo_codes SET status = 'expired' WHERE id = '{$row['id']}'");
-            $row['status'] = 'expired';
-        }
-        
-        $promoCodes[] = $row;
-    }
-    
-    return ['status' => 'success', 'promo_codes' => $promoCodes, 'count' => count($promoCodes)];
-}
-
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 //get questions
 
@@ -3038,10 +2234,6 @@ function getallquestions($con)
     global $siteprefix;
 
     // ✅ Join questions with users table to fetch author info
-<<<<<<< HEAD
-=======
-    // ✅ Only return approved questions for public display
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     $query = "
         SELECT 
             q.*, 
@@ -3066,10 +2258,6 @@ function getallquestions($con)
         FROM {$siteprefix}questions AS q
         LEFT JOIN {$siteprefix}users AS u 
             ON q.user_id = u.id
-<<<<<<< HEAD
-=======
-        WHERE q.status = 'approved'
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         ORDER BY q.created_at DESC
     ";
 
@@ -3363,251 +2551,6 @@ function deleteimageEndpoint($postData) {
 }
 
 
-<<<<<<< HEAD
-=======
-// ✅ Withdrawal Request Endpoint
-function withdrawalRequestEndpoint($postData) {
-    global $con, $siteprefix, $sitename, $sitemail, $sitecurrency;
-
-    // Validate required fields
-    if (empty($postData['user_id']) || empty($postData['amount']) || empty($postData['bank']) || 
-        empty($postData['bankname']) || empty($postData['bankno'])) {
-        return [
-            'status' => 'error',
-            'messages' => generateMessage("All fields are required.", "red")
-        ];
-    }
-
-    $user_id     = intval($postData['user_id']);
-    $amount      = floatval($postData['amount']);
-    $bank        = mysqli_real_escape_string($con, trim($postData['bank']));
-    $bank_name   = mysqli_real_escape_string($con, trim($postData['bankname']));
-    $bank_number = mysqli_real_escape_string($con, trim($postData['bankno']));
-    $date        = date('Y-m-d H:i:s');
-
-    // Validate amount is positive
-    if ($amount <= 0) {
-        return [
-            'status' => 'error',
-            'messages' => generateMessage("Invalid withdrawal amount.", "red")
-        ];
-    }
-
-    // Get user wallet balance
-    $userQuery = mysqli_query($con, "SELECT wallet, first_name, email FROM {$siteprefix}users WHERE id = '$user_id' LIMIT 1");
-    $userData = mysqli_fetch_assoc($userQuery);
-
-    if (!$userData) {
-        return [
-            'status' => 'error',
-            'messages' => generateMessage("User not found.", "red")
-        ];
-    }
-
-    $wallet_balance = floatval($userData['wallet']);
-    $user_name = $userData['first_name'];
-    $user_email = $userData['email'];
-
-    // Check if user has sufficient balance
-    if ($amount > $wallet_balance) {
-        return [
-            'status' => 'error',
-            'messages' => generateMessage("Insufficient wallet balance. Available: {$sitecurrency}" . number_format($wallet_balance, 2), "red")
-        ];
-    }
-
-    // Generate unique withdrawal ID
-    $withdrawal_id = uniqid('WD_');
-
-    // Insert withdrawal request
-    $insertQuery = "INSERT INTO {$siteprefix}withdrawal 
-                    (s, user, amount, bank, bank_name, bank_number, status, date) 
-                    VALUES 
-                    ('$withdrawal_id', '$user_id', '$amount', '$bank', '$bank_name', '$bank_number', 'pending', '$date')";
-
-    $result = mysqli_query($con, $insertQuery);
-
-    if (!$result) {
-        return [
-            'status' => 'error',
-            'messages' => generateMessage("Failed to submit withdrawal request: " . mysqli_error($con), "red")
-        ];
-    }
-
-    // Deduct amount from wallet
-    $new_balance = $wallet_balance - $amount;
-    mysqli_query($con, "UPDATE {$siteprefix}users SET wallet = '$new_balance' WHERE id = '$user_id'");
-
-    // Record in wallet history
-    $reason = "Withdrawal Request - {$withdrawal_id}";
-    mysqli_query($con, "INSERT INTO {$siteprefix}wallet_history 
-                        (user, amount, reason, status, date) 
-                        VALUES 
-                        ('$user_id', '$amount', '$reason', 'debit', '$date')");
-
-    // Send email notification to user
-    $emailSubject = "Withdrawal Request Submitted ({$sitecurrency}" . number_format($amount, 2) . ")";
-    $emailMessage = "
-        <p>Dear {$user_name},</p>
-        <p>Your withdrawal request has been successfully submitted and is now <strong>pending approval</strong>.</p>
-        <p><strong>Withdrawal Details:</strong></p>
-        <ul>
-            <li><strong>Amount:</strong> {$sitecurrency}" . number_format($amount, 2) . "</li>
-            <li><strong>Bank:</strong> {$bank}</li>
-            <li><strong>Account Number:</strong> {$bank_number}</li>
-            <li><strong>Account Name:</strong> {$bank_name}</li>
-            <li><strong>Request ID:</strong> {$withdrawal_id}</li>
-            <li><strong>Date:</strong> " . date("l, F j, Y g:i A") . "</li>
-        </ul>
-        <p>Your request will be processed within 2-3 business days. You will receive a notification once the payment is completed.</p>
-        <p>Thank you for using {$sitename}!</p>
-    ";
-    sendEmail($user_email, $sitename, $sitemail, $user_name, $emailMessage, $emailSubject);
-
-    // Insert alert for user
-    $alertMessage = "Your withdrawal request of {$sitecurrency}" . number_format($amount, 2) . " has been submitted successfully and is pending approval.";
-    insertAlert($con, $user_id, $alertMessage, $date, 0);
-
-    // Notify admin (optional - send email to admin)
-    $adminEmailSubject = "New Withdrawal Request - {$sitecurrency}" . number_format($amount, 2);
-    $adminEmailMessage = "
-        <p>A new withdrawal request has been submitted:</p>
-        <ul>
-            <li><strong>User:</strong> {$user_name} (ID: {$user_id})</li>
-            <li><strong>Amount:</strong> {$sitecurrency}" . number_format($amount, 2) . "</li>
-            <li><strong>Bank:</strong> {$bank}</li>
-            <li><strong>Account Number:</strong> {$bank_number}</li>
-            <li><strong>Account Name:</strong> {$bank_name}</li>
-            <li><strong>Request ID:</strong> {$withdrawal_id}</li>
-        </ul>
-        <p>Please review and approve this request in the admin panel.</p>
-    ";
-    sendEmail($sitemail, $sitename, $sitemail, "Admin", $adminEmailMessage, $adminEmailSubject);
-
-    return [
-        'status' => 'success',
-        'messages' => generateMessage("Withdrawal request submitted successfully! Your request is now pending approval.", "green")
-    ];
-}
-
-
-// ✅ Submit Feedback Endpoint
-function submitFeedbackEndpoint($postData) {
-    global $con, $siteprefix;
-
-    // Validate required fields
-    if (empty($postData['content_id']) || empty($postData['content_type']) || empty($postData['vote'])) {
-        return [
-            'status' => 'error',
-            'message' => 'Missing required fields.'
-        ];
-    }
-
-    $content_id = intval($postData['content_id']);
-    $content_type = mysqli_real_escape_string($con, $postData['content_type']); // 'blog' or 'question'
-    $vote = mysqli_real_escape_string($con, $postData['vote']); // 'yes' or 'no'
-    $user_id = !empty($postData['user_id']) ? intval($postData['user_id']) : NULL;
-    
-    // Get user IP address
-    $user_ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $user_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    }
-    $user_ip = mysqli_real_escape_string($con, $user_ip);
-
-    // Validate vote value
-    if (!in_array($vote, ['yes', 'no'])) {
-        return [
-            'status' => 'error',
-            'message' => 'Invalid vote value.'
-        ];
-    }
-
-    // Check if user/IP already voted on this content
-    $checkQuery = "SELECT id FROM {$siteprefix}feedback 
-                   WHERE content_id = '$content_id' 
-                   AND content_type = '$content_type' 
-                   AND ";
-    
-    if ($user_id) {
-        $checkQuery .= "user_id = '$user_id'";
-    } else {
-        $checkQuery .= "user_ip = '$user_ip'";
-    }
-    
-    $checkQuery .= " LIMIT 1";
-    $existingVote = mysqli_query($con, $checkQuery);
-
-    if (mysqli_num_rows($existingVote) > 0) {
-        // Update existing vote
-        $updateQuery = "UPDATE {$siteprefix}feedback 
-                       SET vote = '$vote', created_at = NOW() 
-                       WHERE content_id = '$content_id' 
-                       AND content_type = '$content_type' 
-                       AND ";
-        
-        if ($user_id) {
-            $updateQuery .= "user_id = '$user_id'";
-        } else {
-            $updateQuery .= "user_ip = '$user_ip'";
-        }
-
-        mysqli_query($con, $updateQuery);
-        
-        return [
-            'status' => 'success',
-            'message' => 'Your feedback has been updated!'
-        ];
-    } else {
-        // Insert new vote
-        $insertQuery = "INSERT INTO {$siteprefix}feedback 
-                       (content_id, content_type, user_id, user_ip, vote, created_at) 
-                       VALUES 
-                       ('$content_id', '$content_type', " . ($user_id ? "'$user_id'" : "NULL") . ", '$user_ip', '$vote', NOW())";
-        
-        $result = mysqli_query($con, $insertQuery);
-
-        if ($result) {
-            return [
-                'status' => 'success',
-                'message' => 'Thank you for your feedback!'
-            ];
-        } else {
-            return [
-                'status' => 'error',
-                'message' => 'Failed to submit feedback: ' . mysqli_error($con)
-            ];
-        }
-    }
-}
-
-
-// ✅ Get Feedback Stats for Content
-function getFeedbackStats($con, $content_id, $content_type) {
-    global $siteprefix;
-    
-    $content_id = intval($content_id);
-    $content_type = mysqli_real_escape_string($con, $content_type);
-    
-    $query = "SELECT 
-                SUM(CASE WHEN vote = 'yes' THEN 1 ELSE 0 END) as yes_count,
-                SUM(CASE WHEN vote = 'no' THEN 1 ELSE 0 END) as no_count,
-                COUNT(*) as total_votes
-              FROM {$siteprefix}feedback 
-              WHERE content_id = '$content_id' 
-              AND content_type = '$content_type'";
-    
-    $result = mysqli_query($con, $query);
-    
-    if ($result) {
-        return mysqli_fetch_assoc($result);
-    }
-    
-    return ['yes_count' => 0, 'no_count' => 0, 'total_votes' => 0];
-}
-
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 function approvewithdrawal($postData) {
     global $con, $siteprefix, $sitename, $sitemail, $sitecurrency;
 
@@ -4374,11 +3317,7 @@ function approveAdverts($postData) {
 
     return [
         'status' => 'success',
-<<<<<<< HEAD
         'message' => "Advert approved and notification email sent successfully."
-=======
-        'message' => "Great! Your advert '{$advert_title}' has been approved and is now live on the platform. The advertiser has been notified via email."
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     ];
 }
 
@@ -5708,277 +4647,6 @@ function bookTherapySessionEndpoint($postData) {
     }
 }
 
-<<<<<<< HEAD
-=======
-/**
- * Add unavailable date for therapist
- */
-function addTherapistUnavailableDateEndpoint($postData) {
-    global $con, $siteprefix;
-    
-    $therapist_id = intval($postData['therapist_id'] ?? 0);
-    $unavailable_date = mysqli_real_escape_string($con, trim($postData['unavailable_date'] ?? ''));
-    $reason = mysqli_real_escape_string($con, trim($postData['reason'] ?? ''));
-    
-    if (!$therapist_id || !$unavailable_date) {
-        return ['status' => 'error', 'message' => 'Therapist ID and date are required'];
-    }
-    
-    // Validate date format
-    $date = date('Y-m-d', strtotime($unavailable_date));
-    if ($date < date('Y-m-d')) {
-        return ['status' => 'error', 'message' => 'Cannot set unavailable date in the past'];
-    }
-    
-    // Check if date already marked unavailable
-    $checkQuery = "SELECT id FROM {$siteprefix}therapist_unavailable 
-                   WHERE therapist_id = '$therapist_id' AND unavailable_date = '$date'";
-    $checkResult = mysqli_query($con, $checkQuery);
-    
-    if (mysqli_num_rows($checkResult) > 0) {
-        return ['status' => 'error', 'message' => 'This date is already marked as unavailable'];
-    }
-    
-    // Insert unavailable date
-    $insertQuery = "INSERT INTO {$siteprefix}therapist_unavailable 
-                    (therapist_id, unavailable_date, reason, created_at) 
-                    VALUES ('$therapist_id', '$date', '$reason', NOW())";
-    
-    if (mysqli_query($con, $insertQuery)) {
-        return ['status' => 'success', 'message' => 'Unavailable date added successfully'];
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
-/**
- * Remove unavailable date for therapist
- */
-function removeTherapistUnavailableDateEndpoint($postData) {
-    global $con, $siteprefix;
-    
-    $therapist_id = intval($postData['therapist_id'] ?? 0);
-    $unavailable_date = mysqli_real_escape_string($con, trim($postData['unavailable_date'] ?? ''));
-    
-    if (!$therapist_id || !$unavailable_date) {
-        return ['status' => 'error', 'message' => 'Therapist ID and date are required'];
-    }
-    
-    $date = date('Y-m-d', strtotime($unavailable_date));
-    
-    $deleteQuery = "DELETE FROM {$siteprefix}therapist_unavailable 
-                    WHERE therapist_id = '$therapist_id' AND unavailable_date = '$date'";
-    
-    if (mysqli_query($con, $deleteQuery)) {
-        if (mysqli_affected_rows($con) > 0) {
-            return ['status' => 'success', 'message' => 'Unavailable date removed successfully'];
-        } else {
-            return ['status' => 'error', 'message' => 'Date not found or already removed'];
-        }
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
-/**
- * Get therapist unavailable dates
- */
-function getTherapistUnavailableDatesEndpoint($therapist_id) {
-    global $con, $siteprefix;
-    
-    $therapist_id = intval($therapist_id);
-    if (!$therapist_id) {
-        return ['status' => 'error', 'message' => 'Therapist ID is required'];
-    }
-    
-    // Get all unavailable dates for this therapist (future dates only)
-    $query = "SELECT id, unavailable_date, reason, created_at 
-              FROM {$siteprefix}therapist_unavailable 
-              WHERE therapist_id = '$therapist_id' AND unavailable_date >= CURDATE()
-              ORDER BY unavailable_date ASC";
-    
-    $result = mysqli_query($con, $query);
-    if (!$result) {
-        return ['status' => 'error', 'message' => mysqli_error($con)];
-    }
-    
-    $unavailableDates = [];
-    while ($row = mysqli_fetch_assoc($result)) {
-        $unavailableDates[] = [
-            'id' => $row['id'],
-            'date' => $row['unavailable_date'],
-            'reason' => $row['reason'],
-            'created_at' => $row['created_at']
-        ];
-    }
-    
-    return ['status' => 'success', 'dates' => $unavailableDates];
-}
-
-/**
- * Check if a specific date is available for a therapist
- */
-function checkTherapistAvailabilityEndpoint($therapist_id, $date) {
-    global $con, $siteprefix;
-    
-    $therapist_id = intval($therapist_id);
-    $date = mysqli_real_escape_string($con, date('Y-m-d', strtotime($date)));
-    
-    $query = "SELECT id FROM {$siteprefix}therapist_unavailable 
-              WHERE therapist_id = '$therapist_id' AND unavailable_date = '$date'";
-    $result = mysqli_query($con, $query);
-    
-    $isAvailable = (mysqli_num_rows($result) == 0);
-    
-    return [
-        'status' => 'success', 
-        'available' => $isAvailable,
-        'message' => $isAvailable ? 'Date is available' : 'Date is unavailable'
-    ];
-}
-
-/**
- * Confirm/Accept therapist booking
- */
-function confirmTherapistBookingEndpoint($postData) {
-    global $con, $siteprefix, $siteurl, $sitename, $sitemail;
-    
-    $booking_id = intval($postData['booking_id'] ?? 0);
-    $therapist_id = intval($postData['therapist_id'] ?? 0);
-    
-    if (!$booking_id || !$therapist_id) {
-        return ['status' => 'error', 'message' => 'Booking ID and Therapist ID are required'];
-    }
-    
-    // Fetch booking details
-    $bookingQuery = "SELECT b.*, u.first_name, u.last_name, u.email 
-                     FROM {$siteprefix}bookings b 
-                     LEFT JOIN {$siteprefix}users u ON b.user_id = u.id 
-                     WHERE b.id = '$booking_id' AND b.therapist_id = '$therapist_id' 
-                     LIMIT 1";
-    $result = mysqli_query($con, $bookingQuery);
-    
-    if (!$result || mysqli_num_rows($result) == 0) {
-        return ['status' => 'error', 'message' => 'Booking not found'];
-    }
-    
-    $booking = mysqli_fetch_assoc($result);
-    
-    // Update booking status to confirmed
-    $updateQuery = "UPDATE {$siteprefix}bookings 
-                    SET booking_status = 'confirmed' 
-                    WHERE id = '$booking_id'";
-    
-    if (mysqli_query($con, $updateQuery)) {
-        // Get therapist details
-        $therapistQuery = mysqli_query($con, "SELECT first_name, last_name FROM {$siteprefix}users WHERE id='$therapist_id' LIMIT 1");
-        $therapist = mysqli_fetch_assoc($therapistQuery);
-        $therapist_name = trim(($therapist['first_name'] ?? '') . ' ' . ($therapist['last_name'] ?? ''));
-        
-        // Send confirmation email to client
-        $client_name = trim(($booking['first_name'] ?? '') . ' ' . ($booking['last_name'] ?? ''));
-        $client_email = $booking['email'];
-        $consultation_date = date('l, F j, Y \a\t g:i A', strtotime($booking['consultation_date']));
-        
-        $emailSubject = "Booking Confirmed - {$sitename}";
-        $emailMessage = "
-            <p>Hi {$client_name},</p>
-            <p>Great news! Your booking with <strong>{$therapist_name}</strong> has been <strong>confirmed</strong>.</p>
-            <p><strong>Consultation Details:</strong></p>
-            <ul>
-                <li><strong>Date & Time:</strong> {$consultation_date}</li>
-                <li><strong>Therapist:</strong> {$therapist_name}</li>
-                <li><strong>Booking Reference:</strong> {$booking['reference']}</li>
-                <li><strong>Amount:</strong> ₦" . number_format($booking['amount'], 2) . "</li>
-            </ul>
-            <p>Please ensure you're available at the scheduled time. If you need to reschedule, please contact the therapist in advance.</p>
-            <p>Thank you for choosing {$sitename}!</p>
-        ";
-        
-        sendEmail($client_email, $sitename, $sitemail, $client_name, $emailMessage, $emailSubject);
-        
-        // Send alert to client
-        $alertMsg = "Your booking with {$therapist_name} for {$consultation_date} has been confirmed.";
-        insertAlert($con, $booking['user_id'], $alertMsg, date('Y-m-d H:i:s'), 0);
-        
-        return ['status' => 'success', 'message' => 'Booking confirmed successfully. Client has been notified.'];
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
-/**
- * Reject therapist booking
- */
-function rejectTherapistBookingEndpoint($postData) {
-    global $con, $siteprefix, $siteurl, $sitename, $sitemail;
-    
-    $booking_id = intval($postData['booking_id'] ?? 0);
-    $therapist_id = intval($postData['therapist_id'] ?? 0);
-    $reason = mysqli_real_escape_string($con, trim($postData['reason'] ?? 'No reason provided'));
-    
-    if (!$booking_id || !$therapist_id) {
-        return ['status' => 'error', 'message' => 'Booking ID and Therapist ID are required'];
-    }
-    
-    // Fetch booking details
-    $bookingQuery = "SELECT b.*, u.first_name, u.last_name, u.email 
-                     FROM {$siteprefix}bookings b 
-                     LEFT JOIN {$siteprefix}users u ON b.user_id = u.id 
-                     WHERE b.id = '$booking_id' AND b.therapist_id = '$therapist_id' 
-                     LIMIT 1";
-    $result = mysqli_query($con, $bookingQuery);
-    
-    if (!$result || mysqli_num_rows($result) == 0) {
-        return ['status' => 'error', 'message' => 'Booking not found'];
-    }
-    
-    $booking = mysqli_fetch_assoc($result);
-    
-    // Update booking status to rejected
-    $updateQuery = "UPDATE {$siteprefix}bookings 
-                    SET booking_status = 'rejected', rejection_reason = '$reason' 
-                    WHERE id = '$booking_id'";
-    
-    if (mysqli_query($con, $updateQuery)) {
-        // Get therapist details
-        $therapistQuery = mysqli_query($con, "SELECT first_name, last_name FROM {$siteprefix}users WHERE id='$therapist_id' LIMIT 1");
-        $therapist = mysqli_fetch_assoc($therapistQuery);
-        $therapist_name = trim(($therapist['first_name'] ?? '') . ' ' . ($therapist['last_name'] ?? ''));
-        
-        // Send rejection email to client
-        $client_name = trim(($booking['first_name'] ?? '') . ' ' . ($booking['last_name'] ?? ''));
-        $client_email = $booking['email'];
-        $consultation_date = date('l, F j, Y \a\t g:i A', strtotime($booking['consultation_date']));
-        
-        $emailSubject = "Booking Declined - {$sitename}";
-        $emailMessage = "
-            <p>Hi {$client_name},</p>
-            <p>We regret to inform you that your booking with <strong>{$therapist_name}</strong> has been <strong>declined</strong>.</p>
-            <p><strong>Booking Details:</strong></p>
-            <ul>
-                <li><strong>Requested Date & Time:</strong> {$consultation_date}</li>
-                <li><strong>Booking Reference:</strong> {$booking['reference']}</li>
-            </ul>
-            <p><strong>Reason:</strong></p>
-            <blockquote style='border-left:3px solid #dc3545;padding-left:10px;color:#555;'>{$reason}</blockquote>
-            <p>You may contact the therapist directly or try booking a different date/time slot.</p>
-            <p>Thank you for your understanding.</p>
-        ";
-        
-        sendEmail($client_email, $sitename, $sitemail, $client_name, $emailMessage, $emailSubject);
-        
-        // Send alert to client
-        $alertMsg = "Your booking with {$therapist_name} has been declined. Reason: {$reason}";
-        insertAlert($con, $booking['user_id'], $alertMsg, date('Y-m-d H:i:s'), 0);
-        
-        return ['status' => 'success', 'message' => 'Booking rejected. Client has been notified.'];
-    } else {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-}
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 
 function joingroupEndpoint($postData) {
@@ -6557,25 +5225,9 @@ function getsubcategoriesID($con, $id) {
 
 function getwalletID($con, $user_id) {
     global $con,$siteprefix;
-<<<<<<< HEAD
     $query = "SELECT * FROM ".$siteprefix."wallet_history WHERE user='$user_id' ORDER BY date DESC";
     $result = mysqli_query($con, $query);
     return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : ['error' => mysqli_error($con)];
-=======
-    
-    // Sanitize user_id to prevent SQL injection
-    $user_id = mysqli_real_escape_string($con, $user_id);
-    
-    $query = "SELECT * FROM ".$siteprefix."wallet_history WHERE user='$user_id' ORDER BY date DESC";
-    $result = mysqli_query($con, $query);
-    
-    if (!$result) {
-        error_log("Database error in getwalletID: " . mysqli_error($con));
-        return [];
-    }
-    
-    return mysqli_fetch_all($result, MYSQLI_ASSOC);
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 }
 function getplanID($con, $plan_id) {
     global $con,$siteprefix;
@@ -7105,7 +5757,6 @@ function getgroupByid($con, $group_id) {
     }
 }
 
-<<<<<<< HEAD
 
 
 function getgroupgroupByslug($con, $slug) {
@@ -7192,8 +5843,6 @@ function getgroupgroupByslug($con, $slug) {
 
 
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 function getgroupBygroupid($con, $group_id) {
     global $siteprefix;
 
@@ -8049,272 +6698,6 @@ function sendDisputeMessage($postData, $files) {
     return ['status' => 'success', 'message' => 'Message sent successfully!'];
 }
 
-<<<<<<< HEAD
-=======
-/**
- * Resolve dispute with wallet refund
- */
-function resolveDisputeWithRefundEndpoint($postData) {
-    global $con, $siteprefix, $sitename, $sitemail, $sitecurrency;
-    
-    $dispute_id = mysqli_real_escape_string($con, trim($postData['dispute_id'] ?? ''));
-    $refund_to = mysqli_real_escape_string($con, trim($postData['refund_to'] ?? '')); // 'buyer' or 'seller'
-    $refund_amount = floatval($postData['refund_amount'] ?? 0);
-    $resolution_note = mysqli_real_escape_string($con, trim($postData['resolution_note'] ?? ''));
-    
-    if (empty($dispute_id) || empty($refund_to) || $refund_amount <= 0) {
-        return ['status' => 'error', 'message' => 'Dispute ID, refund recipient, and amount are required'];
-    }
-    
-    // Get dispute details
-    $disputeQuery = "SELECT * FROM {$siteprefix}disputes WHERE ticket_number = '$dispute_id' LIMIT 1";
-    $disputeResult = mysqli_query($con, $disputeQuery);
-    
-    if (!$disputeResult || mysqli_num_rows($disputeResult) == 0) {
-        return ['status' => 'error', 'message' => 'Dispute not found'];
-    }
-    
-    $dispute = mysqli_fetch_assoc($disputeResult);
-    $buyer_id = $dispute['user_id']; // person who opened dispute
-    $seller_id = $dispute['recipient_id']; // person dispute is against
-    $order_reference = $dispute['order_reference'];
-    
-    // Determine refund recipient
-    $refund_user_id = ($refund_to === 'buyer') ? $buyer_id : $seller_id;
-    
-    // Credit wallet
-    $date = date('Y-m-d H:i:s');
-    $refund_reason = "Dispute Resolution: Ticket #{$dispute_id} - {$resolution_note}";
-    insertWallet($con, $refund_user_id, $refund_amount, 'credit', $refund_reason, $date);
-    
-    // Update dispute status to resolved
-    updateDisputeStatus($con, $siteprefix, $dispute_id, 'resolved');
-    
-    // Update dispute with resolution details
-    $updateQuery = "UPDATE {$siteprefix}disputes 
-                    SET resolution_note = '$resolution_note',
-                        refund_amount = '$refund_amount',
-                        refund_to = '$refund_to',
-                        resolved_at = NOW()
-                    WHERE ticket_number = '$dispute_id'";
-    mysqli_query($con, $updateQuery);
-    
-    // Get recipient details for email
-    $userQuery = mysqli_query($con, "SELECT first_name, last_name, email FROM {$siteprefix}users WHERE id = '$refund_user_id' LIMIT 1");
-    $user = mysqli_fetch_assoc($userQuery);
-    $user_name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
-    $user_email = $user['email'];
-    
-    // Send refund confirmation email
-    $emailSubject = "Dispute Resolved - Refund Issued (Ticket #{$dispute_id})";
-    $emailMessage = "
-        <p>Hi {$user_name},</p>
-        <p>We're writing to inform you that the dispute you were involved in (Ticket #{$dispute_id}) has been <strong>resolved</strong>.</p>
-        <p><strong>Resolution Details:</strong></p>
-        <ul>
-            <li><strong>Order Reference:</strong> {$order_reference}</li>
-            <li><strong>Refund Amount:</strong> {$sitecurrency}" . number_format($refund_amount, 2) . "</li>
-            <li><strong>Refunded To:</strong> " . ucfirst($refund_to) . "</li>
-        </ul>
-        <p><strong>Resolution Note:</strong></p>
-        <blockquote style='border-left:3px solid #28a745;padding-left:10px;color:#555;'>{$resolution_note}</blockquote>
-        <p>The refund amount has been credited to your wallet and is now available for use.</p>
-        <p>Thank you for your patience during the dispute resolution process.</p>
-        <p>Best regards,<br>{$sitename} Team</p>
-    ";
-    
-    sendEmail($user_email, $sitename, $sitemail, $user_name, $emailMessage, $emailSubject);
-    
-    // Send alert notification
-    $alertMsg = "Dispute #{$dispute_id} resolved. Wallet credited with {$sitecurrency}" . number_format($refund_amount, 2);
-    insertAlert($con, $refund_user_id, $alertMsg, $date, 0);
-    
-    // Notify the other party
-    $other_party_id = ($refund_to === 'buyer') ? $seller_id : $buyer_id;
-    if ($other_party_id) {
-        $otherQuery = mysqli_query($con, "SELECT first_name, last_name, email FROM {$siteprefix}users WHERE id = '$other_party_id' LIMIT 1");
-        $otherUser = mysqli_fetch_assoc($otherQuery);
-        $other_name = trim(($otherUser['first_name'] ?? '') . ' ' . ($otherUser['last_name'] ?? ''));
-        $other_email = $otherUser['email'];
-        
-        $otherEmailSubject = "Dispute Resolved (Ticket #{$dispute_id})";
-        $otherEmailMessage = "
-            <p>Hi {$other_name},</p>
-            <p>The dispute (Ticket #{$dispute_id}) related to order #{$order_reference} has been resolved.</p>
-            <p><strong>Resolution Note:</strong></p>
-            <blockquote style='border-left:3px solid #28a745;padding-left:10px;color:#555;'>{$resolution_note}</blockquote>
-            <p>If you have any questions about this resolution, please contact our support team.</p>
-            <p>Best regards,<br>{$sitename} Team</p>
-        ";
-        
-        sendEmail($other_email, $sitename, $sitemail, $other_name, $otherEmailMessage, $otherEmailSubject);
-        
-        $otherAlertMsg = "Dispute #{$dispute_id} has been resolved.";
-        insertAlert($con, $other_party_id, $otherAlertMsg, $date, 0);
-    }
-    
-    // Admin alert
-    $adminAlertMsg = "Dispute #{$dispute_id} resolved with refund of {$sitecurrency}{$refund_amount} to {$refund_to}";
-    $adminLink = "disputes-chat.php?ticket_number={$dispute_id}";
-    insertadminAlert($con, $adminAlertMsg, $adminLink, $date, 'Dispute Resolved', 1);
-    
-    return [
-        'status' => 'success', 
-        'message' => "Dispute resolved successfully. Wallet refund of {$sitecurrency}" . number_format($refund_amount, 2) . " credited to {$refund_to}."
-    ];
-}
-
-/**
- * Update order status with notifications
- * Supports: pending, processing, completed, cancelled
- */
-function updateOrderStatusEndpoint($postData) {
-    global $con, $siteprefix, $sitename, $sitemail, $sitecurrency;
-    
-    $order_id = mysqli_real_escape_string($con, trim($postData['order_id'] ?? ''));
-    $new_status = mysqli_real_escape_string($con, trim($postData['status'] ?? ''));
-    $vendor_id = intval($postData['vendor_id'] ?? 0);
-    $notes = mysqli_real_escape_string($con, trim($postData['notes'] ?? ''));
-    
-    // Validate status
-    $valid_statuses = ['pending', 'processing', 'completed', 'cancelled'];
-    if (!in_array($new_status, $valid_statuses)) {
-        return ['status' => 'error', 'message' => 'Invalid status. Must be: pending, processing, completed, or cancelled'];
-    }
-    
-    if (empty($order_id)) {
-        return ['status' => 'error', 'message' => 'Order ID is required'];
-    }
-    
-    // Get order details
-    $orderQuery = "SELECT o.*, u.first_name, u.last_name, u.email 
-                   FROM {$siteprefix}orders o 
-                   LEFT JOIN {$siteprefix}users u ON o.user = u.id 
-                   WHERE o.order_id = '$order_id' 
-                   LIMIT 1";
-    $orderResult = mysqli_query($con, $orderQuery);
-    
-    if (!$orderResult || mysqli_num_rows($orderResult) == 0) {
-        return ['status' => 'error', 'message' => 'Order not found'];
-    }
-    
-    $order = mysqli_fetch_assoc($orderResult);
-    $buyer_id = $order['user'];
-    $buyer_name = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
-    $buyer_email = $order['email'];
-    $total_amount = $order['total_amount'];
-    $old_status = $order['status'];
-    
-    // Update order status
-    $updateQuery = "UPDATE {$siteprefix}orders 
-                    SET status = '$new_status', 
-                        updated_at = NOW()
-                    WHERE order_id = '$order_id'";
-    
-    if (!mysqli_query($con, $updateQuery)) {
-        return ['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)];
-    }
-    
-    // Prepare email based on status
-    $date = date('Y-m-d H:i:s');
-    $emailSubject = "";
-    $emailMessage = "";
-    $alertMsg = "";
-    
-    switch ($new_status) {
-        case 'processing':
-            $emailSubject = "Order #{$order_id} is Being Processed";
-            $emailMessage = "
-                <p>Hi {$buyer_name},</p>
-                <p>Great news! Your order <strong>#{$order_id}</strong> is now being processed.</p>
-                <p><strong>Order Details:</strong></p>
-                <ul>
-                    <li><strong>Order ID:</strong> {$order_id}</li>
-                    <li><strong>Total Amount:</strong> {$sitecurrency}" . number_format($total_amount, 2) . "</li>
-                    <li><strong>Status:</strong> Processing</li>
-                </ul>
-                " . (!empty($notes) ? "<p><strong>Note from vendor:</strong> {$notes}</p>" : "") . "
-                <p>We'll notify you once your order is ready for delivery/pickup.</p>
-                <p>Thank you for shopping with {$sitename}!</p>
-            ";
-            $alertMsg = "Your order #{$order_id} is now being processed.";
-            break;
-            
-        case 'completed':
-            $emailSubject = "Order #{$order_id} Completed Successfully";
-            $emailMessage = "
-                <p>Hi {$buyer_name},</p>
-                <p>Your order <strong>#{$order_id}</strong> has been <strong>completed</strong> successfully!</p>
-                <p><strong>Order Summary:</strong></p>
-                <ul>
-                    <li><strong>Order ID:</strong> {$order_id}</li>
-                    <li><strong>Total Amount:</strong> {$sitecurrency}" . number_format($total_amount, 2) . "</li>
-                    <li><strong>Status:</strong> Completed</li>
-                </ul>
-                " . (!empty($notes) ? "<p><strong>Note:</strong> {$notes}</p>" : "") . "
-                <p>We hope you enjoyed your purchase! If you have any feedback or concerns, please don't hesitate to reach out.</p>
-                <p>Thank you for choosing {$sitename}!</p>
-            ";
-            $alertMsg = "Your order #{$order_id} has been completed.";
-            break;
-            
-        case 'cancelled':
-            $emailSubject = "Order #{$order_id} has been Cancelled";
-            $emailMessage = "
-                <p>Hi {$buyer_name},</p>
-                <p>We regret to inform you that your order <strong>#{$order_id}</strong> has been <strong>cancelled</strong>.</p>
-                <p><strong>Order Details:</strong></p>
-                <ul>
-                    <li><strong>Order ID:</strong> {$order_id}</li>
-                    <li><strong>Total Amount:</strong> {$sitecurrency}" . number_format($total_amount, 2) . "</li>
-                </ul>
-                " . (!empty($notes) ? "<p><strong>Reason:</strong></p><blockquote style='border-left:3px solid #dc3545;padding-left:10px;color:#555;'>{$notes}</blockquote>" : "") . "
-                <p>If payment was made, a refund will be processed to your wallet within 24-48 hours.</p>
-                <p>We apologize for any inconvenience. Please contact us if you have any questions.</p>
-            ";
-            $alertMsg = "Your order #{$order_id} has been cancelled." . (!empty($notes) ? " Reason: {$notes}" : "");
-            break;
-            
-        default: // pending
-            $emailSubject = "Order #{$order_id} Status Update";
-            $emailMessage = "
-                <p>Hi {$buyer_name},</p>
-                <p>Your order <strong>#{$order_id}</strong> status has been updated to <strong>Pending</strong>.</p>
-                <p>We will process your order shortly and keep you updated.</p>
-                <p>Thank you for your patience!</p>
-            ";
-            $alertMsg = "Your order #{$order_id} status updated to pending.";
-            break;
-    }
-    
-    // Send email to buyer
-    sendEmail($buyer_email, $sitename, $sitemail, $buyer_name, $emailMessage, $emailSubject);
-    
-    // Send alert to buyer
-    insertAlert($con, $buyer_id, $alertMsg, $date, 0);
-    
-    // If vendor exists, send alert to vendor
-    if ($vendor_id > 0) {
-        $vendorAlertMsg = "Order #{$order_id} status updated to {$new_status}.";
-        insertAlert($con, $vendor_id, $vendorAlertMsg, $date, 0);
-    }
-    
-    // Admin notification
-    $adminAlertMsg = "Order #{$order_id} status changed from {$old_status} to {$new_status}";
-    $adminLink = "order-details.php?ref={$order_id}";
-    insertadminAlert($con, $adminAlertMsg, $adminLink, $date, 'Order Status Update', 1);
-    
-    return [
-        'status' => 'success',
-        'message' => "Order status updated to '{$new_status}' successfully. Customer has been notified.",
-        'old_status' => $old_status,
-        'new_status' => $new_status
-    ];
-}
-
-
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 function getEarningsBreakdown($con)
 {
@@ -10521,10 +8904,6 @@ function getAllEventsfiltering($con)
         FROM {$siteprefix}events t
         LEFT JOIN {$siteprefix}users u ON t.user_id = u.id
         LEFT JOIN {$siteprefix}event_types et ON t.event_type = et.name
-<<<<<<< HEAD
-=======
-        WHERE t.status = 'approved'
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         GROUP BY t.event_id
         ORDER BY t.created_at DESC
     ";
@@ -10592,10 +8971,6 @@ function getAllEvents($con)
         FROM {$siteprefix}events t
         LEFT JOIN {$siteprefix}users u ON t.user_id = u.id
         LEFT JOIN {$siteprefix}event_types et ON t.event_type = et.name
-<<<<<<< HEAD
-=======
-        WHERE t.status = 'approved'
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         GROUP BY t.event_id
         ORDER BY t.created_at DESC
     ";
@@ -11659,7 +10034,6 @@ function getallsubscriptions($con)
 
 function addViews($con, $slug) {  
     global $siteprefix;
-<<<<<<< HEAD
 
     // Increment view count
     $updateQuery = "UPDATE {$siteprefix}forums SET views = views + 1 WHERE slug = '$slug'";
@@ -11669,38 +10043,6 @@ function addViews($con, $slug) {
     } else {
         return ['status' => 'error', 'message' => mysqli_error($con)];
     }
-=======
-    
-    // Track unique views using session/IP to prevent duplicate counting
-    session_start();
-    $viewKey = 'blog_view_' . $slug;
-    $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
-    
-    // Check if this user/IP already viewed this blog in current session or last 24 hours
-    if (!isset($_SESSION[$viewKey])) {
-        // Check if IP viewed this blog in last 24 hours
-        $checkQuery = "SELECT id FROM {$siteprefix}blog_views 
-                       WHERE slug = '$slug' AND ip_address = '$userIP' 
-                       AND viewed_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-        $checkResult = mysqli_query($con, $checkQuery);
-        
-        if (mysqli_num_rows($checkResult) == 0) {
-            // Increment view count
-            $updateQuery = "UPDATE {$siteprefix}forums SET views = views + 1 WHERE slug = '$slug'";
-            mysqli_query($con, $updateQuery);
-            
-            // Log this view
-            $insertQuery = "INSERT INTO {$siteprefix}blog_views (slug, ip_address, viewed_at) 
-                           VALUES ('$slug', '$userIP', NOW())";
-            mysqli_query($con, $insertQuery);
-            
-            // Mark in session to prevent multiple increments in same session
-            $_SESSION[$viewKey] = true;
-        }
-    }
-    
-    return ['status' => 'success'];
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 }
 
 function adduserViews($con, $slug) {  
@@ -11719,7 +10061,6 @@ function adduserViews($con, $slug) {
 
 function addViewsquestion($con, $slug) {  
     global $siteprefix;
-<<<<<<< HEAD
 
     // Increment view count
     $updateQuery = "UPDATE {$siteprefix}questions SET views = views + 1 WHERE slug = '$slug'";
@@ -11729,38 +10070,6 @@ function addViewsquestion($con, $slug) {
     } else {
         return ['status' => 'error', 'message' => mysqli_error($con)];
     }
-=======
-    
-    // Track unique views using session/IP to prevent duplicate counting
-    session_start();
-    $viewKey = 'question_view_' . $slug;
-    $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
-    
-    // Check if this user/IP already viewed this question in current session or last 24 hours
-    if (!isset($_SESSION[$viewKey])) {
-        // Check if IP viewed this question in last 24 hours
-        $checkQuery = "SELECT id FROM {$siteprefix}question_views 
-                       WHERE slug = '$slug' AND ip_address = '$userIP' 
-                       AND viewed_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-        $checkResult = mysqli_query($con, $checkQuery);
-        
-        if (mysqli_num_rows($checkResult) == 0) {
-            // Increment view count
-            $updateQuery = "UPDATE {$siteprefix}forums SET views = views + 1 WHERE slug = '$slug'";
-            mysqli_query($con, $updateQuery);
-            
-            // Log this view
-            $insertQuery = "INSERT INTO {$siteprefix}question_views (slug, ip_address, viewed_at) 
-                           VALUES ('$slug', '$userIP', NOW())";
-            mysqli_query($con, $insertQuery);
-            
-            // Mark in session to prevent multiple increments in same session
-            $_SESSION[$viewKey] = true;
-        }
-    }
-
-    return ['status' => 'success'];
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 }
 
 
@@ -11860,34 +10169,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'dashboardstats') {
     $response = getDashboardStats($con);
 }
 
-<<<<<<< HEAD
-=======
-if (isset($_GET['action']) && $_GET['action'] === 'advanced_analytics') {
-    $period = $_GET['period'] ?? '30';
-    $response = getAdvancedAnalyticsEndpoint($period);
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'search_therapists') {
-    $response = searchTherapistsAdvancedEndpoint($_GET);
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'search_products') {
-    $response = searchProductsAdvancedEndpoint($_GET);
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'search_content') {
-    $response = searchContentAdvancedEndpoint($_GET);
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'validate_promo_code') {
-    $response = validatePromoCodeEndpoint($_POST);
-}
-
-if (isset($_GET['action']) && $_GET['action'] === 'get_vendor_promos') {
-    $response = isset($_GET['vendor_id']) ? getVendorPromoCodesEndpoint($_GET['vendor_id']) : ['status' => 'error', 'message' => 'Vendor ID required'];
-}
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if ($_GET['action'] == 'useradvertlists') {
               $response = getAlladverts($con);}
 
@@ -12175,28 +10456,16 @@ if ($_GET['action'] == 'memberid') {
         $response = isset($_GET['slug']) ? checkuservendor($con, $_GET['slug']) : ['error' => 'slug ID is required'];}
 
        if ($_GET['action'] == 'fetchgroupslug') {  
-<<<<<<< HEAD
         $response = isset($_GET['slug']) ? getgroupByslug($con, $_GET['slug']) : ['error' => 'slug ID is required'];}
         
 
          if ($_GET['action'] == 'fetchallgroupslug') {  
         $response = isset($_GET['group_slug']) ? getgroupgroupByslug($con, $_GET['group_slug']) : ['error' => 'slug ID is required'];}
         
-=======
-        $response = isset($_GET['slug']) ? getgroupByslug($con, $_GET['slug']) : ['error' => 'slug ID is required'];} 
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
        if ($_GET['action'] == 'fetchtherapistslug') {  
         $response = isset($_GET['slug']) ? gettherapistByslug($con, $_GET['slug']) : ['error' => 'slug ID is required'];}  
         
-<<<<<<< HEAD
-=======
-       if ($_GET['action'] == 'get_therapist_unavailable') {  
-        $response = isset($_GET['therapist_id']) ? getTherapistUnavailableDatesEndpoint($_GET['therapist_id']) : ['error' => 'Therapist ID is required'];}
-        
-       if ($_GET['action'] == 'check_therapist_availability') {  
-        $response = (isset($_GET['therapist_id']) && isset($_GET['date'])) ? checkTherapistAvailabilityEndpoint($_GET['therapist_id'], $_GET['date']) : ['error' => 'Therapist ID and date are required'];}
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
          if ($_GET['action'] == 'fetchorderdetails') {  
         $response = isset($_GET['ref']) ? getOrderdetailsID($con, $_GET['ref']) : ['error' => 'order ID is required'];}
@@ -12297,14 +10566,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
        $response =  updateBookingEndpoint($_POST, $_FILES);
         }
 
-<<<<<<< HEAD
-=======
-    // ✅ Withdrawal Request Handler
-    if ($_POST['action'] == 'withdraw') {
-        $response = withdrawalRequestEndpoint($_POST);
-    }
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
     if ($_POST['action'] == 'create_admingroup') {
         $response = createadminGroupEndpoint($_POST, $_FILES);
     }
@@ -12365,14 +10626,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     $response = reportUser($_POST);
 }
 
-<<<<<<< HEAD
     
-=======
-    // ✅ Submit Feedback Handler
-    if($_POST['action'] == 'submit_feedback'){
-        $response = submitFeedbackEndpoint($_POST);
-    }
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     if($_POST['action'] == 'deletecategory'){
     $response = deletecategoryEndpoint($_POST);}
@@ -12450,26 +10704,6 @@ if(isset($_POST['action']) && ($_POST['action'] === 'follow' || $_POST['action']
 if ($_POST["action"] == "create-advert-order") {
     $response = createAdvertOrder($_POST, $_FILES);
 }
-<<<<<<< HEAD
-=======
-
-if($_POST['action'] == 'update_order_status'){
-    $response = updateOrderStatusEndpoint($_POST);
-}
-
-if($_POST['action'] == 'create_promo_code'){
-    $response = createPromoCodeEndpoint($_POST);
-}
-
-if($_POST['action'] == 'validate_promo'){
-    $response = validatePromoCodeEndpoint($_POST);
-}
-
-if($_POST['action'] == 'record_promo_usage'){
-    $response = recordPromoUsageEndpoint($_POST);
-}
-
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if($_POST['action'] == 'editcategoryadmin'){
     $response = updateCategoryEndpoint($_POST);
 } // end
@@ -12491,14 +10725,11 @@ if($_POST['action'] == 'editcategoryadmin'){
     $response =  addAdPlacementEndpoint($_POST);
 }
 
-<<<<<<< HEAD
    if($_POST['action'] == 'updategroupblog'){
     $response =  updategroupBlogEndpoint($_POST, $_FILES);
 }
 
 
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
    if($_POST['action'] == 'changePassword'){
     $response = changePasswordEndpoint($_POST);
 }
@@ -12532,21 +10763,6 @@ if($_POST['action'] == 'bookmark'){
 
     if($_POST['action'] == 'book_therapy_session'){
     $response = bookTherapySessionEndpoint($_POST);}
-<<<<<<< HEAD
-=======
-    
-    if($_POST['action'] == 'add_therapist_unavailable'){
-    $response = addTherapistUnavailableDateEndpoint($_POST);}
-    
-    if($_POST['action'] == 'remove_therapist_unavailable'){
-    $response = removeTherapistUnavailableDateEndpoint($_POST);}
-    
-    if($_POST['action'] == 'confirm_therapist_booking'){
-    $response = confirmTherapistBookingEndpoint($_POST);}
-    
-    if($_POST['action'] == 'reject_therapist_booking'){
-    $response = rejectTherapistBookingEndpoint($_POST);}
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     if($_POST['action'] == 'edit_admingroup'){
     $response = updateAdminGroupEndpoint($_POST, $_FILES);}  
@@ -12622,13 +10838,6 @@ if($_POST['action'] == 'edit_newadmingroup'){
     $response = updateDisputeStatusHandler($_POST);
 
     }
-<<<<<<< HEAD
-=======
-    
-    if($_POST['action'] == 'resolve_dispute_with_refund'){
-    $response = resolveDisputeWithRefundEndpoint($_POST);
-    }
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
     if($_POST['action'] == 'deletesubcategory'){
     $response = deletesubcategoryEndpoint($_POST);}

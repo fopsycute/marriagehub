@@ -153,11 +153,7 @@
 
                 if (!empty($questions)) {
                   foreach ($questions as $q) {
-<<<<<<< HEAD
                     if (isset($q->status) && strtolower($q->status) === 'active' && $q->group_id == '') {
-=======
-                    if (isset($q->status) && strtolower($q->status) === 'active') {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                       // Category filter
                       if (!empty($selectedCategories)) {
                         $questionCategories = array_map('intval', explode(',', $q->categories ?? ''));

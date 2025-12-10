@@ -38,7 +38,6 @@ if ($bookmarkData !== false) {
                             $url = '';
 
                             // Fetch title & slug via function/API
-<<<<<<< HEAD
                     if ($bm['item_type'] === 'blog') {
 
                     $blogUrl = $siteurl . "script/admin.php?action=blogmultiple&blog_id=" . urlencode($bm['item_id']);
@@ -82,19 +81,6 @@ if ($bookmarkData !== false) {
                     }
                 }
             elseif ($bm['item_type'] === 'question') {
-=======
-                            if ($bm['item_type'] === 'blog') {
-                                $blogUrl = $siteurl . "script/admin.php?action=blogmultiple&blog_id=" . urlencode($bm['item_id']);
-                                $blogData = curl_get_contents($blogUrl);
-                                $blog = $blogData ? json_decode($blogData, true) : null;
-                                if ($blog) {
-                                    $title = $blog['title'] ?? '';
-                                    $url = $siteurl . "blog-details/" . ($blog['slug'] ?? '');
-                                    $featuredImg = $blog['featured_image'] ?? '';
-                                    $imageUrl = !empty($featuredImg) ? $siteurl . $imagePath . $featuredImg : '';
-                                }
-                            } elseif ($bm['item_type'] === 'question') {
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                                 $qUrl = $siteurl . "script/user.php?action=getmultipleQuestionID&question_id=" . urlencode($bm['item_id']);
                                 $qData = curl_get_contents($qUrl);
                                 $q = $qData ? json_decode($qData, true) : null;

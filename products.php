@@ -39,13 +39,8 @@ if (isset($_GET['slug'])) {
 
             $created_at   = date('F d, Y \a\t h:i A', strtotime($listing->created_at));
                    
-<<<<<<< HEAD
             $shortBio = limitWords($description, 20);
             $isTruncated = (str_word_count($description) > 20);
-=======
-            $shortBio = limitWords(strip_tags($description), 20);
-            $isTruncated = (str_word_count(strip_tags($description)) > 20);
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
             
             // 🧩 Variations
@@ -238,7 +233,6 @@ if (!empty($buyerId)) {
 
         <div class="product-description">
 
-<<<<<<< HEAD
            <div class="mt-3 bio-text">
   
   <!-- Short Bio: OK to stay as span -->
@@ -254,15 +248,6 @@ if (!empty($buyerId)) {
   <?php endif; ?>
 
 </div>
-=======
-        <p class="bio-text">
-          <span class="bio-short"><?php echo $shortBio; ?></span>
-          <?php if ($isTruncated): ?>
-            <span class="bio-full d-none"><?php echo $description; ?></span>
-            <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-          <?php endif; ?>
-        </p>
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
               </div>
 
               <!-- 🧩 Variation Dropdown -->
@@ -430,7 +415,6 @@ if (!empty($buyerId)) {
                       <div class="col-lg-12">
                         <div class="content-section">
                           <h3>Description</h3>
-<<<<<<< HEAD
                      <div class="mt-3 bio-text">
     
           <!-- Short Bio: OK to stay as span -->
@@ -446,15 +430,6 @@ if (!empty($buyerId)) {
           <?php endif; ?>
 
         </div>
-=======
-                           <p class="bio-text">
-                    <span class="bio-short"><?php echo $shortBio; ?></span>
-                    <?php if ($isTruncated): ?>
-                      <span class="bio-full d-none"><?php echo $description; ?></span>
-                      <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-                    <?php endif; ?>
-                  </p> 
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                     </div>
                   </div>
                 </div>
