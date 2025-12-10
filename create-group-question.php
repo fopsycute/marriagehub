@@ -1,5 +1,17 @@
+<<<<<<< HEAD
 <?php
 include "header.php"; 
+=======
+
+
+
+
+<?php
+
+include "header.php"; 
+
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if (isset($_GET['slug'])) {
     $groupslug = $_GET['slug'];
 
@@ -27,8 +39,11 @@ if (isset($_GET['slug'])) {
     exit;
 }
 
+<<<<<<< HEAD
 $canManageStatus = false;
 
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 // Your site API URL
  $sitelink = $siteurl . "script/";
             // ✅ Get Group Slug & Creator ID from groups table
@@ -65,22 +80,34 @@ $canManageStatus = false;
                 // ✅ CASE 1: Admin — always has access
                 if ($adminAuth) {
                     $buyerId = $adminAuth;
+<<<<<<< HEAD
                     $canManageStatus = true; // Creators can manage status
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 2: Vendor — if the vendor is the group creator
                 elseif ($vendorAuth == $groupCreatorId) {
                     $buyerId = $vendorAuth;
+<<<<<<< HEAD
                     $canManageStatus = true; // Creato
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 elseif ($therapistAuth == $groupCreatorId) {
                     $buyerId = $therapistAuth;
+<<<<<<< HEAD
                        $canManageStatus = true; // Creato
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 3: Regular user — if the user is the group creator
                 elseif ($userAuth == $groupCreatorId) {
                     $buyerId = $userAuth;
+<<<<<<< HEAD
                        $canManageStatus = true; // Creato
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 $activeLog = 1;
@@ -96,10 +123,13 @@ $canManageStatus = false;
                         $memberResult = json_decode($memberData, true);
                         if (!empty($memberResult[0]) && strtolower($memberResult[0]['status']) === 'active' && ($memberResult[0]['role'] == 'admin' || $memberResult[0]['role'] == 'subadmin')) {
                             $canAccess = true;
+<<<<<<< HEAD
                        $userRole = $memberResult[0]['role'];
                     if ($userRole == "admin" || $userRole == "subadmin") {
                 $canManageStatus = true;
                   }  
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                         }
                     }
                 }
@@ -143,7 +173,11 @@ $canManageStatus = false;
 <div class="container-xxl flex-grow-1 container-p-y page-center">
   <div class="card" style="max-width:900px; width:100%">
     <div class="card-body">
+<<<<<<< HEAD
       <form method="POST" id="addgroupQuestions" enctype="multipart/form-data">
+=======
+      <form method="POST" id="addQuestions" enctype="multipart/form-data">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
         <div class="row">
           <div class="col-lg-12 text-center mt-1" id="messages"></div>
 
@@ -173,7 +207,11 @@ $canManageStatus = false;
             <textarea 
               id="article" 
               name="article" 
+<<<<<<< HEAD
               class="form-control" 
+=======
+              class="editor" 
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
               placeholder="Describe your question in detail..." 
             ></textarea>
           </div>
@@ -229,7 +267,11 @@ $canManageStatus = false;
             </div>
           </div>
 
+<<<<<<< HEAD
                     <input type="hidden" name="action" value="creategroupQuestion">
+=======
+                    <input type="hidden" name="action" value="createQuestion">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                   
           <!-- Tags -->
           <div class="col-sm-12 mb-3">
@@ -254,6 +296,7 @@ $canManageStatus = false;
             </div>
 
             --->
+<<<<<<< HEAD
                 <?php if ($canManageStatus): ?>
 
              <div class="form-group mb-2">
@@ -268,6 +311,8 @@ $canManageStatus = false;
           <input type="hidden" name="status" value="pending">
       <?php endif; ?>
 
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
           <!-- Anonymous Option -->
             <div class="col-sm-12 mb-3">
               <div class="form-check">

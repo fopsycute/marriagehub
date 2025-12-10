@@ -118,7 +118,11 @@ if (isset($_GET['slug'])) {
 
 
 ?>
+<<<<<<< HEAD
 <div id ="questionscontainer">
+=======
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 <main class="main">
 
   <!-- Page Title -->
@@ -137,6 +141,7 @@ if (isset($_GET['slug'])) {
   <section id="courses-2" class="courses-2 section">
     <div class="container" data-aos="fade-up" data-aos-delay="100">
       <div class="row">
+<<<<<<< HEAD
         <div class="col-12">
           <!-- Small/medium toggle for filters -->
           <div class="row d-lg-none mb-2">
@@ -236,6 +241,101 @@ if (isset($_GET['slug'])) {
       </div>
     </div>
 
+=======
+        
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3">
+          <div class="course-filters" data-aos="fade-right" data-aos-delay="100">
+            <h4 class="filter-title">Filter Questions</h4>
+
+            <form method="get" id="questionFilterForm">
+            <input type="hidden" name="slug" value="<?php echo $groupslug; ?>">
+              <!-- Search -->
+              <div class="filter-group">
+                <h5>Search</h5>
+                <div class="filter-options mb-2">
+                  <input type="text" name="search" class="form-control"
+                    placeholder="Search title, author, category, subcategory"
+                    value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                </div>
+              </div>
+
+              <!-- Category -->
+              <div class="filter-group">
+                <h5>Category</h5>
+                <div class="filter-options">
+                  <select name="category[]" id="category" class="form-select select-multiple" multiple>
+                    <option value="">-- Select Category --</option>
+                    <?php
+                    $url = $siteurl . "script/register.php?action=categorieslists";
+                    $data = curl_get_contents($url);
+                    $selectedCategories = isset($_GET['category']) ? (array)$_GET['category'] : [];
+
+                    if ($data !== false) {
+                      $categories = json_decode($data);
+                      if (!empty($categories)) {
+                        foreach ($categories as $category) {
+                          $categoryId = $category->id;
+                          $name = htmlspecialchars($category->category_name);
+                          $selected = in_array($categoryId, $selectedCategories) ? 'selected' : '';
+                          echo "<option value='{$categoryId}' {$selected}>{$name}</option>";
+                        }
+                      }
+                    }
+                    ?>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Subcategory -->
+              <div class="filter-group">
+                <h5>Sub Category</h5>
+                <div class="filter-options">
+                  <select name="subcategory[]" id="subcategory" class="form-select select-multiple" multiple>
+                    <option value="">-- Select Sub-Category --</option>
+                    <?php
+                    $selectedSubcategories = isset($_GET['subcategory']) ? (array)$_GET['subcategory'] : [];
+                    if (!empty($selectedCategories)) {
+                      $parentIds = implode(',', array_map('intval', $selectedCategories));
+                      $url = $siteurl . "script/register.php?action=subcategorieslists&parent_ids=" . $parentIds;
+                      $data = curl_get_contents($url);
+                      if ($data !== false) {
+                        $subcategories = json_decode($data);
+                        if (!empty($subcategories)) {
+                          foreach ($subcategories as $subcat) {
+                            $subcatId = $subcat->id;
+                            $name = htmlspecialchars($subcat->category_name);
+                            $selected = in_array($subcatId, $selectedSubcategories) ? 'selected' : '';
+                            echo "<option value='{$subcatId}' {$selected}>{$name}</option>";
+                          }
+                        }
+                      }
+                    }
+                    ?>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Sort -->
+              <div class="filter-group">
+                <h5>Sort</h5>
+                <div class="filter-options">
+                  <select name="sort" class="form-select">
+                    <option value="popular" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'popular') ? 'selected' : ''; ?>>Most Popular</option>
+                    <option value="newest" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'newest') ? 'selected' : ''; ?>>Newest First</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 mt-2">Filter</button>
+            </form>
+          </div>
+        </div>
+        <!-- End Filters Sidebar -->
+
+        <!-- Questions Section -->
+        <div class="col-lg-9">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
           <div class="courses-header" data-aos="fade-left" data-aos-delay="100">
             <!----
             <div class="search-box">
@@ -329,8 +429,11 @@ if (isset($_GET['slug'])) {
                       $questionId = $question->id;
                       $title = htmlspecialchars($question->title);
                       $article = htmlspecialchars($question->article);
+<<<<<<< HEAD
                       $views = intval($question->views ?? 0);
                       $total_answers = intval($question->total_answers ?? 0);
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                       $date = date('M d, Y', strtotime($question->created_at));
                       $category = !empty($question->category_names) ? trim(explode(',', $question->category_names)[0]) : 'Uncategorized';
                       $subcategory = !empty($question->subcategory_names) ? trim(explode(',', $question->subcategory_names)[0]) : 'General';
@@ -365,9 +468,13 @@ if (isset($_GET['slug'])) {
                             <div class="mt-2 text-muted small">
                               Asked by <?php echo $authorDisplay; ?> on <?php echo $date; ?>
                             </div>
+<<<<<<< HEAD
                             <div class="mt-1 text-muted small">
                               <?php echo $views; ?> Views | <?php echo $total_answers; ?> Answers
                             </div>
+=======
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                             <a href="single-questions/<?php echo $question->slug; ?>" class="btn-course mt-2">
                               View Question
                             </a>
@@ -389,6 +496,7 @@ if (isset($_GET['slug'])) {
           </div>
 
           <!-- Pagination -->
+<<<<<<< HEAD
           <?php if (!empty($totalPages) && $totalPages > 1): ?>
             <div class="pagination-wrapper" data-aos="fade-up" data-aos-delay="300">
               <nav aria-label="Courses pagination">
@@ -412,12 +520,63 @@ if (isset($_GET['slug'])) {
               </nav>
             </div>
           <?php endif; ?>
+=======
+<?php if (!empty($totalPages) && $totalPages > 1): ?>
+  <div class="pagination-wrapper" data-aos="fade-up" data-aos-delay="300">
+    <nav aria-label="Courses pagination">
+      <ul class="pagination justify-content-center">
+        <?php
+        // base params (ensure group_id is present)
+        $baseParams = $_GET;
+        if (!isset($baseParams['slug']) && !empty($groupslug)) {
+            $baseParams['slug'] = $groupslug;
+        }
+
+        // previous
+        $prev = $baseParams;
+        $prev['page'] = max(1, $page - 1);
+        ?>
+        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+          <a class="page-link" href="?<?php echo http_build_query($prev); ?>">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+
+        <?php for ($i = 1; $i <= $totalPages; $i++): 
+            $p = $baseParams;
+            $p['page'] = $i;
+        ?>
+          <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+            <a class="page-link" href="?<?php echo http_build_query($p); ?>"><?php echo $i; ?></a>
+          </li>
+        <?php endfor; ?>
+
+        <?php
+        $next = $baseParams;
+        $next['page'] = min($totalPages, $page + 1);
+        ?>
+        <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+          <a class="page-link" href="?<?php echo http_build_query($next); ?>">
+            <i class="bi bi-chevron-right"></i>
+                </a>
+                </li>
+            </ul>
+            </nav>
+        </div>
+        <?php endif; ?>
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
         </div>
       </div>
     </div>
   </section>
 </main>
+<<<<<<< HEAD
  </div>
+=======
+
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 <?php include "footer.php"; ?>

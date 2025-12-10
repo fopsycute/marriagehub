@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+<div class="sidebar-card sidebar-sticky" data-aos="fade-up" data-aos-delay="80">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
   <div class="d-flex align-items-center justify-content-between mb-2">
     <h5 class="mb-0">Sponsored</h5>
     <small class="text-muted">Advert</small>
@@ -56,6 +60,10 @@ if (!empty($banners)):
     <div class="mt-3 text-center">
       <a href="<?= $siteurl ?>advertise.php" class="btn btn-sm btn-outline-primary">Advertise with us</a>
     </div>
+<<<<<<< HEAD
 
+=======
+</div>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 
 <?php endif; ?>

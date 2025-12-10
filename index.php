@@ -104,7 +104,11 @@
                   if (isset($blog->status) && strtolower($blog->status) === 'active' && $blog->group_id == '') {
                       $count++;
                       if ($count > $limit) break;
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                       $blogId = $blog->id;
                       $title = htmlspecialchars($blog->title);
                       $slug = htmlspecialchars($blog->slug);

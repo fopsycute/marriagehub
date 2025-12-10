@@ -253,6 +253,7 @@ if (!empty($eventDates)) {
 
         <div class="product-description">
 
+<<<<<<< HEAD
            <div class="mt-3 bio-text">
   
   <!-- Short Bio: OK to stay as span -->
@@ -268,6 +269,15 @@ if (!empty($eventDates)) {
   <?php endif; ?>
 
 </div>
+=======
+        <p class="bio-text">
+          <span class="bio-short"><?php echo $shortBio; ?></span>
+          <?php if ($isTruncated): ?>
+            <span class="bio-full d-none"><?php echo $description; ?></span>
+            <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
+          <?php endif; ?>
+        </p>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
               </div>
   <?php if ($pricingType === 'paid'): ?>
               <div class="availability-status">
@@ -483,6 +493,7 @@ $details_rows .= $delivery_details;
                       <div class="col-lg-12">
                         <div class="content-section">
                           <h3>Description</h3>
+<<<<<<< HEAD
                              <div class="mt-3 bio-text">
   
             <!-- Short Bio: OK to stay as span -->
@@ -498,6 +509,15 @@ $details_rows .= $delivery_details;
             <?php endif; ?>
 
 </div>
+=======
+                           <p class="bio-text">
+                    <span class="bio-short"><?php echo $shortBio; ?></span>
+                    <?php if ($isTruncated): ?>
+                      <span class="bio-full d-none"><?php echo $description; ?></span>
+                      <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
+                    <?php endif; ?>
+                  </p> 
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                     </div>
                   </div>
                 </div>

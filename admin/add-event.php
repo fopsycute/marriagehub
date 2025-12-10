@@ -36,7 +36,11 @@
             <!-- Description -->
             <div class="form-group">
               <label for="description">Description</label>
+<<<<<<< HEAD
               <textarea id="description" class="editor" name="description" placeholder="Enter event description"></textarea>
+=======
+              <textarea id="description" class="form-control" name="description" placeholder="Enter event description"></textarea>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             </div>
 
             <!-- Categories -->
@@ -231,7 +235,11 @@
       </div>
       <div class="mb-3">
       <label>Description/Notes:</label>
+<<<<<<< HEAD
       <textarea class="editor" name="video_module_desc[]"></textarea>
+=======
+      <textarea class="form-control" name="video_module_desc[]"></textarea>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
       </div>
       <div class="mb-3">
       <label>Total Duration:</label>
@@ -332,7 +340,11 @@
             <input type="text" class="form-control mb-2" name="ticket_name[]" placeholder="Ticket Name">
             </div>
             <div class="form-group">
+<<<<<<< HEAD
             <textarea class="editor mb-2" rows="2" name="ticket_benefits[]" placeholder="Benefits"></textarea>
+=======
+            <textarea class="form-control mb-2" rows="2" name="ticket_benefits[]" placeholder="Benefits"></textarea>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             </div>
 
             <div class="form-group">

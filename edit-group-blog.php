@@ -19,7 +19,10 @@ include "header.php";
           <div class="card-body">
 
           <?php
+<<<<<<< HEAD
 $canManageStatus = false;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if (isset($_GET['blog_id'])) {
     $blogId = $_GET['blog_id'];
 
@@ -40,7 +43,10 @@ if (isset($_GET['blog_id'])) {
             $article = $blogdetail->article ?? '';
             $tags = $blogdetail->tags ?? '';
             $featured_image = $blogdetail->featured_image ?? '';
+<<<<<<< HEAD
             $reject_reason = $blogdetail->reject_reason ?? '';
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             $group_id = $blogdetail->group_id ?? '';
             $status = $blogdetail->status ?? '';
             // Convert the blog’s stored category/subcategory values into arrays
@@ -96,22 +102,34 @@ if (isset($_GET['blog_id'])) {
                 // ✅ CASE 1: Admin — always has access
                 if ($adminAuth) {
                     $buyerId = $adminAuth;
+<<<<<<< HEAD
                     $canManageStatus = true;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 2: Vendor — if the vendor is the group creator
                 elseif ($vendorAuth == $groupCreatorId) {
                     $buyerId = $vendorAuth;
+<<<<<<< HEAD
                     $canManageStatus = true;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 elseif ($therapistAuth == $groupCreatorId) {
                     $buyerId = $therapistAuth;
+<<<<<<< HEAD
                     $canManageStatus = true;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 3: Regular user — if the user is the group creator
                 elseif ($userAuth == $groupCreatorId) {
                     $buyerId = $userAuth;
+<<<<<<< HEAD
                     $canManageStatus = true;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 $activeLog = 1;
@@ -127,10 +145,13 @@ if (isset($_GET['blog_id'])) {
                         $memberResult = json_decode($memberData, true);
                         if (!empty($memberResult[0]) && strtolower($memberResult[0]['status']) === 'active' && ($memberResult[0]['role'] == 'admin' || $memberResult[0]['role'] == 'subadmin')) {
                             $canAccess = true;
+<<<<<<< HEAD
                              $userRole = $memberResult[0]['role'];
                     if ($userRole == "admin" || $userRole == "subadmin") {
                 $canManageStatus = true;
                   }   
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                         }
                     }
                 }
@@ -160,14 +181,22 @@ if (isset($_GET['blog_id'])) {
 
 ?>
 
+<<<<<<< HEAD
  <form  method="POST" id="groupeditForum" enctype="multipart/form-data">
+=======
+ <form  method="POST" id="editForum" enctype="multipart/form-data">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
      <div class="col-lg-12 text-center mt-1" id="messages"></div> 
             <!-- Blog Title -->
             <div class="form-group mb-2">
               <label for="blogTitle">Title</label>
               <input type="text" class="form-control" id="blogTitle" name="blogTitle" placeholder="Enter blog title" value="<?php echo $title; ?>" >
             </div>
+<<<<<<< HEAD
  <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+=======
+
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             <!-- Cover Image -->
             <div class="form-group mb-2">
               <label for="blogCover">Cover Image</label><img src="<?php echo $blogimage; ?>" class="small-image">
@@ -233,7 +262,11 @@ if (isset($_GET['blog_id'])) {
       </div>
 
        <input type="hidden" name="blog_id" value="<?php echo $blogId; ?>">
+<<<<<<< HEAD
     <input type="hidden" name="action" value="updategroupblog">
+=======
+    <input type="hidden" name="action" value="updateblog">
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             <!-- Tags -->
             <div class="form-group mb-2">
               <label for="blogTags">Tags</label>
@@ -241,6 +274,7 @@ if (isset($_GET['blog_id'])) {
             </div>      
             
             <!-- Status -->
+<<<<<<< HEAD
             <?php if ($canManageStatus): ?>
              <div class="form-group mb-2">
               <label for="status">Status</label>
@@ -261,6 +295,16 @@ if (isset($_GET['blog_id'])) {
           <!-- Regular members → always pending -->
           <input type="hidden" name="status" value="<?php echo $status; ?>">
       <?php endif; ?>
+=======
+             <div class="form-group mb-2">
+              <label for="status">Status</label>
+            <select name="status" class="form-control" required>
+            <option value="">Select Status</option>
+            <option value="active" <?php echo ($status === 'active') ? 'selected' : ''; ?>>Published</option>
+            <option value="pending" <?php echo ($status === 'pending') ? 'selected' : ''; ?>>Pending</option>
+          </select>
+            </div>
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
             <!-- Submit Button -->
             <button class="btn btn-primary"  id="submitBtn">Submit Blog</button>
 </form>

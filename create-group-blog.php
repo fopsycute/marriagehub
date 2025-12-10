@@ -2,7 +2,10 @@
 
 include "header.php"; 
 
+<<<<<<< HEAD
 $canManageStatus = false;
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if (isset($_GET['slug'])) {
     $groupslug = $_GET['slug'];
 
@@ -66,7 +69,10 @@ if (isset($_GET['slug'])) {
                 // ✅ CASE 1: Admin — always has access
                 if ($adminAuth) {
                     $buyerId = $adminAuth;
+<<<<<<< HEAD
                      $canManageStatus = true; // Creators can manage status
+=======
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 2: Vendor — if the vendor is the group creator
                 elseif ($vendorAuth == $groupCreatorId) {
@@ -168,6 +174,7 @@ if (isset($_GET['slug'])) {
                 $categories = json_decode($data);
                 if (!empty($categories)) {
                     foreach ($categories as $category) {
+<<<<<<< HEAD
                       foreach ($categories as $category) {
                           $categoryId = $category->id;
                           $name = $category->category_name; // adjust if DB column is different
@@ -180,6 +187,14 @@ if (isset($_GET['slug'])) {
             else {
                    echo "Error fetching data: " . curl_error($ch);
                       }
+=======
+                          $categoryId = $category->id;
+                          $name = $category->category_name; // adjust if DB column is different
+                          echo "<option value='{$categoryId}'>{$name}</option>";
+                    }
+                }
+            }
+>>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
               ?>
           </select>
             </div>
