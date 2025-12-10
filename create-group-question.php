@@ -80,26 +80,17 @@ $canManageStatus = false;
                 // ✅ CASE 1: Admin — always has access
                 if ($adminAuth) {
                     $buyerId = $adminAuth;
-<<<<<<< HEAD
                     $canManageStatus = true; // Creators can manage status
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 2: Vendor — if the vendor is the group creator
                 elseif ($vendorAuth == $groupCreatorId) {
                     $buyerId = $vendorAuth;
-<<<<<<< HEAD
                     $canManageStatus = true; // Creato
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
 
                 elseif ($therapistAuth == $groupCreatorId) {
                     $buyerId = $therapistAuth;
-<<<<<<< HEAD
                        $canManageStatus = true; // Creato
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
                 }
                 // ✅ CASE 3: Regular user — if the user is the group creator
                 elseif ($userAuth == $groupCreatorId) {

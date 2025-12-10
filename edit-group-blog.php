@@ -19,10 +19,7 @@ include "header.php";
           <div class="card-body">
 
           <?php
-<<<<<<< HEAD
 $canManageStatus = false;
-=======
->>>>>>> 90f3a825660d92875ae26d6ae25097bb295f3762
 if (isset($_GET['blog_id'])) {
     $blogId = $_GET['blog_id'];
 
