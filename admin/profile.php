@@ -54,6 +54,12 @@
     </div>
   </div>
 
+  <div class="mb-3">
+    <label>Current Photo</label><br>
+    <img src="<?= $photo_url; ?>" alt="Profile Photo" width="120" class="rounded mb-2"><br>
+    <input type="file" name="photo" class="form-control">
+  </div>
+
 
   <div class="row mb-3">
     <div class="col-md-3"><input type="url" name="facebook" value="<?= $facebook; ?>" placeholder="Facebook" class="form-control"></div>

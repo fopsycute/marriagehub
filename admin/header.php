@@ -30,11 +30,13 @@ if ($authentication) {
             $instagram = $buyerData->instagram;
             $linkedin = $buyerData->linkedin;
             $logo = $siteurl.$imagePath.$buyerData->photo;
+            $photo = $buyerData->photo;
             $buyerName = $buyerData->first_name . " " . $buyerData->last_name;
             $buyerEmail = $buyerData->email ?? '';
             $buyerStatus = $buyerData->status ?? 'inactive';
             $buyerVerified = $buyerData->is_verified ?? 0;
             $activeLog = 1;
+            $photo_url = !empty($photo) ? $siteurl . "uploads/" . $photo : $siteurl . "images/default-avatar.png";
         } else {
             // Invalid token or missing data
             $activeLog = 0;
