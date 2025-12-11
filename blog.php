@@ -232,7 +232,8 @@ if ($data !== false) {
         // SEARCH FILTER
         if ($searchTerm !== '') {
             $title = strtolower($blog->title ?? '');
-            $author = strtolower(trim(($blog->first_name ?? '') . ' ' . ($blog->last_name ?? '')));
+            $isAnon = isset($blog->is_anonymous) && $blog->is_anonymous == 1;
+            $author = $isAnon ? 'anonymous' : strtolower(trim(($blog->first_name ?? '') . ' ' . ($blog->last_name ?? '')));
             $catNames = strtolower($blog->category_names ?? '');
             $subcatNames = strtolower($blog->subcategory_names ?? '');
 
@@ -253,7 +254,8 @@ if ($data !== false) {
 
             $title = htmlspecialchars($blog->title);
             $slug = htmlspecialchars($blog->slug);
-            $author = htmlspecialchars(trim($blog->first_name . ' ' . $blog->last_name));
+            $isAnonymous = isset($blog->is_anonymous) && $blog->is_anonymous == 1;
+            $author = $isAnonymous ? 'Anonymous' : htmlspecialchars(trim($blog->first_name . ' ' . $blog->last_name));
             $views = htmlspecialchars($blog->views);
             $date = date("F d, Y", strtotime($blog->created_at));
 

@@ -78,6 +78,9 @@ $emptyStars = 5 - $fullStars - $halfStar;
 ?>
 
 <?php
+// Check if the logged-in user is viewing their own profile
+$isOwnProfile = ($buyerId == $user_id);
+
 // Check if logged-in user follows the profile
 $followed = isFollowing($buyerId, $user_id);
 
@@ -152,15 +155,25 @@ $followingCount = getFollowingCount($user_id);
     </div>
                   <div class="contact-actions">
 
+                   <?php if (!$isOwnProfile): ?>
                    <a href="<?php echo $siteurl; ?>book-appointment/<?php echo $slug; ?>" class="btn-contact">
                                 <i class="bi bi-hand-index"></i> Book Me
                             </a>
+                   <?php endif; ?>
                             
-             <button id="followBtn" 
-        data-author-id="<?php echo $user_id; ?>" 
-        class="btn <?php echo $followed ? 'btn-secondary' : 'btn-primary'; ?>">
-            <?php echo $followed ? 'Unfollow' : 'Follow'; ?>
-        </button>
+             <?php if ($isOwnProfile): ?>
+                <!-- Show dashboard button for own profile -->
+                <a href="<?php echo $siteurl; ?>therapist-dashboard/index.php" class="btn btn-primary">
+                    <i class="bi bi-speedometer2"></i> Go to Dashboard
+                </a>
+             <?php else: ?>
+                <!-- Show follow button for other profiles -->
+                <button id="followBtn" 
+                    data-author-id="<?php echo $user_id; ?>" 
+                    class="btn <?php echo $followed ? 'btn-secondary' : 'btn-primary'; ?>">
+                        <?php echo $followed ? 'Unfollow' : 'Follow'; ?>
+                </button>
+             <?php endif; ?>
 
          <?php if ($activeLog == 1): ?>
                       <a type="button" class="btn btn-danger m-1" data-bs-toggle="modal" data-bs-target="#reportuserModal">
@@ -168,9 +181,11 @@ $followingCount = getFollowingCount($user_id);
                       </a>
                     
                     <?php endif; ?>
-                     <a href="mailto:<?php echo $email; ?>" class="btn-contact">
-                                <i class="bi bi-envelope"></i> Contact
+                     <?php if ($activeLog == 1 && !$isOwnProfile): ?>
+                     <a href="<?php echo $siteurl; ?>messages.php?user_id=<?php echo $user_id; ?>" class="btn-contact">
+                                <i class="bi bi-envelope"></i> Send Message
                             </a>
+                     <?php endif; ?>
                                     <?php if (!empty($website)): ?>
             <a href="<?php echo $website; ?>" class="btn-visit" target="_blank" rel="noopener">
             <i class="bi bi-globe"></i> Visit Website

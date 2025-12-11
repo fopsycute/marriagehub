@@ -67,7 +67,7 @@ include "header.php"; ?>
                 <h4>Select Payment Method</h4>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack"  onchange="updatePaymentButton()" checked>
-                    <label class="form-check-label" for="paystack">Pay with Paystack</label>
+                    <label class="form-check-label" for="paystack">Pay with VPay</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="payment_method" id="manual" value="manual"  onchange="updatePaymentButton()">
@@ -144,7 +144,7 @@ include "header.php"; ?>
         <button type="button" id="paymentButton"
             class="btn btn-primary w-100 paystack-button"
             onClick="payWithPaystack()">
-            <span class="btn-text">Pay with Paystack</span>
+            <span class="btn-text">Pay with VPay</span>
             <span class="btn-price" id="btn-price-text"></span>
         </button>
         </div>

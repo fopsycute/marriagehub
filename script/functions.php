@@ -826,7 +826,13 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
         </div>
     ";
 
-    $apiKey = $brevokey;  // Replace with your actual API key
+    $apiKey = $brevokey ?? '';  // Get API key from settings
+    
+    // Check if API key is configured
+    if (empty($apiKey)) {
+        error_log("Brevo API key not configured in site settings");
+        return false;
+    }
 
     $data = [
         'sender' => [
@@ -859,7 +865,7 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        echo 'Curl error: ' . curl_error($ch);
+        error_log('Brevo Curl error: ' . curl_error($ch));
         curl_close($ch);
         return false;
     }
@@ -869,7 +875,7 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
     if ($httpCode === 201) {
         return true;
     } else {
-        echo 'Brevo API Error: ' . $response;
+        error_log('Brevo API Error: ' . $response);
         return false;
     }
 }
@@ -878,6 +884,12 @@ function sendEmail($email, $siteName, $siteMail, $firstName, $emailMessage, $ema
 
 function sendEmailWithAttachments($email, $siteName, $siteMail, $firstName, $emailMessage, $emailSubject, $attachments = []) {
     global $siteimg, $adminlink, $siteurl, $brevokey;
+    
+    // Check if API key is configured
+    if (empty($brevokey)) {
+        error_log("Brevo API key not configured in site settings");
+        return false;
+    }
 
     $htmlBody = "
         <div style='width:600px; padding:40px; background-color:#000000; color:#fff;'>
@@ -939,7 +951,7 @@ function sendEmailWithAttachments($email, $siteName, $siteMail, $firstName, $ema
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        echo 'Curl error: ' . curl_error($ch);
+        error_log('Brevo Curl error: ' . curl_error($ch));
         curl_close($ch);
         return false;
     }
@@ -949,7 +961,7 @@ function sendEmailWithAttachments($email, $siteName, $siteMail, $firstName, $ema
     if ($httpCode === 201) {
         return true;
     } else {
-        echo "Brevo API Error: " . $response;
+        error_log("Brevo API Error: " . $response);
         return false;
     }
 }

@@ -326,6 +326,16 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
         <i class="bi bi-person-circle me-2"></i>
         <span>Dashboard</span>
       </a>
+      
+      <?php 
+      // Check if user is a regular buyer (not vendor/therapist)
+      if (empty($_COOKIE['vendor_auth']) && empty($_COOKIE['therapist_auth']) && !empty($_COOKIE['user_auth'])): 
+      ?>
+      <a class="dropdown-item d-flex align-items-center" href="<?php echo $siteurl; ?>register/vendor">
+        <i class="bi bi-shop me-2"></i>
+        <span>Become a Seller</span>
+      </a>
+      <?php endif; ?>
     </div>
     <div class="dropdown-footer px-3 pb-3">
       <a href="<?php echo $siteurl; ?>logout.php" class="btn btn-primary w-100 mb-2">Log Out</a>

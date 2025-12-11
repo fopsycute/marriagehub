@@ -76,7 +76,7 @@ if (isset($_GET['booking_id']) && !empty($_GET['booking_id'])) {
 
                     <div class="text-center">
                         <button id="paystackBtn" class="btn btn-primary w-100">
-                            <i class="bi bi-credit-card"></i> Pay with Paystack
+                            <i class="bi bi-credit-card"></i> Pay with VPay
                         </button>
                     </div>
                 </div>

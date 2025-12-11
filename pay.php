@@ -87,7 +87,7 @@ if (isset($_GET['order_id']) && !empty($_GET['order_id'])) {
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="payment_method"
                          id="paystack" value="paystack" checked>
-                  <label class="form-check-label" for="paystack">Pay with Paystack</label>
+                  <label class="form-check-label" for="paystack">Pay with VPay</label>
                 </div>
 
                 <div class="form-check">
@@ -161,7 +161,7 @@ if (isset($_GET['order_id']) && !empty($_GET['order_id'])) {
               <button type="button" id="paymentButton"
                 class="btn btn-primary w-100 paystack-button"
                 onClick="payWithPaystack()">
-                <span class="btn-text">Pay with Paystack</span>
+                <span class="btn-text">Pay with VPay</span>
               </button>
             </div>
 

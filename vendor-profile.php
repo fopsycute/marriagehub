@@ -70,6 +70,9 @@ $shareUrl     = $siteurl . "vendor-profile/" . urlencode($slug);
 
 ?>
 <?php
+// Check if the logged-in user is viewing their own profile
+$isOwnProfile = ($buyerId == $vendorId);
+
 // Check if logged-in user follows the profile
 $followed = isFollowing($buyerId, $vendorId);
 
@@ -106,11 +109,19 @@ $followingCount = getFollowingCount($vendorId);
                                     </div>
                                 <?php endif; ?>
                                 <div>
-                                 <button id="followBtn" 
+                                 <?php if ($isOwnProfile): ?>
+                                    <!-- Show dashboard button for own profile -->
+                                    <a href="<?php echo $siteurl; ?>vendor/index.php" class="btn btn-primary">
+                                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                                    </a>
+                                 <?php else: ?>
+                                    <!-- Show follow button for other profiles -->
+                                    <button id="followBtn" 
                                         data-author-id="<?php echo $vendorId; ?>" 
                                         class="btn <?php echo $followed ? 'btn-secondary' : 'btn-primary'; ?>">
                                             <?php echo $followed ? 'Unfollow' : 'Follow'; ?>
-                                        </button>
+                                    </button>
+                                 <?php endif; ?>
                                          <p><?php echo $followerCount; ?> Followers | <?php echo $followingCount; ?> Following</p>   
                                         <p><strong>Profile Views:</strong> <?=$views?></p>
                                         </div>
@@ -123,11 +134,11 @@ $followingCount = getFollowingCount($vendorId);
                             </div>
 
                                 <div class="contact-actions mt-2 d-flex flex-wrap align-items-center gap-2">
-                                    <?php if (!empty($phone)): ?>
+                                    <?php if (!empty($phone) && !$isOwnProfile): ?>
                                         <a href="tel:<?php echo htmlspecialchars($phone); ?>" class="btn btn-outline-primary"><i class="bi bi-telephone"></i> Call</a>
                                     <?php endif; ?>
-                                    <?php if (!empty($email)): ?>
-                                        <a href="mailto:<?php echo htmlspecialchars($email); ?>" class="btn btn-outline-secondary"><i class="bi bi-envelope"></i> Contact</a>
+                                    <?php if ($activeLog == 1 && !$isOwnProfile): ?>
+                                        <a href="<?php echo $siteurl; ?>messages.php?user_id=<?php echo $vendorId; ?>" class="btn btn-outline-secondary"><i class="bi bi-envelope"></i> Send Message</a>
                                     <?php endif; ?>
                                     <?php if (!empty($website)): ?>
                                         <a href="<?php echo htmlspecialchars($website); ?>" target="_blank" class="btn btn-primary"><i class="bi bi-globe"></i> Visit Website</a>

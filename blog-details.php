@@ -50,7 +50,8 @@ if (isset($_GET['slug'])) {
             $best_answers = $blogdetail->best_answers ?? '';
             $status = $blogdetail->status ?? '';
             $created_at = date('F d, Y \a\t h:i A', strtotime($blogdetail->created_at));
-            $author = trim(($blogdetail->first_name ?? '') . ' ' . ($blogdetail->last_name ?? ''));
+            $isAnonymous = isset($blogdetail->is_anonymous) && $blogdetail->is_anonymous == 1;
+            $author = $isAnonymous ? 'Anonymous' : trim(($blogdetail->first_name ?? '') . ' ' . ($blogdetail->last_name ?? ''));
             $blog_group_id = intval($blogdetail->group_id ?? 0);
 
             $blogimage = $siteurl . $imagePath . $featured_image;
@@ -431,6 +432,7 @@ $followingCount = getFollowingCount($AuthorId);
           <div class="widgets-container">
 
             <!-- Blog Author Widget -->
+           <?php if (!$isAnonymous): ?>
            <div class="blog-author-widget widget-item">
   <div class="">
     <div class="d-flex align-items-center w-100">
@@ -502,6 +504,7 @@ $followingCount = getFollowingCount($AuthorId);
     </p>
   </div>
 </div><!--/Blog Author Widget -->
+<?php endif; // End anonymous check ?>
 
             <!-- Search Widget -->
             <div class="search-widget widget-item">

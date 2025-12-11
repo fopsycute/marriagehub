@@ -9377,6 +9377,9 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
     $account_number = mysqli_real_escape_string($con, trim($postData['account_number'] ?? ''));
     $minimum_withdrawal = mysqli_real_escape_string($con, trim($postData['minimum_withdrawal'] ?? ''));
     
+    // Email configuration
+    $brevo_key = mysqli_real_escape_string($con, trim($postData['brevo_key'] ?? ''));
+    
     // VPay payment configuration
     $vpay_domain = mysqli_real_escape_string($con, trim($postData['vpay_domain'] ?? 'sandbox'));
     $vpay_test_public_key = mysqli_real_escape_string($con, trim($postData['vpay_test_public_key'] ?? ''));
@@ -9429,6 +9432,7 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
         site_mail='$site_mail',
         site_number='$site_number',
         site_bank='$site_bank',
+        brevo_key='$brevo_key',
         vpay_domain='$vpay_domain',
         vpay_test_public_key='$vpay_test_public_key',
         vpay_live_public_key='$vpay_live_public_key',

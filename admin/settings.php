@@ -66,6 +66,26 @@
                       <label class="form-label">Site Bank</label>
                       <input type="text" name="site_bank" class="form-control" value="<?php echo $site_bank; ?>"> 
                     </div>
+                    
+                    <!-- Email Configuration -->
+                    <div class="card mb-3">
+                      <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">📧 Email Configuration (Brevo API)</h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="alert alert-info">
+                          <strong>ℹ️ Brevo Setup:</strong> Get your API key from <a href="https://www.brevo.com" target="_blank">Brevo.com</a> (formerly Sendinblue). 
+                          This is required for sending transactional emails like payment confirmations, registration emails, etc.
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Brevo API Key <span class="text-danger">*</span></label>
+                          <input type="text" name="brevo_key" class="form-control" 
+                                 value="<?php echo $brevokey ?? ''; ?>" 
+                                 placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                          <small class="text-muted">Enter your Brevo API key to enable email sending</small>
+                        </div>
+                      </div>
+                    </div>
 
                     <!-- VPay Payment Configuration -->
                     <div class="card mb-3">

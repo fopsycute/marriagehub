@@ -2082,6 +2082,7 @@ function addForumEndpoint($postData, $fileData)
     $status      = 'pending'; // Always pending
     $category    = isset($postData['category']) && is_array($postData['category']) ? implode(',', $postData['category']) : '';
     $subcategory = isset($postData['subcategory']) && is_array($postData['subcategory']) ? implode(',', $postData['subcategory']) : '';
+    $isAnonymous = isset($postData['anonymous']) && $postData['anonymous'] == '1' ? 1 : 0;
 
     // ✅ Validation
     if (empty($title) || empty($article) || $user == 0) {
@@ -2150,15 +2151,15 @@ function addForumEndpoint($postData, $fileData)
     // ✅ Insert into forums table
     $stmt = $con->prepare("
         INSERT INTO {$siteprefix}forums 
-        (user_id, title, article, featured_image, tags, categories, subcategories, status, created_at, slug, views)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 0)
+        (user_id, title, article, featured_image, tags, categories, subcategories, status, is_anonymous, created_at, slug, views)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 0)
     ");
 
     if (!$stmt) {
         return ['status' => 'error', 'messages' => 'Database error: ' . $con->error];
     }
 
-    $stmt->bind_param("issssssss", $user, $title, $article, $featuredImage, $tags, $category, $subcategory, $status, $alt_title);
+    $stmt->bind_param("issssssis", $user, $title, $article, $featuredImage, $tags, $category, $subcategory, $status, $isAnonymous, $alt_title);
 
     if (!$stmt->execute()) {
         return ['status' => 'error', 'messages' => 'Database error: ' . $stmt->error];

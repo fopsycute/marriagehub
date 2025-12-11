@@ -17,6 +17,16 @@ $migrations = [
         'file' => 'create_messaging_tables.sql',
         'title' => 'Create Messaging Tables',
         'description' => 'Creates ma_messages and ma_message_threads tables for private messaging system'
+    ],
+    [
+        'file' => 'add_anonymous_field.sql',
+        'title' => 'Add Anonymous Posting Field',
+        'description' => 'Adds is_anonymous column to forums and questions tables for anonymous posting feature'
+    ],
+    [
+        'file' => 'create_feedback_table.sql',
+        'title' => 'Create Feedback Table',
+        'description' => 'Creates ma_feedback table for article/question helpfulness ratings (Yes/No buttons)'
     ]
 ];
 

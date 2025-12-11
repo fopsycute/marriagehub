@@ -119,7 +119,7 @@ if ($sql2 && mysqli_num_rows($sql2) > 0) {
     $minimum_withdrawal  = $row["minimum_withdrawal"];
     $google_map    = $row["google_map"];
     $site_address = $row["site_address"];
-  //  $brevokey = $row["brevo_key"];
+    $brevokey = $row["brevo_key"] ?? '';
     $sitekeywords = $row["site_keywords"];
 }
 

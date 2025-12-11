@@ -39,8 +39,10 @@ if (isset($_GET['slug'])) {
 
             $created_at   = date('F d, Y \a\t h:i A', strtotime($listing->created_at));
                    
-            $shortBio = limitWords(strip_tags($description), 20);
-            $isTruncated = (str_word_count(strip_tags($description)) > 20);
+            // Keep HTML formatting but limit preview length
+            $descriptionPlain = strip_tags($description);
+            $shortBio = limitWords($descriptionPlain, 20);
+            $isTruncated = (str_word_count($descriptionPlain) > 20);
 
             
             // 🧩 Variations
@@ -233,13 +235,15 @@ if (!empty($buyerId)) {
 
         <div class="product-description">
 
-        <p class="bio-text">
-          <span class="bio-short"><?php echo $shortBio; ?></span>
-          <?php if ($isTruncated): ?>
-            <span class="bio-full d-none"><?php echo $description; ?></span>
+        <?php if ($isTruncated): ?>
+          <div class="bio-text">
+            <div class="bio-short"><?php echo $shortBio; ?>...</div>
+            <div class="bio-full d-none"><?php echo $description; ?></div>
             <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-          <?php endif; ?>
-        </p>
+          </div>
+        <?php else: ?>
+          <div class="bio-text"><?php echo $description; ?></div>
+        <?php endif; ?>
               </div>
 
               <!-- 🧩 Variation Dropdown -->
@@ -407,13 +411,9 @@ if (!empty($buyerId)) {
                       <div class="col-lg-12">
                         <div class="content-section">
                           <h3>Description</h3>
-                           <p class="bio-text">
-                    <span class="bio-short"><?php echo $shortBio; ?></span>
-                    <?php if ($isTruncated): ?>
-                      <span class="bio-full d-none"><?php echo $description; ?></span>
-                      <a href="#" class="read-toggle text-primary ms-1" style="font-size: 0.9em;">Read More</a>
-                    <?php endif; ?>
-                  </p> 
+                          <div class="product-full-description">
+                            <?php echo $description; ?>
+                          </div> 
                     </div>
                   </div>
                 </div>
