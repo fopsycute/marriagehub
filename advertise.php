@@ -112,7 +112,7 @@
             <div class="card contentBox flex-fill text-center p-3">
                 <i class="bi bi-person-plus text-primary mb-3" style="font-size:35px;"></i>
                 <h5><strong>Create Your Free Profile</strong></h5>
-                <p class="mt-2">It is completely free to register on Review Hub NG.</p>
+                <p class="mt-2">It is completely free to register on Marriage Hub NG.</p>
             </div>
         </div>
 

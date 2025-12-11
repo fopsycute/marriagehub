@@ -1,8 +1,29 @@
 
 <?php include "header.php"; ?>
+
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'marketplace-page-top-banner';
+include "listing-banner.php";
+?>
+
 <section id="category-header" class="category-header section">
 
             <div class="container aos-init aos-animate" data-aos="fade-up">
+              
+              <!-- Header with Register Button -->
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">Marketplace</h2>
+                <?php if(isset($buyerId) && $buyerId > 0): ?>
+                  <a href="<?php echo $siteurl; ?>vendor/" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> List My Product
+                  </a>
+                <?php else: ?>
+                  <a href="<?php echo $siteurl; ?>register/vendor" class="btn btn-primary">
+                    <i class="bi bi-shop"></i> Register as Vendor
+                  </a>
+                <?php endif; ?>
+              </div>
 
               <!-- Filter and Sort Options -->
               <form method="get" id="marketFilter">
@@ -61,6 +82,22 @@
                     </div>
                   </div>
 
+                  <div class="col-12 col-md-6 col-lg-2">
+                    <div class="filter-item">
+                      <label for="stateFilter" class="form-label">Location</label>
+                      <select class="form-select" id="stateFilter" name="state">
+                        <option value="">All States</option>
+                        <option value="Lagos" <?php echo (isset($_GET['state']) && $_GET['state']=='Lagos') ? 'selected' : ''; ?>>Lagos</option>
+                        <option value="Federal Capital Territory" <?php echo (isset($_GET['state']) && $_GET['state']=='Federal Capital Territory') ? 'selected' : ''; ?>>FCT Abuja</option>
+                        <option value="Rivers" <?php echo (isset($_GET['state']) && $_GET['state']=='Rivers') ? 'selected' : ''; ?>>Rivers</option>
+                        <option value="Oyo" <?php echo (isset($_GET['state']) && $_GET['state']=='Oyo') ? 'selected' : ''; ?>>Oyo</option>
+                        <option value="Anambra" <?php echo (isset($_GET['state']) && $_GET['state']=='Anambra') ? 'selected' : ''; ?>>Anambra</option>
+                        <option value="Delta" <?php echo (isset($_GET['state']) && $_GET['state']=='Delta') ? 'selected' : ''; ?>>Delta</option>
+                        <option value="Enugu" <?php echo (isset($_GET['state']) && $_GET['state']=='Enugu') ? 'selected' : ''; ?>>Enugu</option>
+                        <option value="Kano" <?php echo (isset($_GET['state']) && $_GET['state']=='Kano') ? 'selected' : ''; ?>>Kano</option>
+                      </select>
+                    </div>
+                  </div>
               
                   <div class="col-12 col-md-6 col-lg-2">
                     <div class="filter-item">

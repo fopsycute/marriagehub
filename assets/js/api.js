@@ -678,7 +678,7 @@ $(document).ready(function () {
 
                     setTimeout(() => {
                         alert(response.messages || "Forum post updated successfully!");
-                        location.reload();
+                        window.location.href = siteUrl + 'admin/all-blog';
                     }, 1000);
                 } else {
                     $('#messages')
@@ -871,7 +871,7 @@ $(document).ready(function () {
 
                     setTimeout(() => {
                         alert(response.messages || "Updated successfully!");
-                        location.reload();
+                        window.location.href = siteUrl + 'admin/all-groups';
                     }, 1000);
                 } else {
                     $('#messages')
@@ -1486,12 +1486,12 @@ $(document).ready(function () {
         }
 
         if (response.status === 'success') {
-          // show alert and reload on OK
+          // show alert and redirect to my-group
           alert(plainMsg);
           // optionally also set #messages area
           $('#messages').addClass('alert alert-success').html(response.messages).show();
-          // reload
-          location.reload();
+          // redirect to my-group
+          window.location.href = siteUrl + 'my-group';
         } else {
           // show inline message and scroll to it
           $('#messages').addClass('alert alert-danger').html(response.messages || plainMsg).show();
@@ -4270,7 +4270,7 @@ $(document).ready(function () {
 
                     setTimeout(() => {
                         alert(response.messages || "Forum post created successfully!");
-                        location.reload();
+                        window.location.href = siteUrl + 'my-blog';
                     }, 500);
                 } else {
                     $('#messages')
@@ -4335,7 +4335,7 @@ $(document).ready(function () {
 
                     setTimeout(() => {
                         alert(response.messages || "Forum post created successfully!");
-                        location.reload();
+                        window.location.href = siteUrl + "vendor/";
                     }, 500);
                 } else {
                     $('#messages')
@@ -4468,9 +4468,9 @@ $(document).off('submit', '#addQuestions').on('submit', '#addQuestions', functio
         $('#messages').html('<div class="alert alert-success">' + response.messages + '</div>');
         $('#addQuestions')[0].reset();
 
-        // ✅ Reload after 2 seconds
+        // Redirect to my-q-a after 2 seconds
         setTimeout(function() {
-          location.reload();
+          window.location.href = siteUrl + 'my-q-a';
         }, 2000);
       } else {
         $('#messages').html('<div class="alert alert-danger">' + response.messages + '</div>');
@@ -4592,9 +4592,9 @@ $(document).off('submit', '#editQuestions').on('submit', '#editQuestions', funct
         $('#messages').html('<div class="alert alert-success">' + response.messages + '</div>');
         $('#editQuestions')[0].reset();
 
-        // ✅ Reload after 2 seconds
+        // ✅ Redirect to all questions page after 2 seconds
         setTimeout(function() {
-          location.reload();
+          window.location.href = siteUrl + 'admin/all-question';
         }, 2000);
       } else {
         $('#messages').html('<div class="alert alert-danger">' + response.messages + '</div>');

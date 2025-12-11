@@ -1587,7 +1587,7 @@ function getallblog($con)
         LEFT JOIN {$siteprefix}users AS u 
             ON f.user_id = u.id
         WHERE f.status IN ('active', 'approved')
-        ORDER BY f.created_at DESC
+        ORDER BY f.is_pinned DESC, f.created_at DESC
     ";
 
     $result = mysqli_query($con, $query);
@@ -2586,7 +2586,7 @@ function getallquestions($con)
         LEFT JOIN {$siteprefix}users AS u 
             ON q.user_id = u.id
         WHERE q.status IN ('active', 'approved')
-        ORDER BY q.created_at DESC
+        ORDER BY q.is_pinned DESC, q.created_at DESC
     ";
 
     $result = mysqli_query($con, $query);
@@ -2763,6 +2763,45 @@ function deleteblogEndpoint($postData) {
     return mysqli_query($con, "DELETE FROM  {$siteprefix}forums WHERE id= '$imageId'") ? 'Deleted Successfully.' : 'Failed to delete blog: ' . mysqli_error($con);
 }
 
+function togglePinBlogEndpoint($postData) {
+    global $con, $siteprefix;
+    
+    if (!isset($postData["blog_id"]) || !isset($postData["is_pinned"])) {
+        return json_encode(['status' => 'error', 'message' => 'Missing parameters']);
+    }
+    
+    $blogId = intval($postData["blog_id"]);
+    $isPinned = intval($postData["is_pinned"]);
+    
+    $query = "UPDATE {$siteprefix}forums SET is_pinned = $isPinned WHERE id = $blogId";
+    $result = mysqli_query($con, $query);
+    
+    if ($result) {
+        return json_encode(['status' => 'success', 'message' => 'Pin status updated successfully']);
+    } else {
+        return json_encode(['status' => 'error', 'message' => 'Failed to update pin status: ' . mysqli_error($con)]);
+    }
+}
+
+function togglePinQuestionEndpoint($postData) {
+    global $con, $siteprefix;
+    
+    if (!isset($postData["question_id"]) || !isset($postData["is_pinned"])) {
+        return json_encode(['status' => 'error', 'message' => 'Missing parameters']);
+    }
+    
+    $questionId = intval($postData["question_id"]);
+    $isPinned = intval($postData["is_pinned"]);
+    
+    $query = "UPDATE {$siteprefix}questions SET is_pinned = $isPinned WHERE id = $questionId";
+    $result = mysqli_query($con, $query);
+    
+    if ($result) {
+        return json_encode(['status' => 'success', 'message' => 'Pin status updated successfully']);
+    } else {
+        return json_encode(['status' => 'error', 'message' => 'Failed to update pin status: ' . mysqli_error($con)]);
+    }
+}
 
 function deletereviewEndpoint($postData) {
     global $con,$siteprefix;
@@ -9861,10 +9900,17 @@ function updatenewAdminGroupEndpoint($postData, $fileData) {
 
         if ($newStatus === 'active') {
             $emailSubject = "Your Group '$group_name' is Now Active!";
+            
+            // Get group slug for the correct link
+            $slugQuery = mysqli_query($con, "SELECT slug FROM {$siteprefix}groups WHERE id='$group_id' LIMIT 1");
+            $slugData = mysqli_fetch_assoc($slugQuery);
+            $groupSlug = $slugData['slug'] ?? '';
+            $groupLink = !empty($groupSlug) ? "{$siteurl}group/{$groupSlug}" : "{$siteurl}all-groups";
+            
             $emailMessage = "
                 <p>Hello $userName,</p>
                 <p>Your group <strong>$group_name</strong> has been activated on $siteName.</p>
-                <p><a href='{$siteurl}groups.php' style='background:#4CAF50;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;'>View Group</a></p>
+                <p><a href='{$groupLink}' style='background:#4CAF50;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;'>View Group</a></p>
             ";
             sendEmail($userEmail, $siteName, $siteMail, $userName, $emailMessage, $emailSubject);
         } elseif ($newStatus === 'suspended') {
@@ -11696,6 +11742,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
     if($_POST['action'] == 'deleteblog'){
     $response = deleteblogEndpoint($_POST);}
+
+    if($_POST['action'] == 'togglePinBlog'){
+    $response = togglePinBlogEndpoint($_POST);}
+
+    if($_POST['action'] == 'togglePinQuestion'){
+    $response = togglePinQuestionEndpoint($_POST);}
 
      if($_POST['action'] == 'report_item'){
     $response = reportItem($_POST);}

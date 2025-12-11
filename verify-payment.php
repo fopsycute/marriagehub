@@ -120,7 +120,7 @@ function bookingPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, $escr
 }
 
 
-function paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName = '', $siteMail = '') {
+function paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $escrowfee, $siteName = '', $siteMail = '') {
     if (!isset($_GET['reference']) || !isset($_GET['group_id']) || !isset($_GET['user_id'])) {
         die("Invalid payment request.");
     }
@@ -176,7 +176,7 @@ function paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName = 
 
     // --- Get seller (group owner) + group name ---
     $sellerResult = mysqli_query($con, "
-        SELECT g.user_id AS seller_id, g.group_name, u.email AS seller_email, u.first_name AS seller_name 
+        SELECT g.user_id AS seller_id, g.group_name, u.email AS seller_email, u.first_name AS seller_name, u.user_type AS seller_type 
         FROM {$siteprefix}groups g 
         JOIN {$siteprefix}users u ON g.user_id = u.id 
         WHERE g.id='$group_id' LIMIT 1
@@ -188,6 +188,7 @@ function paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName = 
         $group_name = $sellerData['group_name'];
         $seller_email = $sellerData['seller_email'];
         $seller_name = $sellerData['seller_name'];
+        $seller_type = $sellerData['seller_type'];
 
            // --- CASE 1: Seller is ADMIN (full payment goes to profits) ---
     if ($seller_type === 'admin') {
@@ -209,6 +210,7 @@ function paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $siteName = 
 
     } else {
         $admin_commission = $amount * ($escrowfee / 100);
+        $seller_amount = $amount - $admin_commission;
         // --- CASE 2: Seller is NOT ADMIN (split commission) ---
         if ($admin_commission > 0) {
             mysqli_query($con, "INSERT INTO {$siteprefix}profits 
@@ -268,7 +270,7 @@ function therapistPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, $si
 
     // --- Step 1: Fetch booking details ---
     $bookingQuery = mysqli_query($con, "
-        SELECT id, client_name, therapist_id, price 
+        SELECT id, client_name, client_email, therapist_id, price 
         FROM {$siteprefix}bookings 
         WHERE id='$booking_id' LIMIT 1
     ");
@@ -277,6 +279,7 @@ function therapistPaymentSuccess($con, $siteprefix, $siteurl, $sitecurrency, $si
     }
     $booking = mysqli_fetch_assoc($bookingQuery);
     $client_name  = $booking['client_name'];
+    $client_email = $booking['client_email'];
     $therapist_id = $booking['therapist_id'];
     $price        = $booking['price'];
 
@@ -599,7 +602,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'verify-therapist-payment') {
 }
 // ✅ Handle verification action
 if (isset($_GET['action']) && $_GET['action'] === 'verify-group-payment') {
-    paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency);
+    paymentsuccess($con, $siteprefix, $siteurl, $sitecurrency, $escrowfee, $siteName, $siteMail);
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'verify-advert-payment') {

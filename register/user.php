@@ -139,7 +139,7 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">State of Residence</label>
-                  <input type="text" name="state" class="form-control" placeholder="LGA | State">
+                  <input type="text" name="state" class="form-control" placeholder="State | LGA">
                 </div>
               </div>
               <div class="row mb-3">

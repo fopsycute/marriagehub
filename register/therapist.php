@@ -325,8 +325,8 @@
             </div>
 
             <div class="mb-3">
-            <label class="form-label">Who do you work with? *</label>
-             <select name="work_with" id="workWith" class="form-control">
+            <label class="form-label">Who do you work with? * (Select all that apply)</label>
+             <select name="work_with[]" id="workWith" class="form-control select-multiple" multiple>
               <option value="Individuals">Individuals</option>
               <option value="Couples">Couples</option>
               <option value="Family">Family</option>

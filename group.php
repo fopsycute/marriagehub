@@ -1018,6 +1018,76 @@ if ($data !== false) {
   </div>
 </div>
 
+<!-- Related Groups Section -->
+<section id="related-groups" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Groups</h3>
+    <div class="row g-4">
+      <?php
+      // Fetch related groups with same category
+      $relatedUrl = $siteurl . "script/admin.php?action=grouplists";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedGroups = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedGroups)) {
+              foreach ($relatedGroups as $relG) {
+                  // Skip current group and only show active ones
+                  if ($relG->id == $group_id || $relG->status != 'active') continue;
+                  
+                  // Check if categories match
+                  $relCategories = $relG->category_names ?? '';
+                  if (strpos($relCategories, $category) === false && strpos($category, $relCategories) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 4) break; // Limit to 4 related groups
+                  
+                  $relName = htmlspecialchars($relG->group_name);
+                  $relSlug = htmlspecialchars($relG->slug);
+                  $relDesc = limitWords(strip_tags($relG->group_description), 15);
+                  $relMembers = $relG->member_count ?? 0;
+                  $relType = $relG->group_type ?? 'Free';
+                  $relBanner = !empty($relG->banner) 
+                      ? $siteurl . $imagePath . $relG->banner 
+                      : $siteurl . "assets/img/default-group.jpg";
+                  $relUrl = $siteurl . "group/" . $relSlug;
+                  ?>
+                  
+                  <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                      <a href="<?php echo $relUrl; ?>">
+                        <img src="<?php echo $relBanner; ?>" class="card-img-top" alt="<?php echo $relName; ?>" style="height: 180px; object-fit: cover;">
+                      </a>
+                      <div class="card-body">
+                        <span class="badge bg-primary mb-2"><?php echo $relType; ?></span>
+                        <h5 class="card-title">
+                          <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relName; ?></a>
+                        </h5>
+                        <p class="card-text text-muted small"><?php echo $relDesc; ?>...</p>
+                        <small class="text-secondary">
+                          <i class="bi bi-people"></i> <?php echo $relMembers; ?> members
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<p class="text-center text-muted">No related groups found.</p>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
 <?php include "footer.php"; ?>
 

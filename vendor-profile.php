@@ -650,7 +650,8 @@ if ($data !== false) {
 
 </section><!-- /Trending Category Section -->
 
-
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
 </main>
 

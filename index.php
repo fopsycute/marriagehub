@@ -152,6 +152,14 @@
       }
       ?>
     </div>
+    
+    <!-- Inline Advert after Blog Section -->
+    <div class="container">
+      <?php
+      $placementSlug = 'home-page-blog-inline-ad';
+      include "inline-ad.php";
+      ?>
+    </div>
   </div>
 
   <!-- Custom CSS -->
@@ -376,6 +384,14 @@
       endif;
       ?>
     </div>
+    
+    <!-- Inline Advert after Groups Section -->
+    <div class="container">
+      <?php
+      $placementSlug = 'home-page-groups-inline-ad';
+      include "inline-ad.php";
+      ?>
+    </div>
   </div>
 
 </section><!-- /Community Group -->
@@ -518,6 +534,14 @@
       <p>No questions available.</p>
     <?php endif; ?>
 
+  </div>
+  
+  <!-- Inline Advert after Q&A Section -->
+  <div class="container">
+    <?php
+    $placementSlug = 'home-page-qa-inline-ad';
+    include "inline-ad.php";
+    ?>
   </div>
 </section>
 
@@ -1117,6 +1141,14 @@ if ($data !== false) {
         <a href="<?php echo $siteurl; ?>events.php" class="btn btn-primary px-4 py-2">View All Events</a>
     </div>
 <?php endif; ?>
+
+    <!-- Inline Advert after Events Section -->
+    <div class="container">
+      <?php
+      $placementSlug = 'home-page-events-inline-ad';
+      include "inline-ad.php";
+      ?>
+    </div>
 
     </div>
 

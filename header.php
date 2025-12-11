@@ -186,13 +186,16 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
         <i class="bi bi-people me-1"></i> Create Tribes & Groups
       </a>
       <span class="text-secondary">|</span>
-      <a href="<?php echo $siteurl; ?>register/vendor.php" class="text-dark text-decoration-none">
-        <i class="bi bi-people me-1"></i> Become a Vendor 
+      <a href="<?php echo $siteurl; ?>vendor/add-event.php" class="text-dark text-decoration-none">
+        <i class="bi bi-calendar-event me-1"></i> List Events
       </a>
-
+      <span class="text-secondary">|</span>
+      <a href="<?php echo $siteurl; ?>register/vendor.php" class="text-dark text-decoration-none">
+        <i class="bi bi-shop me-1"></i> Become a Vendor 
+      </a>
       <span class="text-secondary">|</span>
       <a href="<?php echo $siteurl; ?>advertise.php" class="text-dark text-decoration-none">
-        <i class="bi bi-badge-ad me-1"></i> Advertise with us
+        <i class="bi bi-badge-ad me-1"></i> Advertise With Us
       </a>
     </div>
   </div>
@@ -212,15 +215,13 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
   <nav id="navmenu" class="navmenu order-1 flex-grow-1">
   <ul class="d-lg-flex justify-content-lg-center align-items-center mb-0 w-100">
           <li><a href="<?php echo $siteurl; ?>" class="active">Home</a></li>
-          <li><a href="<?php echo $siteurl; ?>about.php">About</a></li>
           <li><a href="<?php echo $siteurl; ?>blog.php">Blogs</a></li>
           <li><a href="<?php echo $siteurl; ?>questions-answers.php">Q & A</a></li>
-          <li><a href="<?php echo $siteurl; ?>marketplace.php">Marketplace</a></li>
-          <li><a href="<?php echo $siteurl; ?>services.php">Services</a></li>
-          <li><a href="<?php echo $siteurl; ?>events.php">Events</a></li>
-          <li><a href="<?php echo $siteurl; ?>vendors.php">Vendors Directory</a></li>
-          <li><a href="<?php echo $siteurl; ?>advertise.php">Advertise with us</a></li>
-          <a href="<?php echo $siteurl; ?>find-therapist" class="btn btn-primary text-white p-2" >Find a Therapists</a>
+          <li><a href="<?php echo $siteurl; ?>find-therapist">Find Therapists</a></li>
+          <li><a href="<?php echo $siteurl; ?>all-groups.php" class="btn-getstarted">Tribes & Groups</a></li>
+          <li><a href="<?php echo $siteurl; ?>events.php" class="btn-getstarted">Events</a></li>
+          <li><a href="<?php echo $siteurl; ?>marketplace.php" class="btn-getstarted">Marketplace</a></li>
+          <li><a href="<?php echo $siteurl; ?>vendors.php" class="btn-getstarted">Vendor Directory</a></li>
           <!---
           <li class="dropdown"><a href="#"><span>Categories</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
@@ -251,6 +252,27 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
         <button class="btn btn-link p-0 d-lg-none mobile-nav-toggle me-2" aria-label="Toggle navigation">
           <i class="bi bi-list fs-4"></i>
         </button>
+
+        <!-- Notification Bell icon (only for logged-in users) -->
+        <?php if ($activeLog == 1): 
+            // Fetch unread notifications count
+            $notifCount = 0;
+            $url = $siteurl . "script/admin.php?action=usernotificationlists&user_id=" . $buyerId;
+            $data = curl_get_contents($url);
+            if ($data !== false) {
+                $notificationsData = json_decode($data);
+                if (!empty($notificationsData)) {
+                    $notifCount = count($notificationsData);
+                }
+            }
+        ?>
+        <a href="<?php echo $siteurl; ?>notifications.php" class="btn btn-link p-0 me-2 position-relative header-action-btn" aria-label="Notifications">
+          <i class="bi bi-bell fs-5"></i>
+          <?php if ($notifCount > 0): ?>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:10px"><?php echo $notifCount; ?></span>
+          <?php endif; ?>
+        </a>
+        <?php endif; ?>
 
         <!-- Cart icon -->
         <a href="<?php echo $siteurl; ?>cart.php" class="btn btn-link p-0 me-2 position-relative header-action-btn" aria-label="Cart">

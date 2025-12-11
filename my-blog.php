@@ -6,6 +6,12 @@ include "header.php";
 
 ?>
 
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'my-blogs-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container">
           <div class="page-inner">
             <div class="row">
@@ -74,6 +80,8 @@ if ($data !== false) {
                     $statuslog = 'warning';
                 } else if ($status === "active") {
                     $statuslog = 'success';
+                } else if ($status === "draft") {
+                    $statuslog = 'info';
                 } else {
                     $statuslog = 'secondary';
                 }

@@ -52,6 +52,172 @@ function getbuyerdata($con, $userId) {
     return mysqli_fetch_assoc($result);
 }
 
+function getConversations($con, $userId) {
+    global $siteprefix;
+    $userId = intval($userId);
+    
+    $query = "
+        SELECT DISTINCT
+            CASE 
+                WHEN m.sender_id = $userId THEN m.receiver_id
+                ELSE m.sender_id
+            END AS other_user_id,
+            CASE 
+                WHEN m.sender_id = $userId THEN CONCAT(u2.first_name, ' ', u2.last_name)
+                ELSE CONCAT(u1.first_name, ' ', u1.last_name)
+            END AS other_user_name,
+            (
+                SELECT message 
+                FROM {$siteprefix}messages m2
+                WHERE (m2.sender_id = $userId AND m2.receiver_id = other_user_id)
+                   OR (m2.receiver_id = $userId AND m2.sender_id = other_user_id)
+                ORDER BY m2.created_at DESC 
+                LIMIT 1
+            ) AS last_message,
+            (
+                SELECT COUNT(*)
+                FROM {$siteprefix}messages m3
+                WHERE m3.receiver_id = $userId 
+                  AND m3.sender_id = other_user_id
+                  AND m3.is_read = 0
+            ) AS unread_count
+        FROM {$siteprefix}messages m
+        LEFT JOIN {$siteprefix}users u1 ON m.sender_id = u1.id
+        LEFT JOIN {$siteprefix}users u2 ON m.receiver_id = u2.id
+        WHERE m.sender_id = $userId OR m.receiver_id = $userId
+        ORDER BY (SELECT MAX(created_at) FROM {$siteprefix}messages m4 
+                  WHERE (m4.sender_id = $userId AND m4.receiver_id = other_user_id)
+                     OR (m4.receiver_id = $userId AND m4.sender_id = other_user_id)) DESC
+    ";
+    
+    $result = mysqli_query($con, $query);
+    if (!$result) {
+        return ['error' => mysqli_error($con)];
+    }
+    
+    $conversations = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $conversations[] = $row;
+    }
+    
+    return $conversations;
+}
+
+function getMessages($con, $userId, $otherUserId) {
+    global $siteprefix;
+    $userId = intval($userId);
+    $otherUserId = intval($otherUserId);
+    
+    // Mark messages as read
+    mysqli_query($con, "UPDATE {$siteprefix}messages 
+                        SET is_read = 1 
+                        WHERE receiver_id = $userId 
+                          AND sender_id = $otherUserId
+                          AND is_read = 0");
+    
+    $query = "
+        SELECT m.*, 
+               CONCAT(u.first_name, ' ', u.last_name) AS sender_name
+        FROM {$siteprefix}messages m
+        LEFT JOIN {$siteprefix}users u ON m.sender_id = u.id
+        WHERE (m.sender_id = $userId AND m.receiver_id = $otherUserId)
+           OR (m.sender_id = $otherUserId AND m.receiver_id = $userId)
+        ORDER BY m.created_at ASC
+    ";
+    
+    $result = mysqli_query($con, $query);
+    if (!$result) {
+        return ['error' => mysqli_error($con)];
+    }
+    
+    $messages = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $messages[] = $row;
+    }
+    
+    return $messages;
+}
+
+function sendMessageEndpoint($postData) {
+    global $con, $siteprefix;
+    
+    $senderId = intval($postData['sender_id'] ?? 0);
+    $receiverId = intval($postData['receiver_id'] ?? 0);
+    $message = mysqli_real_escape_string($con, trim($postData['message'] ?? ''));
+    
+    if (empty($senderId) || empty($receiverId) || empty($message)) {
+        return ['status' => 'error', 'messages' => 'All fields are required.'];
+    }
+    
+    $stmt = $con->prepare("
+        INSERT INTO {$siteprefix}messages (sender_id, receiver_id, message, is_read, created_at)
+        VALUES (?, ?, ?, 0, NOW())
+    ");
+    $stmt->bind_param("iis", $senderId, $receiverId, $message);
+    
+    if ($stmt->execute()) {
+        return ['status' => 'success', 'messages' => 'Message sent successfully!'];
+    } else {
+        return ['status' => 'error', 'messages' => 'Database error: ' . $stmt->error];
+    }
+}
+
+function sendNewMessageEndpoint($postData) {
+    global $con, $siteprefix;
+    
+    $senderId = intval($postData['sender_id'] ?? 0);
+    $receiverIdentifier = mysqli_real_escape_string($con, trim($postData['receiver_identifier'] ?? ''));
+    $message = mysqli_real_escape_string($con, trim($postData['message'] ?? ''));
+    
+    if (empty($senderId) || empty($receiverIdentifier) || empty($message)) {
+        return ['status' => 'error', 'messages' => 'All fields are required.'];
+    }
+    
+    // Check if receiver_identifier is email or user ID
+    $receiverId = 0;
+    if (filter_var($receiverIdentifier, FILTER_VALIDATE_EMAIL)) {
+        // Lookup by email
+        $query = "SELECT id FROM {$siteprefix}users WHERE email = '$receiverIdentifier' LIMIT 1";
+        $result = mysqli_query($con, $query);
+        if ($result && mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            $receiverId = intval($row['id']);
+        } else {
+            return ['status' => 'error', 'messages' => 'User not found with that email.'];
+        }
+    } else {
+        // Assume it's a user ID
+        $receiverId = intval($receiverIdentifier);
+    }
+    
+    if ($receiverId <= 0) {
+        return ['status' => 'error', 'messages' => 'Invalid receiver.'];
+    }
+    
+    // Verify receiver exists
+    $query = "SELECT id FROM {$siteprefix}users WHERE id = $receiverId LIMIT 1";
+    $result = mysqli_query($con, $query);
+    if (!$result || mysqli_num_rows($result) == 0) {
+        return ['status' => 'error', 'messages' => 'Receiver not found.'];
+    }
+    
+    $stmt = $con->prepare("
+        INSERT INTO {$siteprefix}messages (sender_id, receiver_id, message, is_read, created_at)
+        VALUES (?, ?, ?, 0, NOW())
+    ");
+    $stmt->bind_param("iis", $senderId, $receiverId, $message);
+    
+    if ($stmt->execute()) {
+        return [
+            'status' => 'success', 
+            'messages' => 'Message sent successfully!',
+            'receiver_id' => $receiverId
+        ];
+    } else {
+        return ['status' => 'error', 'messages' => 'Database error: ' . $stmt->error];
+    }
+}
+
 function getorderdata($con, $orderId) {
     global $siteprefix;
 
@@ -2395,6 +2561,12 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['action'])) {
 if ($_GET['action'] == 'buyerdata') {
      $response = isset($_GET['buyer']) ? getbuyerdata($con, $_GET['buyer']) : ['error' => 'Buyer ID is required'];}
 
+     if ($_GET['action'] == 'getConversations') {
+     $response = isset($_GET['user_id']) ? getConversations($con, $_GET['user_id']) : ['error' => 'User ID is required'];}
+
+     if ($_GET['action'] == 'getMessages') {
+     $response = isset($_GET['user_id']) && isset($_GET['other_user_id']) ? getMessages($con, $_GET['user_id'], $_GET['other_user_id']) : ['error' => 'User IDs are required'];}
+
      if ($_GET['action'] == 'orderdata') {
      $response = isset($_GET['order_id']) ? getorderdata($con, $_GET['order_id']) : ['error' => 'Order ID is required'];}
 
@@ -2495,6 +2667,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     if ($_POST['action'] == 'addforum') {
         $response = addForumEndpoint($_POST, $_FILES);
     }
+    
+    if ($_POST['action'] == 'sendMessage') {
+        $response = sendMessageEndpoint($_POST);
+    }
+    
+    if ($_POST['action'] == 'sendNewMessage') {
+        $response = sendNewMessageEndpoint($_POST);
+    }
+    
       if ($_POST['action'] == 'post_comment') {
         $response =  postCommentEndpoint($_POST);
     }

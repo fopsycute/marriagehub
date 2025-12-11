@@ -3,6 +3,12 @@ $requireLogin = true;
 include "header.php"; 
 ?>
 
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'my-groups-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container">
   <div class="page-inner">
     <div class="row">

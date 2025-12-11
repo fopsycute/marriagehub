@@ -86,10 +86,19 @@ if ($data !== false) {
                 $content = limitWords($blog->article, 5);
                 $date = date('M d, Y', strtotime($blog->created_at));
                 $blogimage = $siteurl . $imagePath . $blog->featured_image;
+                $isPinned = $blog->is_pinned ?? 0;
+                $pinIcon = $isPinned ? 'fa-thumb-tack' : 'fa-thumb-tack';
+                $pinTitle = $isPinned ? 'Unpin Post' : 'Pin Post';
+                $pinClass = $isPinned ? 'btn-warning' : 'btn-secondary';
                 ?>
                 <tr>
                     <td><img src="<?php echo $blogimage; ?>" class="small-image" alt="featured"></td>
-                    <td><?php echo $title; ?></td>
+                    <td>
+                        <?php if ($isPinned): ?>
+                            <i class="fa fa-thumb-tack text-warning me-1"></i>
+                        <?php endif; ?>
+                        <?php echo $title; ?>
+                    </td>
                     <td><?php echo $author; ?></td>
                     <td><?php echo $content; ?></td>
                      <td><?php echo $category; ?></td>
@@ -99,6 +108,9 @@ if ($data !== false) {
                     <?php
                     echo "
                     <td>
+                        <a href='#' class='btn btn-link $pinClass pin-blog-btn' data-blog-id='$blogId' data-is-pinned='$isPinned' data-bs-toggle='tooltip' title='$pinTitle'>
+                            <i class='fa $pinIcon'></i>
+                        </a>
                         <a href='edit-blog.php?blog_id=$blogId' class='btn btn-link btn-primary btn-lg' data-bs-toggle='tooltip' title='Edit'>
                             <i class='fa fa-edit'></i> 
                         </a>
@@ -127,6 +139,39 @@ if ($data !== false) {
   </div>
   </div>
 
-
+<script>
+$(document).ready(function() {
+    // Pin/Unpin blog handler
+    $('.pin-blog-btn').on('click', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const blogId = btn.data('blog-id');
+        const isPinned = btn.data('is-pinned');
+        const newPinStatus = isPinned ? 0 : 1;
+        const siteUrl = $('#siteurl').val();
+        
+        $.ajax({
+            url: siteUrl + 'script/admin.php',
+            type: 'POST',
+            data: {
+                action: 'togglePinBlog',
+                blog_id: blogId,
+                is_pinned: newPinStatus
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(response.message || 'Failed to update pin status');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
 
 <?php include "footer.php"; ?>

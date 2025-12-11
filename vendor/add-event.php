@@ -322,14 +322,9 @@
               <button type="button" class="btn btn-sm btn-secondary mt-2" id="addTicket">Add More</button>
             </div>
             
-             <div class="form-group">
-              <label for="status">Status</label>
-             <select name="status" class="form-control" required>
-              <option> Select Status</option>
-              <option value="active"> Published</option>
-               <option value="pending"> pending</option>
-            </select>
-            </div>
+             <!-- Vendor events are always pending - only admin can publish -->
+             <input type="hidden" name="status" value="pending">
+             
               <button type="submit" id="submitEventBtn" value="Submit"  class="btn btn-primary"> Submit </button> 
               </form>
           </div>

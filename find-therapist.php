@@ -3,13 +3,31 @@ include "header.php";
 ?>
 
 <main class="main">
+
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'therapists-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container mt-4 mb-5">
+  
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h3 class="fw-bold">Find Therapists & Counselors</h3>
+        <a href="<?php echo $siteurl; ?>register/therapist" class="btn btn-primary">
+          <i class="bi bi-person-plus"></i> Become a Therapist
+        </a>
+      </div>
+    </div>
+  </div>
 
   <div class="row">
     <!-- Filter Column -->
     <div class="col-lg-3">
       <div class="filter-box p-3 shadow-sm rounded-3">
-        <h5 class="mb-3">Find Therapists</h5>
+        <h5 class="mb-3">Filter Therapists</h5>
 
         <?php
         // Read filters

@@ -1,10 +1,28 @@
 <?php include "header.php"; ?>
 
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'events-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div id="eventmarketplace">
 <main class="main">
 <section id="events-section" class="section">
     <div class="container">
-        <h2 class="mb-3">Events & Programs</h2>
+        <!-- Header with Register Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fw-bold">Events & Programs</h2>
+          <?php if(isset($buyerId) && $buyerId > 0): ?>
+            <a href="<?php echo $siteurl; ?>vendor/add-event" class="btn btn-primary">
+              <i class="bi bi-calendar-plus"></i> List My Event
+            </a>
+          <?php else: ?>
+            <a href="<?php echo $siteurl; ?>register/vendor" class="btn btn-primary">
+              <i class="bi bi-person-plus"></i> Register as Trainer
+            </a>
+          <?php endif; ?>
+        </div>
 
         <!-- Filters -->
 		<section class="category-header section">

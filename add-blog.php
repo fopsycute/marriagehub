@@ -88,19 +88,31 @@ include "header.php";
     <label class="form-label" for="tags">Tags</label>
     <input type="text" name="tags" id="tags" class="form-control">
    </div></div>
-   <!---
 
-    <div class="form-group mb-2">
-              <label for="status">Status</label>
+    <div class="form-group mb-3">
+              <label for="status">Publication Status *</label>
              <select name="status" class="form-control" required>
-              <option> Select Status</option>
-              <option value="active"> Published</option>
-               <option value="pending"> pending</option>
+              <option value="">Select Status</option>
+              <option value="pending">Submit for Review</option>
+              <option value="draft">Save as Draft</option>
             </select>
+            <small class="form-text text-muted">Choose "Submit for Review" to publish after admin approval, or "Save as Draft" to edit later.</small>
             </div>
 
-
-            --->
+  <!-- Anonymous Option -->
+  <div class="col-lg-12 col-md-12 col-sm-12 mb-3">
+    <div class="form-check">
+      <input 
+        class="form-check-input" 
+        type="checkbox" 
+        id="anonymous" 
+        name="anonymous" 
+        value="1">
+      <label class="form-check-label" for="anonymous">
+        Post Anonymously (Hide my name publicly)
+      </label>
+    </div>
+  </div>
 
   <input type="hidden" name="user" value="<?php echo $buyerId; ?>">
   <div class="col-lg-12 col-md-12 col-sm-12">

@@ -113,17 +113,17 @@ include "header.php";
               name="tags"
             >
           </div>
-          <!---
-            <div class="form-group mb-2">
-              <label for="status">Status</label>
+
+            <div class="form-group mb-3">
+              <label for="status">Publication Status *</label>
              <select name="status" class="form-control" required>
-              <option> Select Status</option>
-              <option value="active"> Published</option>
-               <option value="pending"> pending</option>
+              <option value="">Select Status</option>
+              <option value="pending">Submit for Review</option>
+              <option value="draft">Save as Draft</option>
             </select>
+            <small class="form-text text-muted">Choose "Submit for Review" to publish after admin approval, or "Save as Draft" to edit later.</small>
             </div>
 
-            --->
           <!-- Anonymous Option -->
             <div class="col-sm-12 mb-3">
               <div class="form-check">

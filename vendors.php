@@ -3,13 +3,38 @@ include "header.php";
 ?>
 
 <main class="main">
+
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'vendors-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container mt-4 mb-5">
+  
+  <!-- Header with Register Button -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h3 class="fw-bold">Vendor Directory</h3>
+        <?php if(isset($buyerId) && $buyerId > 0): ?>
+          <a href="<?php echo $siteurl; ?>vendor/" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> List My Product
+          </a>
+        <?php else: ?>
+          <a href="<?php echo $siteurl; ?>register/vendor" class="btn btn-primary">
+            <i class="bi bi-shop"></i> Register as Vendor
+          </a>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
 
 	<div class="row">
 		<!-- Filter Column -->
 		<div class="col-lg-3">
 			<div class="filter-box p-3 shadow-sm rounded-3">
-				<h5 class="mb-3">Vendor Directory</h5>
+				<h5 class="mb-3">Filter Vendors</h5>
 
 				<?php
 				// Read filters

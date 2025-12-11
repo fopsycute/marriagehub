@@ -4,6 +4,12 @@ include "header.php";
 
 <main class="main">
 
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'groups-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container mt-4 mb-5">
   <div class="row">
     <!-- Sidebar Filter -->

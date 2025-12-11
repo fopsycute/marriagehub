@@ -2,6 +2,10 @@
 $requireLogin = true;
 include "header.php";
 
+// Top Banner Advert
+$placementSlug = 'my-events-page-top-banner';
+include "listing-banner.php";
+
 $user_id = $buyerId; // current user ID
 $registeredEvents = [];
 

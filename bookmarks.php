@@ -83,4 +83,7 @@ if ($bookmarkData !== false) {
     </div>
 </div>
 
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
+
 <?php include "footer.php"; ?>

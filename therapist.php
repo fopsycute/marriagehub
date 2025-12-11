@@ -49,6 +49,7 @@ if (isset($_GET['slug'])) {
             $session_duration = $userdetail->session_duration ?? '';
             $rate = $userdetail->rate ?? '0';
             $qualification = $userdetail->qualification ?? '';
+            $institution = $userdetail->institution ?? '';
             $associations = $userdetail->associations ?? '';
             $certifications = $userdetail->certifications ?? '';
 
@@ -112,6 +113,9 @@ $followingCount = getFollowingCount($user_id);
 
                   <div class="credentials">
                     <span class="credential"><?php echo $qualification; ?></span>
+                    <?php if (!empty($institution)): ?>
+                    <span class="credential"><?php echo htmlspecialchars($institution); ?></span>
+                    <?php endif; ?>
                     <span class="credential">Since <?php echo $experience_years; ?></span>
                     <span class="credential"><?php echo $followerCount; ?> Followers | <?php echo $followingCount; ?> Following</span>
                   </div>
@@ -692,4 +696,81 @@ if ($data !== false) {
     </div>
   </div>
 </div>
+
+<!-- Related Therapists Section -->
+<?php if (isset($user_id) && isset($specializations_names)): ?>
+<section id="related-therapists" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Therapists</h3>
+    <div class="row g-4">
+      <?php
+      // Fetch related therapists with same specialization
+      $relatedUrl = $siteurl . "script/admin.php?action=therapistslists";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedTherapists = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedTherapists)) {
+              foreach ($relatedTherapists as $relT) {
+                  // Skip current therapist and only show active ones
+                  if ($relT->id == $user_id || $relT->status != 'active') continue;
+                  
+                  // Check if specializations match
+                  $relSpecs = $relT->specializations_names ?? '';
+                  if (strpos($relSpecs, $specializations_names) === false && strpos($specializations_names, $relSpecs) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 4) break; // Limit to 4 related therapists
+                  
+                  $relName = htmlspecialchars(trim($relT->first_name . ' ' . $relT->last_name));
+                  $relSlug = htmlspecialchars($relT->slug);
+                  $relTitle = htmlspecialchars($relT->professional_title_names ?? 'Therapist');
+                  $relExp = htmlspecialchars($relT->experience_years ?? '0');
+                  $relRate = intval($relT->rate ?? 0);
+                  $relRateDisplay = $relRate > 0 ? $sitecurrency . number_format($relRate) . '/session' : 'Contact for rates';
+                  $relPhoto = !empty($relT->photo) 
+                      ? $siteurl . $imagePath . $relT->photo 
+                      : $siteurl . "assets/img/user.jpg";
+                  $relUrl = $siteurl . "therapist/" . $relSlug;
+                  $relRating = floatval($relT->avg_rating ?? 0);
+                  ?>
+                  
+                  <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 shadow-sm border-0 text-center">
+                      <div class="card-body">
+                        <a href="<?php echo $relUrl; ?>">
+                          <img src="<?php echo $relPhoto; ?>" class="rounded-circle mb-3" alt="<?php echo $relName; ?>" style="width: 100px; height: 100px; object-fit: cover;">
+                        </a>
+                        <h5 class="card-title">
+                          <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relName; ?></a>
+                        </h5>
+                        <p class="text-muted small mb-2"><?php echo $relTitle; ?></p>
+                        <p class="text-secondary small mb-2">
+                          <i class="bi bi-star-fill text-warning"></i> <?php echo number_format($relRating, 1); ?> • <?php echo $relExp; ?> years exp.
+                        </p>
+                        <p class="fw-bold text-primary small"><?php echo $relRateDisplay; ?></p>
+                        <a href="<?php echo $relUrl; ?>" class="btn btn-sm btn-outline-primary">View Profile</a>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<p class="text-center text-muted">No related therapists found.</p>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
+
 <?php include 'footer.php'; ?>

@@ -1237,4 +1237,77 @@ if ($data !== false) {
 
 </section><!-- /Community Group -->
 
+    <!-- Inline Advert -->
+    <?php
+    $placementSlug = 'product-details-inline-ad';
+    include "inline-ad.php";
+    ?>
+
+<!-- Related Products Section -->
+<?php if (isset($listingId) && isset($category)): ?>
+<section id="related-products" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Products</h3>
+    <div class="row g-4">
+      <?php
+      // Fetch related products with same category
+      $relatedUrl = $siteurl . "script/admin.php?action=listinglists";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedListings = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedListings)) {
+              foreach ($relatedListings as $relL) {
+                  // Skip current product and only show active ones
+                  if ($relL->listing_id == $listingId || $relL->status != 'active') continue;
+                  
+                  // Check if categories match
+                  $relCategories = $relL->category_names ?? '';
+                  if (strpos($relCategories, $category) === false && strpos($category, $relCategories) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 4) break; // Limit to 4 related products
+                  
+                  $relTitle = htmlspecialchars($relL->title);
+                  $relSlug = htmlspecialchars($relL->slug);
+                  $relPrice = intval($relL->price ?? 0);
+                  $relPriceDisplay = $sitecurrency . number_format($relPrice);
+                  $relImage = !empty($relL->featured_image) 
+                      ? $siteurl . $imagePath . $relL->featured_image 
+                      : $siteurl . "assets/img/default-product.jpg";
+                  $relUrl = $siteurl . "listing-details/" . $relSlug;
+                  $relVendor = htmlspecialchars(trim($relL->first_name . ' ' . $relL->last_name));
+                  ?>
+                  
+                  <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                      <a href="<?php echo $relUrl; ?>">
+                        <img src="<?php echo $relImage; ?>" class="card-img-top" alt="<?php echo $relTitle; ?>" style="height: 180px; object-fit: cover;">
+                      </a>
+                      <div class="card-body">
+                        <h5 class="card-title">
+                          <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relTitle; ?></a>
+                        </h5>
+                        <p class="fw-bold text-primary mb-2"><?php echo $relPriceDisplay; ?></p>
+                        <small class="text-secondary">By <?php echo $relVendor; ?></small>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<p class="text-center text-muted">No related products found.</p>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
     <?php include "footer.php"; ?>

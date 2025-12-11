@@ -1,6 +1,12 @@
 
 <?php include "header.php";  ?>
 
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'blog-details-top-banner';
+include "top-banner.php";
+?>
+
 <?php
 if (isset($_GET['slug'])) {
     $slug = $_GET['slug'];
@@ -45,8 +51,80 @@ if (isset($_GET['slug'])) {
             $status = $blogdetail->status ?? '';
             $created_at = date('F d, Y \a\t h:i A', strtotime($blogdetail->created_at));
             $author = trim(($blogdetail->first_name ?? '') . ' ' . ($blogdetail->last_name ?? ''));
+            $blog_group_id = intval($blogdetail->group_id ?? 0);
 
             $blogimage = $siteurl . $imagePath . $featured_image;
+
+            // Check if this is a group blog and validate membership
+            if (isset($_GET['group_id']) && $blog_group_id > 0) {
+                $requested_group_id = intval($_GET['group_id']);
+                
+                // Verify blog belongs to the requested group
+                if ($blog_group_id !== $requested_group_id) {
+                    die("<div class='alert alert-danger'>Invalid group context.</div>");
+                }
+
+                // Get group info
+                $groupUrl = $sitelink . "admin.php?action=fetchgroupid&group_id=" . $blog_group_id;
+                $groupData = curl_get_contents($groupUrl);
+                $groupInfo = json_decode($groupData);
+                $groupCreatorId = 0;
+                $groupSlug = '';
+                
+                if (!empty($groupInfo[0])) {
+                    $groupCreatorId = $groupInfo[0]->user_id ?? 0;
+                    $groupSlug = $groupInfo[0]->slug ?? '';
+                }
+
+                // Check access rights
+                $adminAuth = $_COOKIE['admin_auth'] ?? '';
+                $vendorAuth = $_COOKIE['vendor_auth'] ?? '';
+                $therapistAuth = $_COOKIE['therapist_auth'] ?? '';
+                $userAuth = $_COOKIE['user_auth'] ?? '';
+                
+                $canAccess = false;
+
+                // Admin or group creator has access
+                if ($adminAuth || $vendorAuth == $groupCreatorId || $therapistAuth == $groupCreatorId || $userAuth == $groupCreatorId) {
+                    $canAccess = true;
+                } else {
+                    // Check if user is an active group member
+                    $activeUserId = $adminAuth ?: ($vendorAuth ?: ($userAuth ?: $therapistAuth));
+                    if (!empty($activeUserId)) {
+                        $checkMemberUrl = $sitelink . "admin.php?action=checkuserMember&group_id={$blog_group_id}&user_id={$activeUserId}";
+                        $memberData = curl_get_contents($checkMemberUrl);
+                        
+                        if ($memberData !== false) {
+                            $memberResult = json_decode($memberData, true);
+                            if (!empty($memberResult[0]) && strtolower($memberResult[0]['status']) === 'active') {
+                                $canAccess = true;
+                            }
+                        }
+                    }
+                }
+
+                // Restrict access if not authorized
+                if (!$canAccess) {
+                    echo "
+                    <script>
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Join Group to View',
+                            html: 'You are not a member of this group. <br><b>Join the group to view this blog post.</b>',
+                            confirmButtonText: 'Join Group',
+                            showCancelButton: true,
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '{$siteurl}group/{$groupSlug}';
+                            } else {
+                                window.location.href = '{$siteurl}';
+                            }
+                        });
+                    </script>";
+                    exit;
+                }
+            }
         } else {
             echo "<div class='alert alert-warning'>No blog found with the given slug.</div>";
         }
@@ -126,6 +204,12 @@ $followingCount = getFollowingCount($AuthorId);
                 <div class="content">
                  <?php echo $article; ?>
                 </div><!-- End post content -->
+
+                <!-- Inline Advert after Blog Content -->
+                <?php
+                $placementSlug = 'blog-details-inline-ad';
+                include "inline-ad.php";
+                ?>
 
                 <div class="meta-bottom">
                   <i class="bi bi-folder"></i>
@@ -934,16 +1018,72 @@ if ($data !== false) {
 
 </section><!-- /Community Group -->
 
-
+<!-- Related Blogs Section -->
+<section id="related-blogs" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Blogs</h3>
+    <div class="row g-4">
+      <?php
+      // Fetch related blogs with same category
+      $relatedUrl = $siteurl . "script/admin.php?action=bloglists";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedBlogs = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedBlogs)) {
+              foreach ($relatedBlogs as $relBlog) {
+                  // Skip current blog and only show blogs with same category
+                  if ($relBlog->id == $blog_id || $relBlog->status != 'active') continue;
+                  
+                  // Check if categories match
+                  $relCategories = $relBlog->category_names ?? '';
+                  if (strpos($relCategories, $category) === false && strpos($category, $relCategories) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 4) break; // Limit to 4 related blogs
+                  
+                  $relTitle = htmlspecialchars($relBlog->title);
+                  $relSlug = htmlspecialchars($relBlog->slug);
+                  $relAuthor = htmlspecialchars(trim($relBlog->first_name . ' ' . $relBlog->last_name));
+                  $relExcerpt = limitWords(strip_tags($relBlog->article), 15);
+                  $relDate = date('M d, Y', strtotime($relBlog->created_at));
+                  $relImage = !empty($relBlog->featured_image) 
+                      ? $siteurl . $imagePath . $relBlog->featured_image 
+                      : $siteurl . "assets/img/default-blog.jpg";
+                  $relUrl = $siteurl . "blog-details/" . $relSlug;
+                  ?>
+                  
+                  <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                      <a href="<?php echo $relUrl; ?>">
+                        <img src="<?php echo $relImage; ?>" class="card-img-top" alt="<?php echo $relTitle; ?>" style="height: 200px; object-fit: cover;">
+                      </a>
+                      <div class="card-body">
+                        <small class="text-muted"><?php echo $relDate; ?></small>
+                        <h5 class="card-title mt-2">
+                          <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relTitle; ?></a>
+                        </h5>
+                        <p class="card-text text-muted small"><?php echo $relExcerpt; ?>...</p>
+                        <small class="text-secondary">By <?php echo $relAuthor; ?></small>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<p class="text-center text-muted">No related blogs found.</p>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
 
 </main>
-
-
-
-
-
-
-
-
 
 <?php include "footer.php"; ?>

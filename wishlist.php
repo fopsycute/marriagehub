@@ -144,4 +144,7 @@ $currentItems = array_slice($wishlist, $offset, $limit);
   </div>
 </section>
 
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
+
 <?php include "footer.php"; ?>

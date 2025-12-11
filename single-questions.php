@@ -108,7 +108,11 @@ $followingCount = getFollowingCount($user_id);
 
   <main class="main">
 
-
+    <!-- Inline Advert at Top -->
+    <?php
+    $placementSlug = 'question-details-inline-ad';
+    include "inline-ad.php";
+    ?>
 
     <div class="container">
       <div class="row">
@@ -628,5 +632,80 @@ $followingCount = getFollowingCount($user_id);
     </div>
   </div>
 </div>
+
+<!-- Related Questions Section -->
+<section id="related-questions" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Questions</h3>
+    <div class="row">
+      <?php
+      // Fetch related questions with same category
+      $relatedUrl = $siteurl . "script/admin.php?action=questionslist";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedQuestions = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedQuestions)) {
+              foreach ($relatedQuestions as $relQ) {
+                  // Skip current question and only show active ones
+                  if ($relQ->id == $question_id || $relQ->status != 'active') continue;
+                  
+                  // Check if categories match
+                  $relCategories = $relQ->category_names ?? '';
+                  if (strpos($relCategories, $category) === false && strpos($category, $relCategories) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 5) break; // Limit to 5 related questions
+                  
+                  $relTitle = htmlspecialchars($relQ->title);
+                  $relSlug = htmlspecialchars($relQ->slug);
+                  $relDate = date('M d, Y', strtotime($relQ->created_at));
+                  $relAnswers = $relQ->comment_count ?? 0;
+                  $relUrl = $siteurl . "single-questions/" . $relSlug;
+                  
+                  // Handle anonymous
+                  $relAnonymous = intval($relQ->anonymous ?? 0);
+                  if ($relAnonymous === 1) {
+                      $relAuthor = "Anonymous";
+                  } else {
+                      $relAuthor = htmlspecialchars(trim($relQ->first_name . ' ' . $relQ->last_name));
+                  }
+                  ?>
+                  
+                  <div class="col-12">
+                    <div class="card mb-3 border-0 shadow-sm">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                              <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relTitle; ?></a>
+                            </h5>
+                            <small class="text-muted">
+                              Asked by <?php echo $relAuthor; ?> • <?php echo $relDate; ?> • <?php echo $relAnswers; ?> answers
+                            </small>
+                          </div>
+                          <a href="<?php echo $relUrl; ?>" class="btn btn-sm btn-outline-primary">
+                            View <i class="bi bi-arrow-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<div class="col-12"><p class="text-center text-muted">No related questions found.</p></div>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
+
 </main>
 <?php include "footer.php"; ?>

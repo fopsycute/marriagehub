@@ -94,9 +94,83 @@ if (isset($_GET['slug'])) {
 
 </div>
 
+<!-- Related Events Section -->
+<?php if (isset($event_id) && isset($category)): ?>
+<section id="related-events" class="section bg-light">
+  <div class="container">
+    <h3 class="mb-4">Related Events</h3>
+    <div class="row g-4">
+      <?php
+      // Fetch related events with same category
+      $relatedUrl = $siteurl . "script/admin.php?action=eventslists";
+      $relatedData = curl_get_contents($relatedUrl);
+      
+      if ($relatedData !== false) {
+          $relatedEvents = json_decode($relatedData);
+          $relatedCount = 0;
+          
+          if (!empty($relatedEvents)) {
+              foreach ($relatedEvents as $relE) {
+                  // Skip current event and only show active ones
+                  if ($relE->event_id == $event_id || $relE->status != 'active') continue;
+                  
+                  // Check if categories match
+                  $relCategories = $relE->category_names ?? '';
+                  if (strpos($relCategories, $category) === false && strpos($category, $relCategories) === false) continue;
+                  
+                  $relatedCount++;
+                  if ($relatedCount > 4) break; // Limit to 4 related events
+                  
+                  $relTitle = htmlspecialchars($relE->title);
+                  $relSlug = htmlspecialchars($relE->slug);
+                  $relType = htmlspecialchars($relE->event_type_name ?? 'Event');
+                  $relPrice = intval($relE->amount ?? 0);
+                  $relPriceDisplay = $relPrice > 0 ? $sitecurrency . number_format($relPrice) : 'Free';
+                  $relImage = !empty($relE->featured_image) 
+                      ? $siteurl . $imagePath . $relE->featured_image 
+                      : $siteurl . "assets/img/default-event.jpg";
+                  $relUrl = $siteurl . "event/" . $relSlug;
+                  $relDate = date('M d, Y', strtotime($relE->start_date));
+                  ?>
+                  
+                  <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                      <a href="<?php echo $relUrl; ?>">
+                        <img src="<?php echo $relImage; ?>" class="card-img-top" alt="<?php echo $relTitle; ?>" style="height: 180px; object-fit: cover;">
+                      </a>
+                      <div class="card-body">
+                        <span class="badge bg-info mb-2"><?php echo $relType; ?></span>
+                        <h5 class="card-title">
+                          <a href="<?php echo $relUrl; ?>" class="text-dark text-decoration-none"><?php echo $relTitle; ?></a>
+                        </h5>
+                        <p class="text-muted small mb-2">
+                          <i class="bi bi-calendar"></i> <?php echo $relDate; ?>
+                        </p>
+                        <p class="fw-bold text-primary"><?php echo $relPriceDisplay; ?></p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <?php
+              }
+          }
+          
+          if ($relatedCount == 0) {
+              echo '<p class="text-center text-muted">No related events found.</p>';
+          }
+      }
+      ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php
     }
 }
 ?>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
 <?php include "footer.php"; ?>

@@ -4,6 +4,13 @@ include "header.php";
 ?>
 
 <main class="main">
+
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'blog-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div class="container mb-5 mt-5">
 <div id="blogFilterWrapper">
 <div class="row">
@@ -36,7 +43,7 @@ include "header.php";
            <div class="col-12 col-md-6 col-lg-4">
                     <div class="filter-item search-form">
                 <label>Category</label>
-               <select name="category[]" id="category" class="form-select select-multiple" required multiple>
+               <select name="category[]" id="category" class="form-select select-multiple" multiple>
                     <?php
                     $url = $siteurl . "script/register.php?action=categorieslists";
                     $data = curl_get_contents($url);
@@ -61,8 +68,8 @@ include "header.php";
             <!-- SUBCATEGORY -->
            <div class="col-12 col-md-6 col-lg-4">
                     <div class="filter-item search-form">
-                <label>Subategory</label>
-                <select name="subcategory[]" id="subcategory" class="form-select select-multiple" required multiple>
+                <label>Subcategory</label>
+                <select name="subcategory[]" id="subcategory" class="form-select select-multiple" multiple>
                     <?php
                     $selectedSub = isset($_GET['subcategory']) ? (array)$_GET['subcategory'] : [];
 
@@ -653,6 +660,9 @@ if ($data !== false) {
 
   </div>
 </section>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
 </main>
 

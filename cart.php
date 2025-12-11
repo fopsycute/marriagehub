@@ -174,6 +174,10 @@ include "header.php";
     </div>
   </div>
 </section>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
+
 <script>
 
   </script>

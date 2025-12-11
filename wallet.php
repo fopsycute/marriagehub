@@ -286,4 +286,43 @@ if ($data !== false) {
   </div>
 </div>
 
+<script>
+$(document).ready(function() {
+    $('.vendorwallet').submit(function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        var submitBtn = $('#submitBtn');
+        var messagesDiv = $('#messages');
+        
+        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Processing...');
+        messagesDiv.html('');
+        
+        $.ajax({
+            url: '<?php echo $siteurl; ?>script/admin.php',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'success') {
+                    messagesDiv.html('<div class="alert alert-success">' + response.message + '</div>');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    messagesDiv.html('<div class="alert alert-danger">' + response.message + '</div>');
+                    submitBtn.prop('disabled', false).html('Withdraw');
+                }
+            },
+            error: function() {
+                messagesDiv.html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                submitBtn.prop('disabled', false).html('Withdraw');
+            }
+        });
+    });
+});
+</script>
+
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
+
 <?php include "footer.php"; ?>

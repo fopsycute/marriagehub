@@ -76,6 +76,11 @@ if ($data !== false) {
                 $status = $blog->status;
                 $content = limitWords($blog->article, 5);
                 $date = date('M d, Y', strtotime($blog->created_at));
+                $isPinned = $blog->is_pinned ?? 0;
+                $pinIcon = $isPinned ? 'fa-thumb-tack' : 'fa-thumb-tack';
+                $pinTitle = $isPinned ? 'Unpin Question' : 'Pin Question';
+                $pinClass = $isPinned ? 'btn-warning' : 'btn-secondary';
+                
                 if ($status === "notactive") {
                     $statuslog = 'danger';
                 }
@@ -92,7 +97,12 @@ if ($data !== false) {
                 ?>
                 <tr>
                 
-                    <td><?php echo $title; ?></td>
+                    <td>
+                        <?php if ($isPinned): ?>
+                            <i class="fa fa-thumb-tack text-warning me-1"></i>
+                        <?php endif; ?>
+                        <?php echo $title; ?>
+                    </td>
                     <td><?php echo $content; ?></td>
                     <td><?php echo $date; ?></td>
                     <td><span class="badge bg-<?php echo $statuslog; ?>"><?php echo $status; ?></span></td>
@@ -101,6 +111,9 @@ if ($data !== false) {
                     <?php
                     echo "
                     <td>
+                        <a href='#' class='btn btn-link $pinClass pin-question-btn' data-question-id='$questionId' data-is-pinned='$isPinned' data-bs-toggle='tooltip' title='$pinTitle'>
+                            <i class='fa $pinIcon'></i>
+                        </a>
                         <a href='edit-question.php?question_id=$questionId' class='btn btn-link btn-primary btn-lg' data-bs-toggle='tooltip' title='Edit'>
                             <i class='fas fa-edit'></i> 
                         </a>
@@ -129,6 +142,39 @@ if ($data !== false) {
   </div>
     </div>
 
-
+<script>
+$(document).ready(function() {
+    // Pin/Unpin question handler
+    $('.pin-question-btn').on('click', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const questionId = btn.data('question-id');
+        const isPinned = btn.data('is-pinned');
+        const newPinStatus = isPinned ? 0 : 1;
+        const siteUrl = $('#siteurl').val();
+        
+        $.ajax({
+            url: siteUrl + 'script/admin.php',
+            type: 'POST',
+            data: {
+                action: 'togglePinQuestion',
+                question_id: questionId,
+                is_pinned: newPinStatus
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(response.message || 'Failed to update pin status');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
 
 <?php include "footer.php"; ?>

@@ -257,6 +257,8 @@ $followingCount = getFollowingCount($buyerId);
         </div>
 </section>
 
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
 <?php include "footer.php"; ?>
 

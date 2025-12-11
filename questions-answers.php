@@ -1,4 +1,11 @@
 <?php include "header.php"; ?>
+
+<!-- Top Banner Advert -->
+<?php
+$placementSlug = 'qa-page-top-banner';
+include "listing-banner.php";
+?>
+
 <div id="questionscontainer">
 <main class="main">
 
@@ -583,8 +590,10 @@ if ($data !== false) {
 
 </section>
 
+<!-- Sidebar Ad -->
+<?php include "sidebar-ad.php"; ?>
 
-
-
+</main>
+</div>
 
 <?php include "footer.php"; ?>
