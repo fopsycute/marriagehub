@@ -67,9 +67,56 @@
                       <input type="text" name="site_bank" class="form-control" value="<?php echo $site_bank; ?>"> 
                     </div>
 
-                      <div class="mb-3">
-                      <label class="form-label">Api Key</label>
-                      <input type="text" name="paystack_key" class="form-control" value="<?php echo $apikey; ?>"> 
+                    <!-- VPay Payment Configuration -->
+                    <div class="card mb-3">
+                      <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">💳 VPay Payment Configuration</h5>
+                      </div>
+                      <div class="card-body">
+                        <div class="alert alert-info">
+                          <strong>ℹ️ VPay Setup:</strong> Get your API keys from <a href="https://vpay.africa" target="_blank">vpay.africa</a>. 
+                          Use <strong>sandbox</strong> for testing, then switch to <strong>live</strong> for production.
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label">Payment Provider</label>
+                          <select name="payment_provider" class="form-control" disabled>
+                            <option value="vpay" selected>VPay</option>
+                          </select>
+                          <small class="text-muted">System is configured to use VPay payment gateway</small>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label">VPay Domain/Environment <span class="text-danger">*</span></label>
+                          <select name="vpay_domain" class="form-control" required>
+                            <option value="sandbox" <?php echo ($vpay_domain ?? 'sandbox') === 'sandbox' ? 'selected' : ''; ?>>Sandbox (Testing)</option>
+                            <option value="live" <?php echo ($vpay_domain ?? 'sandbox') === 'live' ? 'selected' : ''; ?>>Live (Production)</option>
+                          </select>
+                          <small class="text-muted">Select <strong>sandbox</strong> for testing or <strong>live</strong> for production payments</small>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label">VPay Test/Sandbox Public Key</label>
+                          <input type="text" name="vpay_test_public_key" class="form-control" 
+                                 value="<?php echo $vpay_test_key ?? ''; ?>" 
+                                 placeholder="fdcdb195-6553-4890-844c-ee576b7ea715">
+                          <small class="text-muted">Default test key: fdcdb195-6553-4890-844c-ee576b7ea715</small>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label">VPay Live/Production Public Key <span class="text-danger">*</span></label>
+                          <input type="text" name="vpay_live_public_key" class="form-control" 
+                                 value="<?php echo $vpay_live_key ?? ''; ?>" 
+                                 placeholder="Enter your live public key from VPay dashboard">
+                          <small class="text-muted">⚠️ Required for production. Get from your VPay merchant dashboard.</small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                          <strong>🧪 Test Cards (Sandbox Only):</strong><br>
+                          • <strong>Success:</strong> 5061 0201 6604 6282 | CVV: 111 | PIN: 1111<br>
+                          • <strong>Decline:</strong> 5061 1604 0000 0021 | CVV: 123 | PIN: 1234
+                        </div>
+                      </div>
                     </div>
 
                     <div class="mb-3">
