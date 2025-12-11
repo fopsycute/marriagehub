@@ -1565,7 +1565,7 @@ function getallblog($con)
 
     // ✅ Join forums with users table
     // ✅ Fetch all matching category/subcategory names using GROUP_CONCAT
-    // ✅ Only return approved blogs for public display
+    // ✅ Only return active/approved blogs for public display
     $query = "
         SELECT 
             f.*, 
@@ -1586,7 +1586,7 @@ function getallblog($con)
         FROM {$siteprefix}forums AS f
         LEFT JOIN {$siteprefix}users AS u 
             ON f.user_id = u.id
-        WHERE f.status = 'approved'
+        WHERE f.status IN ('active', 'approved')
         ORDER BY f.created_at DESC
     ";
 
@@ -1915,7 +1915,7 @@ function getAdvancedAnalyticsEndpoint($period = '30') {
             (SELECT COUNT(*) FROM {$siteprefix}answers WHERE question_id = f.slug) as answer_count
         FROM {$siteprefix}forums f
         LEFT JOIN {$siteprefix}users u ON f.user_id = u.id
-        WHERE f.status = 'approved'
+        WHERE f.status IN ('active', 'approved')
         ORDER BY f.views DESC
         LIMIT 10
     ";
@@ -2560,7 +2560,7 @@ function getallquestions($con)
     global $siteprefix;
 
     // ✅ Join questions with users table to fetch author info
-    // ✅ Only return approved questions for public display
+    // ✅ Only return active/approved questions for public display
     $query = "
         SELECT 
             q.*, 
@@ -2585,7 +2585,7 @@ function getallquestions($con)
         FROM {$siteprefix}questions AS q
         LEFT JOIN {$siteprefix}users AS u 
             ON q.user_id = u.id
-        WHERE q.status = 'approved'
+        WHERE q.status IN ('active', 'approved')
         ORDER BY q.created_at DESC
     ";
 
