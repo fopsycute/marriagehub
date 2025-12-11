@@ -84,7 +84,19 @@ $sql2 = mysqli_query($con, $sql);
 
 if ($sql2 && mysqli_num_rows($sql2) > 0) {
     $row = mysqli_fetch_array($sql2);
-    $apikey = $row["paystack_key"]; 
+    
+    // VPay Configuration
+    $vpay_domain = $row["vpay_domain"] ?? 'sandbox';
+    $vpay_test_key = $row["vpay_test_public_key"] ?? '';
+    $vpay_live_key = $row["vpay_live_public_key"] ?? '';
+    $payment_provider = $row["payment_provider"] ?? 'vpay';
+    
+    // Set active VPay key based on domain
+    $vpay_public_key = ($vpay_domain === 'live') ? $vpay_live_key : $vpay_test_key;
+    
+    // Legacy Paystack (deprecated)
+    $apikey = $row["legacy_paystack_key"] ?? $row["paystack_key"] ?? ''; 
+    
     $sitemail = $row["site_mail"];
     $sitenumber = $row["site_number"];
     $sitename = $row["site_name"]; 

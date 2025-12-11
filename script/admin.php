@@ -9337,7 +9337,13 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
     $account_name = mysqli_real_escape_string($con, trim($postData['account_name'] ?? ''));
     $account_number = mysqli_real_escape_string($con, trim($postData['account_number'] ?? ''));
     $minimum_withdrawal = mysqli_real_escape_string($con, trim($postData['minimum_withdrawal'] ?? ''));
-    $paystack_key = mysqli_real_escape_string($con, trim($postData['paystack_key'] ?? ''));
+    
+    // VPay payment configuration
+    $vpay_domain = mysqli_real_escape_string($con, trim($postData['vpay_domain'] ?? 'sandbox'));
+    $vpay_test_public_key = mysqli_real_escape_string($con, trim($postData['vpay_test_public_key'] ?? ''));
+    $vpay_live_public_key = mysqli_real_escape_string($con, trim($postData['vpay_live_public_key'] ?? ''));
+    $payment_provider = mysqli_real_escape_string($con, trim($postData['payment_provider'] ?? 'vpay'));
+    
     $google_map = mysqli_real_escape_string($con, trim($postData['google_map'] ?? ''));
     $site_address = mysqli_real_escape_string($con, trim($postData['address'] ?? ''));
     $com_fee = floatval($postData['com_fee'] ?? 0);
@@ -9384,7 +9390,10 @@ function updateAdminSettingsEndpoint($postData, $fileData) {
         site_mail='$site_mail',
         site_number='$site_number',
         site_bank='$site_bank',
-        paystack_key = '$paystack_key',
+        vpay_domain='$vpay_domain',
+        vpay_test_public_key='$vpay_test_public_key',
+        vpay_live_public_key='$vpay_live_public_key',
+        payment_provider='$payment_provider',
         account_name='$account_name',
         account_number='$account_number',
         site_address='$site_address',

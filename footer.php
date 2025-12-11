@@ -114,12 +114,24 @@
 
 
   <!-- Main JS File -->
-    <script src="https://js.paystack.co/v1/inline.js"></script> 
+    <!-- VPay Payment Library - dynamically loaded based on domain -->
+    <script>
+        const vpayDomain = document.getElementById('vpay-domain')?.value || 'sandbox';
+        const vpayScriptUrl = vpayDomain === 'live' 
+            ? 'https://dropin.vpay.africa/dropin/v1/initialise.js'
+            : 'https://dropin-sandbox.vpay.africa/dropin/v1/initialise.js';
+        
+        const vpayScript = document.createElement('script');
+        vpayScript.src = vpayScriptUrl;
+        vpayScript.async = true;
+        document.head.appendChild(vpayScript);
+    </script>
      <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
      <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
-       
+    <!-- VPay Payment Helper -->
+    <script src="<?php echo $siteurl; ?>assets/js/vpay-helper.js"></script>
   <script src="<?php echo $siteurl; ?>assets/js/main.js"></script>
     <script src="<?php echo $siteurl; ?>assets/js/api.js"></script>
      <script src="<?php echo $siteurl; ?>assets/js/other.js"></script>

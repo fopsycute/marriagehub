@@ -348,6 +348,12 @@
                 title: 'Promotional Codes System',
                 file: 'database/create_promo_codes.php',
                 description: 'Creates ma_promo_codes and ma_promo_usage tables for discount system'
+            },
+            {
+                id: 7,
+                title: 'VPay Payment System Migration',
+                file: 'database/migrate_to_vpay.php',
+                description: 'Migrates from Paystack to VPay payment system. Adds VPay configuration columns.'
             }
         ];
 

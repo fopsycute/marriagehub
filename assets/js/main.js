@@ -5,7 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const payBtn       = document.getElementById("payNowBtn");
     const priceElem    = document.getElementById("advert_price"); // e.g. "₦1,500"
     const totalPriceEl = document.getElementById("total_price");
-    const paystackKey  = document.getElementById("paystack-key").value;
+    const vpayKey      = document.getElementById("vpay-key")?.value;
+    const vpayDomain   = document.getElementById("vpay-domain")?.value || 'sandbox';
     const advertIdElem = document.getElementById("advert_id");
     const startInput   = document.getElementById("start_date");
     const endInput     = document.getElementById("end_date");
@@ -112,23 +113,48 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // --- Open Paystack payment popup ---
-        const handler = PaystackPop.setup({
-            key: paystackKey,
+        // --- Open VPay payment popup ---
+        const vpayOptions = {
+            amount: payAmount / 100, // VPay expects amount in Naira (not kobo)
+            currency: 'NGN',
+            domain: vpayDomain,
+            key: vpayKey,
             email: userEmail,
-            amount: payAmount,
-            currency: "NGN",
-            ref: reference,
-            callback: function () {
+            transactionref: reference,
+            customer_logo: siteUrl + 'assets/img/logo.png',
+            customer_service_channel: '+2348030007000, support@marriagehub.ng',
+            onSuccess: function(response) {
+                console.log('VPay Payment Success:', response);
                 // Redirect to verification page
                 window.location.href = `${siteUrl}verify-payment.php?action=verify-advert-payment&reference=${reference}`;
             },
-            onClose: function () {
+            onExit: function(response) {
+                console.log('VPay Payment Exit:', response);
                 alert("Payment window closed.");
             }
-        });
+        };
 
-        handler.openIframe();
+        // Wait for VPay library to load
+        const checkVPayLoaded = setInterval(() => {
+            if (window.VPayDropin) {
+                clearInterval(checkVPayLoaded);
+                try {
+                    const {open, exit} = VPayDropin.create(vpayOptions);
+                    open();
+                } catch (error) {
+                    console.error('VPay initialization error:', error);
+                    alert('Payment initialization failed. Please try again.');
+                }
+            }
+        }, 100);
+
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            if (!window.VPayDropin) {
+                clearInterval(checkVPayLoaded);
+                alert('Payment system not available. Please check your internet connection.');
+            }
+        }, 10000);
     });
 });
 
@@ -515,33 +541,64 @@ function showToast(message) {
   bootstrapToast.show();
 }
 
-function payWithPaystack() {
-  const key = document.getElementById('paystack-key').value;
+function payWithVPay() {
+  const vpayKey = document.getElementById('vpay-key')?.value;
+  const vpayDomain = document.getElementById('vpay-domain')?.value || 'sandbox';
   const email = document.getElementById('email')?.value || 'user@example.com';
-  const amount = parseFloat(document.getElementById('amount').value) * 100;
+  const amount = parseFloat(document.getElementById('amount').value); // VPay expects Naira, not kobo
   const ref = document.getElementById('ref').value + '_' + Date.now();
   const callbackUrl = document.getElementById('refer').value;
 
-  if (!key || !email || !amount) {
+  if (!vpayKey || !email || !amount) {
     alert('Missing payment details. Please refresh the page.');
     return;
   }
 
-  const handler = PaystackPop.setup({
-    key: key,
-    email: email,
+  const vpayOptions = {
     amount: amount,
-    currency: 'NGN', // ✅ Hardcoded to NGN directly here
-    ref: ref,
-    callback: function(response) {
+    currency: 'NGN',
+    domain: vpayDomain,
+    key: vpayKey,
+    email: email,
+    transactionref: ref,
+    customer_logo: document.getElementById('siteurl')?.value + 'assets/img/logo.png',
+    customer_service_channel: '+2348030007000, support@marriagehub.ng',
+    onSuccess: function(response) {
+      console.log('VPay Payment Success:', response);
       window.location.href = callbackUrl + "&transaction=" + response.reference;
     },
-    onClose: function() {
+    onExit: function(response) {
+      console.log('VPay Payment Exit:', response);
       alert('Payment window closed.');
     }
-  });
+  };
 
-  handler.openIframe();
+  // Wait for VPay library to load
+  const checkVPayLoaded = setInterval(() => {
+    if (window.VPayDropin) {
+      clearInterval(checkVPayLoaded);
+      try {
+        const {open, exit} = VPayDropin.create(vpayOptions);
+        open();
+      } catch (error) {
+        console.error('VPay initialization error:', error);
+        alert('Payment initialization failed. Please try again.');
+      }
+    }
+  }, 100);
+
+  // Timeout after 10 seconds
+  setTimeout(() => {
+    if (!window.VPayDropin) {
+      clearInterval(checkVPayLoaded);
+      alert('Payment system not available. Please check your internet connection.');
+    }
+  }, 10000);
+}
+
+// Keep backward compatibility alias
+function payWithPaystack() {
+  payWithVPay();
 }
 
 
@@ -806,28 +863,54 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!payBtn) return; // Stop if the button does not exist on this page
 
     payBtn.addEventListener("click", function () {
-        const paystackKey = document.getElementById("paystack-key").value;
+        const vpayKey = document.getElementById("vpay-key")?.value;
+        const vpayDomain = document.getElementById("vpay-domain")?.value || 'sandbox';
         const siteurl = document.getElementById("siteurl").value;
         const email = document.getElementById("client_email").value;
-        const amount = document.getElementById("booking_amount").value * 100;
+        const amount = document.getElementById("booking_amount").value; // VPay expects Naira
         const reference = document.getElementById("reference").value;
 
-        const handler = PaystackPop.setup({
-            key: paystackKey,
+        const vpayOptions = {
+            amount: parseFloat(amount),
+            currency: 'NGN',
+            domain: vpayDomain,
+            key: vpayKey,
             email: email,
-            amount: amount,
-            currency: "NGN",
-            ref: reference,
-            callback: function (response) {
+            transactionref: reference,
+            customer_logo: siteurl + 'assets/img/logo.png',
+            customer_service_channel: '+2348030007000, support@marriagehub.ng',
+            onSuccess: function(response) {
+                console.log('VPay Payment Success:', response);
                 window.location.href =
                     `${siteurl}verify-payment.php?action=verify-therapist-payment&reference=${response.reference}&booking_id=${reference}`;
             },
-            onClose: function () {
+            onExit: function(response) {
+                console.log('VPay Payment Exit:', response);
                 alert("Payment cancelled.");
             }
-        });
+        };
 
-        handler.openIframe();
+        // Wait for VPay library to load
+        const checkVPayLoaded = setInterval(() => {
+            if (window.VPayDropin) {
+                clearInterval(checkVPayLoaded);
+                try {
+                    const {open, exit} = VPayDropin.create(vpayOptions);
+                    open();
+                } catch (error) {
+                    console.error('VPay initialization error:', error);
+                    alert('Payment initialization failed. Please try again.');
+                }
+            }
+        }, 100);
+
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            if (!window.VPayDropin) {
+                clearInterval(checkVPayLoaded);
+                alert('Payment system not available. Please check your internet connection.');
+            }
+        }, 10000);
     });
 
 });
@@ -859,10 +942,10 @@ function updatePaymentButton() {
   } else {
     paymentButton.removeAttribute('data-bs-toggle');
     paymentButton.removeAttribute('data-bs-target');
-    paymentButton.setAttribute('onClick', 'payWithPaystack()');
-    paymentButton.classList.add('paystack-button');
+    paymentButton.setAttribute('onClick', 'payWithVPay()');
+    paymentButton.classList.add('vpay-button');
     paymentButton.innerHTML = `
-      <span class="btn-text">Pay with Paystack</span>
+      <span class="btn-text">Pay with VPay</span>
       <span class="btn-price">${siteCurrency}${orderTotal}</span>
     `;
   }
@@ -881,28 +964,30 @@ function updatePaymentButton() {
             const userId = this.getAttribute('data-user-id');
             const email = this.getAttribute('data-email');
             const duration = this.getAttribute('data-duration');
-            const key = document.getElementById('paystack-key').value;
+            const vpayKey = document.getElementById('vpay-key')?.value;
+            const vpayDomain = document.getElementById('vpay-domain')?.value || 'sandbox';
             const siteUrl = document.getElementById('siteurl').value;
 
-            let handler = PaystackPop.setup({
-                key: key,
+            const reference = 'GROUP' + Math.floor(Math.random() * 1000000000 + 1);
+
+            const vpayOptions = {
+                amount: parseFloat(amount), // VPay expects amount in Naira
+                currency: 'NGN',
+                domain: vpayDomain,
+                key: vpayKey,
                 email: email,
-                amount: amount * 100, // convert to kobo
-                currency: "NGN",
-                ref: 'GROUP' + Math.floor(Math.random() * 1000000000 + 1),
-                metadata: {
-                    custom_fields: [
-                        { display_name: "Group Name", variable_name: "group_name", value: groupName },
-                        { display_name: "Duration", variable_name: "duration", value: duration },
-                        { display_name: "User ID", variable_name: "user_id", value: userId },
-                        { display_name: "Group ID", variable_name: "group_id", value: groupId }
-                    ]
-                },
-                onClose: function() {
-                    alert('Payment window closed.');
-                },
-                callback: function(response) {
-                    // ✅ Redirect to verification page with ALL data
+                transactionref: reference,
+                customer_logo: siteUrl + 'assets/img/logo.png',
+                customer_service_channel: '+2348030007000, support@marriagehub.ng',
+                metadata: JSON.stringify({
+                    group_name: groupName,
+                    duration: duration,
+                    user_id: userId,
+                    group_id: groupId
+                }),
+                onSuccess: function(response) {
+                    console.log('VPay Payment Success:', response);
+                    // Redirect to verification page with ALL data
                     const queryString = new URLSearchParams({
                         action: 'verify-group-payment',
                         reference: response.reference,
@@ -914,9 +999,34 @@ function updatePaymentButton() {
                     }).toString();
 
                     window.location.href = `${siteUrl}verify-payment.php?${queryString}`;
+                },
+                onExit: function(response) {
+                    console.log('VPay Payment Exit:', response);
+                    alert('Payment window closed.');
                 }
-            });
-            handler.openIframe();
+            };
+
+            // Wait for VPay library to load
+            const checkVPayLoaded = setInterval(() => {
+                if (window.VPayDropin) {
+                    clearInterval(checkVPayLoaded);
+                    try {
+                        const {open, exit} = VPayDropin.create(vpayOptions);
+                        open();
+                    } catch (error) {
+                        console.error('VPay initialization error:', error);
+                        alert('Payment initialization failed. Please try again.');
+                    }
+                }
+            }, 100);
+
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                if (!window.VPayDropin) {
+                    clearInterval(checkVPayLoaded);
+                    alert('Payment system not available. Please check your internet connection.');
+                }
+            }, 10000);
         });
     });
 });
@@ -930,11 +1040,12 @@ document.addEventListener("DOMContentLoaded", function () {
     payButtons.forEach(button => {
         button.addEventListener("click", function () {
             const planId = button.dataset.planId;
-            const amount = parseFloat(button.dataset.amount) * 100; // Convert to kobo
+            const amount = parseFloat(button.dataset.amount); // VPay expects Naira
             const planName = button.dataset.planName;
             const userId = button.dataset.userId;
             const email = button.dataset.email;
-            const key = document.getElementById("paystack-key").value;
+            const vpayKey = document.getElementById("vpay-key")?.value;
+            const vpayDomain = document.getElementById("vpay-domain")?.value || 'sandbox';
             const siteurl = document.getElementById("siteurl").value;
 
             // ✅ Basic validation
@@ -943,22 +1054,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            const handler = PaystackPop.setup({
-                key: key,
-                email: email,
+            const reference = "VS-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
+            const vpayOptions = {
                 amount: amount,
-                currency: "NGN",
-                ref: "VS-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
-                metadata: {
-                    custom_fields: [
-                        {
-                            display_name: "Plan Name",
-                            variable_name: "plan_name",
-                            value: planName
-                        }
-                    ]
-                },
-                callback: function (response) {
+                currency: 'NGN',
+                domain: vpayDomain,
+                key: vpayKey,
+                email: email,
+                transactionref: reference,
+                customer_logo: siteurl + 'assets/img/logo.png',
+                customer_service_channel: '+2348030007000, support@marriagehub.ng',
+                metadata: JSON.stringify({
+                    plan_name: planName
+                }),
+                onSuccess: function(response) {
+                    console.log('VPay Payment Success:', response);
                     // ✅ Redirect with proper encoding
                     const redirectUrl =
                         `${siteurl}verify-payment.php?action=verify_payment` +
@@ -966,16 +1077,37 @@ document.addEventListener("DOMContentLoaded", function () {
                         `&plan_id=${encodeURIComponent(planId)}` +
                         `&user_id=${encodeURIComponent(userId)}` +
                         `&plan_name=${encodeURIComponent(planName)}` +
-                        `&amount=${amount / 100}`;
+                        `&amount=${amount}`;
 
                     window.location.href = redirectUrl;
                 },
-                onClose: function () {
+                onExit: function(response) {
+                    console.log('VPay Payment Exit:', response);
                     alert("Payment was canceled.");
                 }
-            });
+            };
 
-            handler.openIframe();
+            // Wait for VPay library to load
+            const checkVPayLoaded = setInterval(() => {
+                if (window.VPayDropin) {
+                    clearInterval(checkVPayLoaded);
+                    try {
+                        const {open, exit} = VPayDropin.create(vpayOptions);
+                        open();
+                    } catch (error) {
+                        console.error('VPay initialization error:', error);
+                        alert('Payment initialization failed. Please try again.');
+                    }
+                }
+            }, 100);
+
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                if (!window.VPayDropin) {
+                    clearInterval(checkVPayLoaded);
+                    alert('Payment system not available. Please check your internet connection.');
+                }
+            }, 10000);
         });
     });
 });

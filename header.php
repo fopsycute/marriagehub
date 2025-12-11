@@ -313,7 +313,10 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
 </div>
     </div>
   </header>
-<!-- Hidden key -->
+<!-- Hidden payment configuration -->
+<input type="hidden" id="vpay-key" value="<?php echo $vpay_public_key ?? ''; ?>">
+<input type="hidden" id="vpay-domain" value="<?php echo $vpay_domain ?? 'sandbox'; ?>">
+<input type="hidden" id="payment-provider" value="<?php echo $payment_provider ?? 'vpay'; ?>">
 <input type="hidden" id="paystack-key" value="<?php echo $apikey; ?>">
 <input type="hidden" id="order_id" value="<?php echo $order_id; ?>">
 <input type="hidden" value="<?php echo $siteurl; ?>" id="siteurl">
