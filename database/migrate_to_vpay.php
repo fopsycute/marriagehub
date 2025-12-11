@@ -62,5 +62,5 @@ echo "2. Test sandbox: fdcdb195-6553-4890-844c-ee576b7ea715\n";
 echo "3. Get your keys from: https://vpay.africa\n";
 echo "4. Switch domain to 'live' when ready for production\n";
 
-mysqli_close($con);
+// Connection will be closed automatically by connect.php shutdown function
 ?>
