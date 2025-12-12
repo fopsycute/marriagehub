@@ -328,8 +328,24 @@ if ($activeLog === 1 && isset($buyerVerified) && !$buyerVerified) {
       </a>
       
       <?php 
-      // Check if user is a regular buyer (not vendor/therapist)
-      if (empty($_COOKIE['vendor_auth']) && empty($_COOKIE['therapist_auth']) && !empty($_COOKIE['user_auth'])): 
+      // If user is a vendor, show switch to vendor dashboard
+      if (!empty($_COOKIE['vendor_auth']) && !empty($_COOKIE['user_auth'])): 
+      ?>
+      <a class="dropdown-item d-flex align-items-center" href="<?php echo $siteurl; ?>vendor/index.php">
+        <i class="bi bi-shop me-2"></i>
+        <span>Switch to Vendor Dashboard</span>
+      </a>
+      <?php 
+      // If user is a therapist, show switch to therapist dashboard
+      elseif (!empty($_COOKIE['therapist_auth']) && !empty($_COOKIE['user_auth'])): 
+      ?>
+      <a class="dropdown-item d-flex align-items-center" href="<?php echo $siteurl; ?>therapist-dashboard/index.php">
+        <i class="bi bi-heart-pulse me-2"></i>
+        <span>Switch to Therapist Dashboard</span>
+      </a>
+      <?php 
+      // If user is a regular buyer (not vendor/therapist), show become a seller option
+      elseif (empty($_COOKIE['vendor_auth']) && empty($_COOKIE['therapist_auth']) && !empty($_COOKIE['user_auth'])): 
       ?>
       <a class="dropdown-item d-flex align-items-center" href="<?php echo $siteurl; ?>register/vendor">
         <i class="bi bi-shop me-2"></i>
