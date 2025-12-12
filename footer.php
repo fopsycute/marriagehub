@@ -33,7 +33,19 @@
               <li><a href="<?php echo $siteurl; ?>cookie-policy.php">Cookie Policy</a></li>
           </ul>
         </div>
-
+   <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Our Services</h4>
+          <ul>
+            <li><a href="<?php echo $siteurl; ?>blog.php">Blog</a></li>
+            <li><a href="<?php echo $siteurl; ?>questions-answers.php">Questions & Answers</a></li>
+            <li><a href="<?php echo $siteurl; ?>all-groups.php">Groups & Tribes</a></li>
+            <li><a href="<?php echo $siteurl; ?>events.php">Events & Programs</a></li>
+            <li><a href="<?php echo $siteurl; ?>marketplace.php">Marketplace</a></li>
+            <li><a href="<?php echo $siteurl; ?>vendors.php">Vendor Directory</a></li>
+            <li><a href="<?php echo $siteurl; ?>find-therapist.php">Find Therapists & Counselors</a></li>
+            <li><a href="<?php echo $siteurl; ?>advertise.php">Advertise With Us</a></li>
+          </ul>
+        </div>
 <div class="col-lg-4 col-md-3">
 <div class="newsletter-box">
     <h3>Subscribe to Our Newsletter</h3>
@@ -47,19 +59,7 @@
    
 </div>
 </div>
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><a href="<?php echo $siteurl; ?>blog.php">Blog</a></li>
-            <li><a href="<?php echo $siteurl; ?>questions-answers.php">Questions & Answers</a></li>
-            <li><a href="<?php echo $siteurl; ?>all-groups.php">Groups & Tribes</a></li>
-            <li><a href="<?php echo $siteurl; ?>events.php">Events & Programs</a></li>
-            <li><a href="<?php echo $siteurl; ?>marketplace.php">Marketplace</a></li>
-            <li><a href="<?php echo $siteurl; ?>vendors.php">Vendor Directory</a></li>
-            <li><a href="<?php echo $siteurl; ?>find-therapist.php">Find Therapists & Counselors</a></li>
-            <li><a href="<?php echo $siteurl; ?>advertise.php">Advertise With Us</a></li>
-          </ul>
-        </div>
+     
     <!---
 
         <div class="col-lg-2 col-md-3 footer-links">
